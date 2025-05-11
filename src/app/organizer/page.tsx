@@ -1,0 +1,667 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import ProtectedRoute from '../../auth/protected-route';
+import { useAuth } from '../../auth/auth-context';
+import { useLanguage } from '../../i18n/language-context';
+import DashboardLayout from '../../components/layout/DashboardLayout';
+import { DashboardIcon, EventsIcon, ParticipantsIcon, ReportsIcon } from '../../components/layout/DashboardIcons';
+import Button from '../../components/ui/Button';
+import { useRouter } from 'next/navigation';
+import eventService, { Event } from '../../services/event-service';
+import EventDetailsModal from '../../components/events/EventDetailsModal';
+
+// Dashboard navigation with translations
+const getDashboardNavigation = (t: (key: string) => string) => [
+  { name: t('admin.overview'), href: '/organizer', icon: DashboardIcon, current: true },
+  { name: t('organizer.createEvent'), href: '/organizer/events', icon: EventsIcon, current: false },
+  { name: t('organizer.participants'), href: '/organizer/participants', icon: ParticipantsIcon, current: false },
+  { name: t('admin.reports'), href: '/organizer/reports', icon: ReportsIcon, current: false },
+];
+
+// Event Card Component
+const EventCard = ({ 
+  event, 
+  t, 
+  onEdit, 
+  onViewDetails, 
+  onDelete,
+  onMarkCompleted,
+  isDeletingThis
+}: { 
+  event: any, 
+  t: (key: string, params?: Record<string, string>) => string, 
+  onEdit: (id: number | string) => void,
+  onViewDetails: (event: any) => void,
+  onDelete: (id: number | string) => void,
+  onMarkCompleted: (id: number | string) => void,
+  isDeletingThis: boolean
+}) => {
+  // This translates the status for display
+  const getTranslatedStatus = (status: string) => {
+    if (status === 'published') return t('events.status.published');
+    if (status === 'draft') return t('events.status.draft');
+    if (status === 'completed') return t('events.status.completed');
+    if (status === 'canceled') return t('events.status.canceled');
+    return status;
+  };
+
+  // This formats the participant count with proper translation
+  const formatParticipantCount = (count: number) => {
+    return `${count} ${t('organizer.participants')}`;
+  };
+
+  // Handle edit button click
+  const handleEdit = () => {
+    onEdit(event._id || event.id);
+  };
+  
+  // Handle view details click
+  const handleViewDetails = () => {
+    onViewDetails(event);
+  };
+  
+  // Handle delete button click
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm(t('events.deleteConfirm'))) {
+      onDelete(event._id || event.id);
+    }
+  };
+  
+  // Handle mark as completed button click
+  const handleMarkAsCompleted = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onMarkCompleted(event._id || event.id);
+  };
+  // Get event small description by language
+  const getLocalizedSmallDescription = () => {
+    if (event.smallDescription) {
+      return event.smallDescription;
+    }
+    if (event.aboutEvent) {
+      return event.aboutEvent;
+    }
+    return '';
+  };
+  
+  // Get event title by language
+  const getLocalizedTitle = () => {
+    if (event.title) {
+      return event.title;
+    }
+    return event.name || t('events.untitledEvent');
+  };
+  
+  // Format date
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+
+  // Check if the event is deletable (draft or canceled)
+  const isDeletable = event.status === 'draft' || event.status === 'canceled';
+  
+  // Check if event has ended but not marked as completed/canceled
+  const hasEnded = new Date(event.endDate) < new Date() && 
+                  event.status !== 'completed' && 
+                  event.status !== 'canceled';
+
+  return (
+    <div className={`bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200 ${isDeletingThis ? 'opacity-60' : ''}`}>
+      {/* Cover image if available */}
+      {event.coverImage && (
+        <div 
+          className="h-40 w-full overflow-hidden cursor-pointer"
+          onClick={handleViewDetails}
+        >
+          <img 
+            src={event.coverImage} 
+            alt={getLocalizedTitle()} 
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
+      <div className="p-5">
+        <div className="flex justify-between items-start">
+          <div>
+            <h3 
+              className="text-lg font-medium text-[var(--sage-green)] cursor-pointer hover:underline"
+              onClick={handleViewDetails}
+            >
+              {getLocalizedTitle()}
+            </h3>
+            <p className="mt-1 text-sm text-black">
+              {event.startDate 
+                ? formatDate(event.startDate) 
+                : event.date}
+            </p>
+          </div>
+          <span 
+            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+            ${event.status === 'published' ? 'bg-[var(--sage)] text-black' : 
+              event.status === 'draft' ? 'bg-[var(--cognac)] text-black' : 
+              event.status === 'canceled' ? 'bg-red-200 text-red-800' :
+              event.status === 'completed' ? 'bg-blue-200 text-blue-800' :
+              'bg-[var(--taupe)] text-black'}`}
+            title={hasEnded && event.status === 'published' ? t('events.status.endedTip') : ''}
+          >
+            {hasEnded && event.status === 'published' ? t('events.status.ended') : getTranslatedStatus(event.status)}
+          </span>
+        </div>
+        
+        {/* Short description preview */}
+        <div className="mt-2">
+          <p className="text-sm text-gray-600 line-clamp-2">
+            {getLocalizedSmallDescription()}
+          </p>
+        </div>
+        
+        <div className="mt-4">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center">
+              <ParticipantsIcon className="h-5 w-5 text-[var(--sage-green)] mr-2" />
+              <span className="text-black">{formatParticipantCount(event.participants || 0)}</span>
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                size="sm" 
+                variant="secondary" 
+                onClick={handleViewDetails}
+                disabled={isDeletingThis}
+              >
+                {t('events.details')}
+              </Button>
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={handleEdit}
+                disabled={isDeletingThis}
+              >
+                {t('organizer.manage')}
+              </Button>
+              {hasEnded && event.status === 'published' && (
+                <Button 
+                  size="sm" 
+                  variant="success" 
+                  onClick={handleMarkAsCompleted}
+                  disabled={isDeletingThis}
+                  title={t('events.markCompletedTip')}
+                >
+                  {isDeletingThis ? (
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </Button>
+              )}
+              {isDeletable && (
+                <Button 
+                  size="sm" 
+                  variant="danger" 
+                  onClick={handleDelete}
+                  disabled={isDeletingThis}
+                  title={t('events.quickDelete')}
+                >
+                  {isDeletingThis ? (
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function OrganizerPage() {
+  const { user } = useAuth();
+  const { t } = useLanguage();
+  const [activeTab, setActiveTab] = useState('upcoming');
+  const [events, setEvents] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
+  const router = useRouter();
+
+  // Get navigation with translated items
+  const navigation = getDashboardNavigation(t);
+
+  // Fetch events on component mount
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setIsLoading(true);
+        const response = await eventService.getOrganizerEvents();
+        
+        if (response.success && response.data) {
+          setEvents(response.data.events);
+        } else {
+          setError(response.message || t('common.error'));
+        }
+      } catch (err: any) {
+        setError(err.message || t('common.error'));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchEvents();
+  }, [t]);
+
+  // Calculate stats
+  const stats = {
+    totalEvents: events.length.toString(),
+    activeEvents: events.filter(e => e.status === 'published').length.toString(),
+    participantsCount: events.reduce((sum, e) => sum + (e.participants || 0), 0).toString(),
+    completedEvents: events.filter(e => e.status === 'completed').length.toString()
+  };
+
+  // Filter events by status and date for upcoming and past tabs
+  const currentDate = new Date();
+  
+  const upcomingEvents = events.filter(e => {
+    // Check if end date is in the future
+    const endDate = new Date(e.endDate);
+    return endDate >= currentDate && (e.status === 'published' || e.status === 'draft');
+  });
+  
+  const pastEvents = events.filter(e => {
+    // Check if end date is in the past or event is completed/canceled
+    const endDate = new Date(e.endDate);
+    return endDate < currentDate || e.status === 'completed' || e.status === 'canceled';
+  });
+
+  // Handle edit event
+  const handleEditEvent = (id: string | number) => {
+    router.push(`/organizer/events/edit/${id}`);
+  };
+
+  // Handle create event
+  const handleCreateEvent = () => {
+    router.push('/organizer/events/create');
+  };
+  
+  // Handle view event details
+  const handleViewEventDetails = (event: Event) => {
+    setSelectedEvent(event);
+    setIsModalOpen(true);
+  };
+  
+  // Handle delete event
+  const handleDeleteEvent = async (id: string | number) => {
+    try {
+      setDeletingEventId(id.toString());
+      setError(null);
+      setSuccessMessage(null);
+      const response = await eventService.deleteEvent(id.toString());
+      
+      if (response.success) {
+        // Remove the deleted event from the state
+        setEvents(events.filter(event => (event._id || event.id) !== id));
+        setSuccessMessage(t('events.deleteSuccess'));
+        
+        // Auto-clear success message after 3 seconds
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 3000);
+      } else {
+        setError(response.message || t('common.error'));
+      }
+    } catch (err: any) {
+      setError(err.message || t('common.error'));
+    } finally {
+      setDeletingEventId(null);
+    }
+  };
+  
+  // Handle marking event as completed
+  const handleMarkAsCompleted = async (id: string | number) => {
+    try {
+      setDeletingEventId(id.toString()); // Reuse the same state for loading indicator
+      setError(null);
+      setSuccessMessage(null);
+      
+      const response = await eventService.changeEventStatus(id.toString(), 'completed');
+      
+      if (response.success) {
+        // Update the event status in the state
+        setEvents(events.map(event => 
+          (event._id || event.id) === id 
+            ? { ...event, status: 'completed' } 
+            : event
+        ));
+        setSuccessMessage(t('events.markCompletedSuccess'));
+        
+        // Auto-clear success message after 3 seconds
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 3000);
+      } else {
+        setError(response.message || t('common.error'));
+      }
+    } catch (err: any) {
+      setError(err.message || t('common.error'));
+    } finally {
+      setDeletingEventId(null);
+    }
+  };
+  
+  // Close modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  return (
+    <ProtectedRoute organizerOnly>
+      <DashboardLayout title={t('organizer.dashboard')} navigation={navigation}>
+        {/* Welcome Message */}
+        <div className="pb-5 border-b border-[var(--cognac)]">
+          <h2 className="text-2xl leading-6 font-bold text-[var(--sage-green)]">
+            {t('organizer.welcome', { name: user?.firstName || '' })}
+          </h2>
+          <p className="mt-2 max-w-4xl text-sm text-black">
+            {t('organizer.subheading')}
+          </p>
+        </div>
+        
+        {/* Status Messages */}
+        {error && (
+          <div className="mt-4 mb-4 bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+        
+        {successMessage && (
+          <div className="mt-4 mb-4 bg-green-50 border border-green-300 text-green-700 px-4 py-3 rounded flex items-center">
+            <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {successMessage}
+          </div>
+        )}
+
+        {/* Stats Row */}
+        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 rounded-md p-3 bg-[var(--sage-green)]">
+                  <EventsIcon className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
+                      {t('organizer.totalEvents')}
+                    </dt>
+                    <dd>
+                      <div className="text-lg font-medium text-black">
+                        {stats.totalEvents}
+                      </div>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 rounded-md p-3 bg-[var(--sage)]">
+                  <EventsIcon className="h-6 w-6 text-black" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
+                      {t('organizer.activeEvents')}
+                    </dt>
+                    <dd>
+                      <div className="text-lg font-medium text-black">
+                        {stats.activeEvents}
+                      </div>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 rounded-md p-3 bg-[var(--cognac)]">
+                  <ParticipantsIcon className="h-6 w-6 text-black" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
+                      {t('organizer.totalParticipants')}
+                    </dt>
+                    <dd>
+                      <div className="text-lg font-medium text-black">
+                        {stats.participantsCount}
+                      </div>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white overflow-hidden shadow rounded-lg">
+            <div className="p-5">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 rounded-md p-3 bg-[var(--taupe)]">
+                  <EventsIcon className="h-6 w-6 text-[var(--sage-green)]" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
+                      {t('organizer.completedEvents')}
+                    </dt>
+                    <dd>
+                      <div className="text-lg font-medium text-black">
+                        {stats.completedEvents}
+                      </div>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Event Tabs */}
+        <div className="mt-8">
+          <div className="sm:hidden">
+            <label htmlFor="tabs" className="sr-only">Select a tab</label>
+            <select
+              id="tabs"
+              name="tabs"
+              className="block w-full pl-3 pr-10 py-2 text-base border-[var(--cognac)] focus:outline-none focus:ring-[var(--sage-green)] focus:border-[var(--sage-green)] sm:text-sm rounded-md"
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+            >
+              <option value="upcoming">{t('organizer.upcomingEvents')}</option>
+              <option value="past">{t('organizer.pastEvents')}</option>
+              <option value="create">{t('organizer.createEvent')}</option>
+            </select>
+          </div>
+          <div className="hidden sm:block">
+            <div className="border-b border-[var(--cognac)]">
+              <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+                <button
+                  onClick={() => setActiveTab('upcoming')}
+                  className={`${
+                    activeTab === 'upcoming'
+                      ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
+                      : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                >
+                  {t('organizer.upcomingEvents')}
+                </button>
+                <button
+                  onClick={() => setActiveTab('past')}
+                  className={`${
+                    activeTab === 'past'
+                      ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
+                      : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                >
+                  {t('organizer.pastEvents')}
+                </button>
+                <button
+                  onClick={() => setActiveTab('create')}
+                  className={`${
+                    activeTab === 'create'
+                      ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
+                      : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                >
+                  {t('organizer.createEvent')}
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div className="mt-6">
+          {activeTab === 'upcoming' && (
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)]">
+                  {t('organizer.upcomingEvents')}
+                </h3>
+                <Button size="sm" onClick={handleCreateEvent}>
+                  <span className="flex items-center">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    {t('organizer.newEvent')}
+                  </span>
+                </Button>
+              </div>
+              
+              {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
+                </div>
+              ) : error ? (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  {error}
+                </div>
+              ) : upcomingEvents.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {upcomingEvents.map((event) => (
+                    <EventCard 
+                      key={event._id || event.id} 
+                      event={event} 
+                      t={t} 
+                      onEdit={handleEditEvent}
+                      onViewDetails={handleViewEventDetails}
+                      onDelete={handleDeleteEvent}
+                      onMarkCompleted={handleMarkAsCompleted}
+                      isDeletingThis={deletingEventId === (event._id || event.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center text-gray-500">
+                  {t('organizer.noUpcomingEvents')}
+                  <div className="mt-4">
+                    <Button onClick={handleCreateEvent}>
+                      {t('organizer.createFirstEvent')}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'past' && (
+            <div>
+              <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)] mb-4">
+                {t('organizer.pastEvents')}
+              </h3>
+              
+              {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
+                </div>
+              ) : error ? (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                  {error}
+                </div>
+              ) : pastEvents.length > 0 ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {pastEvents.map((event) => (
+                    <EventCard 
+                      key={event._id || event.id} 
+                      event={event} 
+                      t={t} 
+                      onEdit={handleEditEvent}
+                      onViewDetails={handleViewEventDetails}
+                      onDelete={handleDeleteEvent}
+                      onMarkCompleted={handleMarkAsCompleted}
+                      isDeletingThis={deletingEventId === (event._id || event.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center text-gray-500">
+                  {t('organizer.noPastEvents')}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'create' && (
+            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+              <div className="px-4 py-5 sm:p-6">
+                <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)]">
+                  {t('organizer.createNewEvent')}
+                </h3>
+                <div className="mt-2 max-w-xl text-sm text-black">
+                  <p>{t('organizer.createNewEventDescription')}</p>
+                </div>
+                <Button
+                  className="mt-5"
+                  onClick={handleCreateEvent}
+                >
+                  {t('organizer.openAdvancedCreator')}
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Event Details Modal */}
+        <EventDetailsModal
+          event={selectedEvent}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          onEdit={handleEditEvent}
+        />
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
+} 

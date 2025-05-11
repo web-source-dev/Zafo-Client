@@ -1,0 +1,81 @@
+'use client';
+
+import React, { ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from './auth-context';
+
+interface ProtectedRouteProps {
+  children: ReactNode;
+  adminOnly?: boolean;
+  organizerOnly?: boolean;
+  fallbackUrl?: string;
+}
+
+/**
+ * Higher-order component for protecting routes based on authentication and roles
+ * 
+ * Usage examples:
+ * - Basic authentication protection:
+ *   <ProtectedRoute>
+ *     <YourComponent />
+ *   </ProtectedRoute>
+ * 
+ * - Admin-only protection:
+ *   <ProtectedRoute adminOnly>
+ *     <AdminComponent />
+ *   </ProtectedRoute>
+ * 
+ * - Organizer protection (allows both organizers and admins):
+ *   <ProtectedRoute organizerOnly>
+ *     <OrganizerComponent />
+ *   </ProtectedRoute>
+ */
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  adminOnly = false, 
+  organizerOnly = false,
+  fallbackUrl = '/login'
+}) => {
+  const { isAuthenticated, isAdmin, isOrganizer, isLoading } = useAuth();
+  const router = useRouter();
+
+  // Show nothing while authentication is being checked
+  if (isLoading) {
+    return null;
+  }
+
+  // Redirect if not authenticated
+  if (!isAuthenticated) {
+    // Use redirects on client-side only
+    if (typeof window !== 'undefined') {
+      console.log('Not authenticated, redirecting to:', fallbackUrl);
+      router.push(fallbackUrl);
+    }
+    return null;
+  }
+
+  // Check admin access if required
+  if (adminOnly && !isAdmin) {
+    // Use redirects on client-side only
+    if (typeof window !== 'undefined') {
+      console.log('Admin access required, redirecting to unauthorized page');
+      router.push('/unauthorized');
+    }
+    return null;
+  }
+
+  // Check organizer access if required
+  if (organizerOnly && !isOrganizer) {
+    // Use redirects on client-side only
+    if (typeof window !== 'undefined') {
+      console.log('Organizer access required, redirecting to unauthorized page');
+      router.push('/unauthorized');
+    }
+    return null;
+  }
+
+  // If all checks pass, render the protected content
+  return <>{children}</>;
+};
+
+export default ProtectedRoute; 
