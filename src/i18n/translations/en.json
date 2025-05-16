@@ -105,6 +105,8 @@
   "events.addToFavorites": "Add to favorites",
   "events.event_singular": "event",
   "events.event_plural": "events",
+  "events.event_singular_de": "Veranstaltung",
+  "events.event_plural_de": "Veranstaltungen",
 
   "events.categories.music": "Music",
   "events.categories.nightlife": "Nightlife",

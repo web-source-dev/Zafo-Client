@@ -23,12 +23,12 @@ export default function Home() {
   const categories = [
     { id: 'music', name: t('events.categories.music'), icon: '/icons/music.svg', color: 'sage-green', eventCount: 24 },
     { id: 'nightlife', name: t('events.categories.nightlife'), icon: '/icons/disco-ball.svg', color: 'cognac', eventCount: 18 },
-    { id: 'performing-arts', name: t('events.categories.performingArts'), icon: '/icons/theatre.svg', color: 'sage', eventCount: 12 },
+    { id: 'performingArts', name: t('events.categories.performingArts'), icon: '/icons/theatre.svg', color: 'sage', eventCount: 12 },
     { id: 'holidays', name: t('events.categories.holidays'), icon: '/icons/calendar-heart.svg', color: 'taupe', eventCount: 8 },
     { id: 'dating', name: t('events.categories.dating'), icon: '/icons/chat.svg', color: 'cognac', eventCount: 15 },
     { id: 'hobbies', name: t('events.categories.hobbies'), icon: '/icons/controller.svg', color: 'sage', eventCount: 20 },
     { id: 'business', name: t('events.categories.business'), icon: '/icons/presentation.svg', color: 'sage-green', eventCount: 9 },
-    { id: 'food-drink', name: t('events.categories.foodDrink'), icon: '/icons/food.svg', color: 'cognac', eventCount: 16 },
+    { id: 'foodDrink', name: t('events.categories.foodDrink'), icon: '/icons/food.svg', color: 'cognac', eventCount: 16 },
   ];
 
   // Sample data for destinations

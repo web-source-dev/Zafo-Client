@@ -113,6 +113,8 @@
   "events.categories.hobbies": "Hobbys",
   "events.categories.business": "Business",
   "events.categories.foodDrink": "Essen & Trinken",
+  "events.categories.fooddrink": "Essen & Trinken",
+  "events.categories.performingarts": "Darstellende & Bildende Künste",
   
   "events.categories.conference": "Konferenz",
   "events.categories.workshop": "Workshop",
