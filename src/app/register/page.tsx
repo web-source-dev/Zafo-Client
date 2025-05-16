@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import RegisterForm from '../../components/auth/RegisterForm';
 import { useAuth } from '../../auth/auth-context';
 import { useLanguage } from '../../i18n/language-context';
 
-export default function RegisterPage() {
+// Create a client component that uses useSearchParams
+function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, isLoading } = useAuth();
@@ -48,5 +49,18 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Export the main page component with Suspense
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[var(--taupe)] flex justify-center items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
+      </div>
+    }>
+      <RegisterContent />
+    </Suspense>
   );
 } 

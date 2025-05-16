@@ -7,11 +7,6 @@ import PlansFAQ from '@/components/sections/plans/FAQ';
 import { useLanguage } from '@/i18n/language-context';
 import Head from 'next/head';
 
-export const metadata = {
-  title: 'Pricing Plans | Zafo',
-  description: 'Choose the perfect Zafo plan for your event needs. From free accounts to professional organizer plans, find the right option for you.'
-};
-
 const PlansPage: React.FC = () => {
   const { t } = useLanguage();
   

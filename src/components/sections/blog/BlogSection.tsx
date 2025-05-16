@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useLanguage } from '@/i18n/language-context';
 import { FiSearch, FiCalendar, FiUser, FiTag, FiArrowRight } from 'react-icons/fi';
-import { getBlogPosts } from '@/app/blog/[slug]/page';
+import { getBlogPosts } from '@/lib/blogData';
 
 // Define interface for blog post data
 interface BlogPost {
