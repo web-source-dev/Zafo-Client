@@ -189,9 +189,9 @@ export default function UserDetailPage() {
       if (!response.success) {
         setError(response.message || (isNewUser ? t('admin.createUserError') : t('admin.updateUserError')));
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving user:', err);
-      setError(err.message || (isNewUser ? t('admin.createUserError') : t('admin.updateUserError')));
+      setError((isNewUser ? t('admin.createUserError') : t('admin.updateUserError')));
     } finally {
       setIsSaving(false);
     }

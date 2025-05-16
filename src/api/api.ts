@@ -4,8 +4,17 @@ import authService from '../services/auth-service';
 // API base URL from environment or default to localhost
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+// Define generic types for API data
+export type ApiData = Record<string, unknown>;
+
+// API error response data interface
+interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+}
+
 // API response interface
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = ApiData> {
   success: boolean;
   message?: string;
   data?: T;
@@ -56,11 +65,11 @@ class Api {
    * @param config Optional axios config
    * @returns Promise with response data
    */
-  async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  async get<T = ApiData>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     try {
       const response: AxiosResponse = await apiInstance.get(url, config);
       return this.formatResponse<T>(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this.formatError<T>(error);
     }
   }
@@ -72,11 +81,11 @@ class Api {
    * @param config Optional axios config
    * @returns Promise with response data
    */
-  async post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  async post<T = ApiData>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     try {
       const response: AxiosResponse = await apiInstance.post(url, data, config);
       return this.formatResponse<T>(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this.formatError<T>(error);
     }
   }
@@ -88,11 +97,11 @@ class Api {
    * @param config Optional axios config
    * @returns Promise with response data
    */
-  async put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  async put<T = ApiData>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     try {
       const response: AxiosResponse = await apiInstance.put(url, data, config);
       return this.formatResponse<T>(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this.formatError<T>(error);
     }
   }
@@ -103,11 +112,11 @@ class Api {
    * @param config Optional axios config
    * @returns Promise with response data
    */
-  async delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  async delete<T = ApiData>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     try {
       const response: AxiosResponse = await apiInstance.delete(url, config);
       return this.formatResponse<T>(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this.formatError<T>(error);
     }
   }
@@ -119,11 +128,11 @@ class Api {
    * @param config Optional axios config
    * @returns Promise with response data
    */
-  async patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+  async patch<T = ApiData>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
     try {
       const response: AxiosResponse = await apiInstance.patch(url, data, config);
       return this.formatResponse<T>(response);
-    } catch (error: any) {
+    } catch (error: unknown) {
       return this.formatError<T>(error);
     }
   }
@@ -149,11 +158,21 @@ class Api {
    * @param error Axios error
    * @returns Formatted API error response
    */
-  private formatError<T>(error: any): ApiResponse<T> {
+  private formatError<T>(error: unknown): ApiResponse<T> {
+    if (axios.isAxiosError(error)) {
+      const responseData = error.response?.data as ApiErrorResponse | undefined;
+      
+      return {
+        success: false,
+        message: responseData?.message || 'An error occurred',
+        error: responseData?.error || error.message
+      };
+    }
+    
     return {
       success: false,
-      message: error.response?.data?.message || 'An error occurred',
-      error: error.response?.data?.error || error.message
+      message: 'An unknown error occurred',
+      error: error instanceof Error ? error.message : String(error)
     };
   }
 }

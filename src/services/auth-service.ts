@@ -1,7 +1,13 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 // API base URL from environment or default to localhost
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+
+// Error response interface
+export interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+}
 
 // User interface
 export interface User {
@@ -69,11 +75,12 @@ class AuthService {
       }
       
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       return {
         success: false,
-        message: error.response?.data?.message || 'Registration failed',
-        error: error.response?.data?.error || error.message
+        message: axiosError.response?.data?.message || 'Registration failed',
+        error: axiosError.response?.data?.error || axiosError.message
       };
     }
   }
@@ -93,11 +100,12 @@ class AuthService {
       }
       
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       return {
         success: false,
-        message: error.response?.data?.message || 'Login failed',
-        error: error.response?.data?.error || error.message
+        message: axiosError.response?.data?.message || 'Login failed',
+        error: axiosError.response?.data?.error || axiosError.message
       };
     }
   }
@@ -211,11 +219,12 @@ class AuthService {
       }
       
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
       return {
         success: false,
-        message: error.response?.data?.message || 'Profile update failed',
-        error: error.response?.data?.error || error.message
+        message: axiosError.response?.data?.message || 'Profile update failed',
+        error: axiosError.response?.data?.error || axiosError.message
       };
     }
   }

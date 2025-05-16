@@ -9,6 +9,9 @@ import DashboardLayout from '../../../../../components/layout/DashboardLayout';
 import eventService, { Event } from '../../../../../services/event-service';
 import { DashboardIcon, EventsIcon, RolesIcon } from '../../../../../components/layout/DashboardIcons';
 
+// Type for the translation function
+type TranslationFunction = (key: string, params?: Record<string, string>) => string;
+
 export default function EditEventPage() {
   const { t } = useLanguage();
   const params = useParams();
@@ -17,7 +20,7 @@ export default function EditEventPage() {
   const [error, setError] = useState<string | null>(null);
   
   // Get navigation with translated items
-  const getDashboardNavigation = (t: any) => [
+  const getDashboardNavigation = (t: TranslationFunction) => [
     { name: t('common.dashboard'), href: '/organizer', icon: DashboardIcon },
     { name: t('organizer.createEvent'), href: '/organizer/events/create', icon: EventsIcon },
     { name: t('common.profile'), href: '/profile', icon: RolesIcon },
@@ -39,8 +42,9 @@ export default function EditEventPage() {
         } else {
           setError(response.message || t('events.notFound'));
         }
-      } catch (err: any) {
-        setError(err.message || t('common.error'));
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        setError(error.message || t('common.error'));
       } finally {
         setIsLoading(false);
       }

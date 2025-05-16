@@ -43,6 +43,7 @@ const DateTimeSection: React.FC<DateTimeSectionProps> = ({ defaultOpen = false }
         day: 'numeric'
       });
     } catch (e) {
+      console.error('Error formatting date:', e);
       return dateString;
     }
   };
@@ -60,6 +61,7 @@ const DateTimeSection: React.FC<DateTimeSectionProps> = ({ defaultOpen = false }
         minute: '2-digit'
       });
     } catch (e) {
+      console.error('Error formatting time:', e);
       return timeString;
     }
   };

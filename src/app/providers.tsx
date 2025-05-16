@@ -3,7 +3,6 @@
 import React, { ReactNode } from 'react';
 import { AuthProvider } from '../auth/auth-context';
 import { LanguageProvider } from '../i18n/language-context';
-
 interface ProvidersProps {
   children: ReactNode;
 }

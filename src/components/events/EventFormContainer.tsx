@@ -4,9 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../i18n/language-context';
-import { useAuth } from '../../auth/auth-context';
 import Button from '../ui/Button';
-import { Eye, Save, ArrowLeft } from 'lucide-react';
+import { Save, ArrowLeft } from 'lucide-react';
 import eventService, { Event } from '../../services/event-service';
 import { EventFormData } from './EventFormTypes';
 import BasicInfoSection from './sections/BasicInfoSection';
@@ -24,14 +23,11 @@ interface EventFormContainerProps {
   event?: Event;
   isEdit?: boolean;
 }
-
 const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit = false }) => {
   const { t } = useLanguage();
-  const { user } = useAuth();
   const router = useRouter();
   
   // Form state
-  const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -162,7 +158,7 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
   }, [event, isEdit, methods]);
   
   // Handle form submission
-  const onSubmit = async (data: EventFormData, saveAsDraft: boolean = false) => {
+  const onSubmit = async (data: EventFormData, saveAsDraft = false) => {
     try {
       setIsSubmitting(true);
       setError(null);
@@ -253,13 +249,13 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
       }
       
       // Prepare event data
-      const eventData: any = {
+      const eventData = {
         title: data.title,
         smallDescription: data.smallDescription,
         aboutEvent: data.aboutEvent,
         startDate,
         endDate,
-        category: data.category,
+        category: data.category as 'conference' | 'workshop' | 'seminar' | 'networking' | 'social' | 'other',
         capacity: data.capacity,
         registrationDeadline: data.registrationDeadline ? new Date(data.registrationDeadline) : undefined,
         location: {
@@ -275,7 +271,7 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
         },
         tags: data.tags.filter(tag => tag.trim() !== ''),
         isPublic: data.isPublic,
-        status: saveAsDraft ? 'draft' as const : 'published' as const,
+        status: saveAsDraft ? 'draft' : 'published',
         refundPolicy: data.refundPolicy,
         eventIncludes: data.eventIncludes,
         ageRange: data.ageRange,
@@ -284,7 +280,8 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
         speakers: processedSpeakers,
         additionalFields: data.additionalFields,
         seo: {
-          ...data.seo,
+          metaTitle: data.seo?.metaTitle || '',
+          metaDescription: data.seo?.metaDescription || '',
           ogImage: ogImageBase64
         },
         coverImage: coverImageBase64,
@@ -294,9 +291,12 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
       // Create or update event
       let response;
       if (isEdit && event) {
-        response = await eventService.updateEvent(event._id, eventData);
+        response = await eventService.updateEvent(event._id, eventData as Partial<Event>);
       } else {
-        response = await eventService.createEvent(eventData as any);
+        response = await eventService.createEvent({
+          ...eventData,
+          organizer: ''
+        } as unknown as Event);
       }
       
       // Handle response
@@ -315,8 +315,9 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
       } else {
         setError(response.message || t('common.error'));
       }
-    } catch (err: any) {
-      setError(err.message || t('common.error'));
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error.message || t('common.error'));
     } finally {
       setIsSubmitting(false);
     }

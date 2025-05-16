@@ -10,9 +10,21 @@ import Button from '../../components/ui/Button';
 import { useRouter } from 'next/navigation';
 import eventService, { Event } from '../../services/event-service';
 import EventDetailsModal from '../../components/events/EventDetailsModal';
+import Image from 'next/image';
+
+// Type for the translation function
+type TranslationFunction = (key: string, params?: Record<string, string>) => string;
+
+// Extended Event type for UI purposes
+interface UIEvent extends Event {
+  id?: string;
+  name?: string;
+  date?: string;
+  participants?: number;
+}
 
 // Dashboard navigation with translations
-const getDashboardNavigation = (t: (key: string) => string) => [
+const getDashboardNavigation = (t: TranslationFunction) => [
   { name: t('admin.overview'), href: '/organizer', icon: DashboardIcon, current: true },
   { name: t('organizer.createEvent'), href: '/organizer/events', icon: EventsIcon, current: false },
   { name: t('organizer.participants'), href: '/organizer/participants', icon: ParticipantsIcon, current: false },
@@ -29,10 +41,10 @@ const EventCard = ({
   onMarkCompleted,
   isDeletingThis
 }: { 
-  event: any, 
-  t: (key: string, params?: Record<string, string>) => string, 
+  event: UIEvent, 
+  t: TranslationFunction, 
   onEdit: (id: number | string) => void,
-  onViewDetails: (event: any) => void,
+  onViewDetails: (event: UIEvent) => void,
   onDelete: (id: number | string) => void,
   onMarkCompleted: (id: number | string) => void,
   isDeletingThis: boolean
@@ -53,7 +65,7 @@ const EventCard = ({
 
   // Handle edit button click
   const handleEdit = () => {
-    onEdit(event._id || event.id);
+    onEdit(event._id);
   };
   
   // Handle view details click
@@ -65,14 +77,14 @@ const EventCard = ({
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (window.confirm(t('events.deleteConfirm'))) {
-      onDelete(event._id || event.id);
+      onDelete(event._id);
     }
   };
   
   // Handle mark as completed button click
   const handleMarkAsCompleted = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onMarkCompleted(event._id || event.id);
+    onMarkCompleted(event._id);
   };
   // Get event small description by language
   const getLocalizedSmallDescription = () => {
@@ -94,9 +106,9 @@ const EventCard = ({
   };
   
   // Format date
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString();
+  const formatDate = (date: Date | string) => {
+    const dateObj = date instanceof Date ? date : new Date(date);
+    return dateObj.toLocaleDateString();
   };
 
   // Check if the event is deletable (draft or canceled)
@@ -112,13 +124,15 @@ const EventCard = ({
       {/* Cover image if available */}
       {event.coverImage && (
         <div 
-          className="h-40 w-full overflow-hidden cursor-pointer"
+          className="h-40 w-full overflow-hidden cursor-pointer relative"
           onClick={handleViewDetails}
         >
-          <img 
+          <Image 
             src={event.coverImage} 
             alt={getLocalizedTitle()} 
-            className="w-full h-full object-cover"
+            className="object-cover"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         </div>
       )}
@@ -232,11 +246,11 @@ export default function OrganizerPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('upcoming');
-  const [events, setEvents] = useState<any[]>([]);
+  const [events, setEvents] = useState<UIEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<UIEvent | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
   const router = useRouter();
@@ -256,8 +270,9 @@ export default function OrganizerPage() {
         } else {
           setError(response.message || t('common.error'));
         }
-      } catch (err: any) {
-        setError(err.message || t('common.error'));
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        setError(error.message || t('common.error'));
       } finally {
         setIsLoading(false);
       }
@@ -300,7 +315,7 @@ export default function OrganizerPage() {
   };
   
   // Handle view event details
-  const handleViewEventDetails = (event: Event) => {
+  const handleViewEventDetails = (event: UIEvent) => {
     setSelectedEvent(event);
     setIsModalOpen(true);
   };
@@ -315,7 +330,7 @@ export default function OrganizerPage() {
       
       if (response.success) {
         // Remove the deleted event from the state
-        setEvents(events.filter(event => (event._id || event.id) !== id));
+        setEvents(events.filter(event => event._id !== id));
         setSuccessMessage(t('events.deleteSuccess'));
         
         // Auto-clear success message after 3 seconds
@@ -325,8 +340,9 @@ export default function OrganizerPage() {
       } else {
         setError(response.message || t('common.error'));
       }
-    } catch (err: any) {
-      setError(err.message || t('common.error'));
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error.message || t('common.error'));
     } finally {
       setDeletingEventId(null);
     }
@@ -344,7 +360,7 @@ export default function OrganizerPage() {
       if (response.success) {
         // Update the event status in the state
         setEvents(events.map(event => 
-          (event._id || event.id) === id 
+          event._id === id 
             ? { ...event, status: 'completed' } 
             : event
         ));
@@ -357,8 +373,9 @@ export default function OrganizerPage() {
       } else {
         setError(response.message || t('common.error'));
       }
-    } catch (err: any) {
-      setError(err.message || t('common.error'));
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error.message || t('common.error'));
     } finally {
       setDeletingEventId(null);
     }

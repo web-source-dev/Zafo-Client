@@ -103,7 +103,7 @@ const EventSection: React.FC<EventSectionProps> = ({
                   <X size={14} className="mr-1.5" />
                   Close Editor
                 </button>
-                <p className="text-xs text-gray-500 mt-1">Changes will only be saved when you click the "Save" or "Publish" button at the bottom of the page.</p>
+                <p className="text-xs text-gray-500 mt-1">Changes will only be saved when you click the &quot;Save&quot; or &quot;Publish&quot; button at the bottom of the page.</p>
               </div>
             </>
           ) : (

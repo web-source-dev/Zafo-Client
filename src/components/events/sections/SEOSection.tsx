@@ -2,13 +2,14 @@
 
 import React, { useState, useRef } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { Search, Image, Upload, X, AlertCircle } from 'lucide-react';
+import { Search, Upload, X, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../../i18n/language-context';
 import EventSection from './EventSection';
 import Input from '../../ui/Input';
 import Textarea from '../../ui/textarea';
 import { EventFormData } from '../EventFormTypes';
-import { renderImageSource, validateImage } from '../../../utils/imageUtils';
+import { validateImage } from '../../../utils/imageUtils';
+import Image from 'next/image';
 
 interface SEOSectionProps {
   defaultOpen?: boolean;
@@ -17,7 +18,7 @@ interface SEOSectionProps {
 const SEOSection: React.FC<SEOSectionProps> = ({ defaultOpen = false }) => {
   const { t } = useLanguage();
   const [isEditing, setIsEditing] = useState(defaultOpen);
-  const { register, watch, setValue, formState: { errors } } = useFormContext<EventFormData>();
+  const { register, watch, setValue } = useFormContext<EventFormData>();
   
   const metaTitle = watch('seo.metaTitle');
   const metaDescription = watch('seo.metaDescription');
@@ -95,10 +96,12 @@ const SEOSection: React.FC<SEOSectionProps> = ({ defaultOpen = false }) => {
             <div>
               <h4 className="text-sm font-medium text-gray-500">{t('events.form.ogImage')}</h4>
               <div className="mt-2">
-                <img
-                  src={ogImage}
+                <Image
+                  src={ogImage || ''}
                   alt={t('events.form.ogImage')}
                   className="max-w-xs h-auto rounded-md"
+                  width={256}
+                  height={256}
                 />
               </div>
             </div>
@@ -142,10 +145,12 @@ const SEOSection: React.FC<SEOSectionProps> = ({ defaultOpen = false }) => {
             
             {ogImage ? (
               <div className="relative">
-                <img
-                  src={ogImage}
+                <Image
+                  src={ogImage || ''}
                   alt={t('events.form.ogImage')}
                   className="max-h-48 mx-auto object-contain rounded-lg"
+                  width={256}
+                  height={256}
                 />
                 <button
                   type="button"
@@ -160,7 +165,7 @@ const SEOSection: React.FC<SEOSectionProps> = ({ defaultOpen = false }) => {
                 onClick={() => ogImageInputRef.current?.click()}
                 className="cursor-pointer py-6"
               >
-                <Image size={32} className="mx-auto mb-2 text-[var(--sage-green)]" />
+                <Image src={'/images/og-image.png'} alt="OG Image" width={32} height={32} className="mx-auto mb-2 text-[var(--sage-green)]" />
                 <p className="text-gray-600 mb-2">{t('events.form.ogImageHelp')}</p>
                 <button
                   type="button"

@@ -8,7 +8,7 @@ import EventSection from './EventSection';
 import Button from '../../ui/Button';
 import { EventFormData } from '../EventFormTypes';
 import { renderImageSource, validateImage } from '../../../utils/imageUtils';
-
+import Image from 'next/image';
 interface ImagesSectionProps {
   defaultOpen?: boolean;
 }
@@ -16,7 +16,7 @@ interface ImagesSectionProps {
 const ImagesSection: React.FC<ImagesSectionProps> = ({ defaultOpen = false }) => {
   const { t } = useLanguage();
   const [isEditing, setIsEditing] = useState(defaultOpen);
-  const { register, watch, setValue, formState: { errors } } = useFormContext<EventFormData>();
+  const { watch, setValue, formState: { errors } } = useFormContext<EventFormData>();
   
   // Refs for file inputs
   const coverImageInputRef = useRef<HTMLInputElement>(null);
@@ -102,10 +102,12 @@ const ImagesSection: React.FC<ImagesSectionProps> = ({ defaultOpen = false }) =>
             <div>
               <h4 className="text-sm font-medium text-gray-500 mb-2">{t('events.form.coverImage')}</h4>
               <div className="relative">
-                <img
+                <Image
                   src={renderImageSource(coverImage)}
                   alt={t('events.form.coverImage')}
                   className="w-full h-64 object-cover rounded-lg"
+                  width={256}
+                  height={256}
                 />
               </div>
             </div>
@@ -117,10 +119,12 @@ const ImagesSection: React.FC<ImagesSectionProps> = ({ defaultOpen = false }) =>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {galleryImages.map((image, index) => (
                   <div key={index} className="relative">
-                    <img
+                    <Image
                       src={renderImageSource(image)}
                       alt={`Gallery image ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg"
+                      width={256}
+                      height={256}
                     />
                   </div>
                 ))}
@@ -145,10 +149,12 @@ const ImagesSection: React.FC<ImagesSectionProps> = ({ defaultOpen = false }) =>
             
             {coverImage ? (
               <div className="relative">
-                <img
+                <Image
                   src={renderImageSource(coverImage)}
                   alt={t('events.form.coverImage')}
                   className="max-h-64 mx-auto object-contain rounded-lg"
+                  width={256}
+                  height={256}
                 />
                 <button
                   type="button"
@@ -225,10 +231,12 @@ const ImagesSection: React.FC<ImagesSectionProps> = ({ defaultOpen = false }) =>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                 {galleryImages.map((image, index) => (
                   <div key={index} className="relative">
-                    <img
+                    <Image
                       src={renderImageSource(image)}
                       alt={`Gallery image ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg"
+                      width={256}
+                      height={256}
                     />
                     <button
                       type="button"

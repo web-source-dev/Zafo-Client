@@ -56,7 +56,7 @@ export default function AdminPage() {
         const statsResponse = await adminService.getDashboardStats();
         
         if (statsResponse.success && statsResponse.data) {
-          const { totalUsers, activeUsers, newUsersToday, pendingApprovals } = statsResponse.data;
+          const { totalUsers, activeUsers, newUsersToday } = statsResponse.data;
           
           // Calculate growth percentage (placeholder calculation)
           const growthPercentage = activeUsers > 0 
@@ -67,7 +67,7 @@ export default function AdminPage() {
           const systemResponse = await adminService.getSystemStatus();
           
           if (systemResponse.success && systemResponse.data) {
-            const { api, database, authService, storageService } = systemResponse.data;
+            const { api, database } = systemResponse.data;
             
             // Update stats state with real data
             setStats({
@@ -90,9 +90,9 @@ export default function AdminPage() {
         } else {
           throw new Error(statsResponse.message || 'Failed to fetch dashboard stats');
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error fetching admin dashboard data:', err);
-        setError(err.message || t('admin.dataFetchError'));
+        setError(t('admin.dataFetchError'));
       } finally {
         setIsLoading(false);
       }

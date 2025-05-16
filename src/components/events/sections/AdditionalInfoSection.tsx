@@ -17,7 +17,7 @@ interface AdditionalInfoSectionProps {
 const AdditionalInfoSection: React.FC<AdditionalInfoSectionProps> = ({ defaultOpen = false }) => {
   const { t } = useLanguage();
   const [isEditing, setIsEditing] = useState(defaultOpen);
-  const { control, register, watch, setValue, formState: { errors } } = useFormContext<EventFormData>();
+  const { control, register, watch, formState: { errors } } = useFormContext<EventFormData>();
   
   const { fields, append, remove } = useFieldArray({
     control,

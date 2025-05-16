@@ -2,18 +2,19 @@
 
 import React from 'react';
 import { useLanguage } from '../../../../i18n/language-context';
-import { useAuth } from '../../../../auth/auth-context';
 import ProtectedRoute from '../../../../auth/protected-route';
 import EventForm from '../../../../components/events/EventForm';
 import DashboardLayout from '../../../../components/layout/DashboardLayout';
 import { DashboardIcon, EventsIcon, RolesIcon } from '../../../../components/layout/DashboardIcons';
 
+// Type for the translation function
+type TranslationFunction = (key: string, params?: Record<string, string>) => string;
+
 export default function CreateEventPage() {
   const { t } = useLanguage();
-  const { user } = useAuth();
   
   // Get navigation with translated items
-  const getDashboardNavigation = (t: any) => [
+  const getDashboardNavigation = (t: TranslationFunction) => [
     { name: t('common.dashboard'), href: '/organizer', icon: DashboardIcon },
     { name: t('organizer.createEvent'), href: '/organizer/events/create', icon: EventsIcon },
     { name: t('common.profile'), href: '/profile', icon: RolesIcon },

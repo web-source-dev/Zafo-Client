@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../../i18n/language-context';
 import DashboardLayout from '../../../components/layout/DashboardLayout';
@@ -59,21 +59,16 @@ export default function UsersPage() {
   // Pagination
   const pageSize = 10;
   
-  // Calculate filter params
-  const getFilterParams = () => {
-    const filterParams: { isActive?: boolean } = {};
-    
-    if (activeFilter === 'active') {
-      filterParams.isActive = true;
-    } else if (activeFilter === 'inactive') {
-      filterParams.isActive = false;
+  // Wrap these functions in their own useCallback hooks
+  const getFilterParams = useCallback(() => {
+    const params: Record<string, string> = {};
+    if (activeFilter !== 'all') {
+      params.role = activeFilter;
     }
-    
-    return filterParams;
-  };
-  
-  // Calculate sort params
-  const getSortParams = () => {
+    return params;
+  }, [activeFilter]);
+
+  const getSortParams = useCallback(() => {
     const [field, direction] = sortBy.split('_');
     let sortField = field;
     
@@ -87,19 +82,20 @@ export default function UsersPage() {
       sortBy: sortField,
       sortOrder: direction
     };
-  };
+  }, [sortBy]);
   
-  // Fetch users from API
-  const fetchUsers = async () => {
+  // Fetch users function
+  const fetchUsers = useCallback(async () => {
     setIsLoading(true);
-    
     try {
-      const response = await adminService.getUsers({ 
+      const filterParams = getFilterParams();
+      const sortParams = getSortParams();
+      const response = await adminService.getUsers({
         page: currentPage,
         limit: pageSize,
         search: searchQuery,
-        ...getFilterParams(),
-        ...getSortParams()
+        ...filterParams,
+        ...sortParams
       });
       
       if (response.success && response.data) {
@@ -116,12 +112,12 @@ export default function UsersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [currentPage, pageSize, searchQuery, getFilterParams, getSortParams, t]);
   
   // Fetch users on mount and when filters/sort/page changes
   useEffect(() => {
     fetchUsers();
-  }, [currentPage, activeFilter, sortBy, t]);
+  }, [fetchUsers]);
   
   // Handle search
   const handleSearch = (e: React.FormEvent) => {

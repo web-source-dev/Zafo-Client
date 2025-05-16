@@ -23,7 +23,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
   variant = 'default',
   className = ''
 }) => {
-  const { currentLanguage, setLanguage, t } = useLanguage();
+  const { currentLanguage, setLanguage } = useLanguage();
 
   if (variant === 'minimal') {
     return (

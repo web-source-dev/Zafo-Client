@@ -52,7 +52,7 @@ const Navbar: React.FC = () => {
                 </Link>
               )}
 
-              {isOrganizer && (
+              {isOrganizer && !isAdmin && (
                 <Link 
                   href="/organizer" 
                   className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-black hover:text-[var(--sage-green)] hover:border-[var(--sage)]"

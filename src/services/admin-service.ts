@@ -85,7 +85,7 @@ class AdminService {
    */
   async getUsers(params: UserQueryParams | UserSearchParams = {}): Promise<ApiResponse<{ users: AdminUser[], total: number, totalPages?: number }>> {
     const queryString = Object.entries(params)
-      .filter(([_, value]) => value !== undefined && value !== '')
+      .filter(([value]) => value !== undefined && value !== '')
       .map(([key, value]) => `${key}=${encodeURIComponent(String(value))}`)
       .join('&');
 
@@ -144,9 +144,9 @@ class AdminService {
    * @param params Query parameters (page, limit)
    * @returns Promise with activities list
    */
-  async getActivities(params: { page?: number; limit?: number } = {}): Promise<ApiResponse<any>> {
+  async getActivities(params: { page?: number; limit?: number } = {}): Promise<ApiResponse<unknown>> {
     const queryString = Object.entries(params)
-      .filter(([_, value]) => value !== undefined)
+      .filter(([value]) => value !== undefined)
       .map(([key, value]) => `${key}=${encodeURIComponent(String(value))}`)
       .join('&');
 

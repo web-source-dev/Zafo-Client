@@ -33,10 +33,7 @@ const LocationSection: React.FC<LocationSectionProps> = ({ defaultOpen = false }
     setIsEditing(!isEditing);
   };
   
-  const formatAddress = () => {
-    const parts = [street, postalCode, city, country].filter(Boolean);
-    return parts.join(', ');
-  };
+  
   
   return (
     <EventSection

@@ -4,7 +4,7 @@ import React from 'react';
 import { useLanguage } from '../../i18n/language-context';
 import Button from '../ui/Button';
 import { Event } from '../../services/event-service';
-
+import Image from 'next/image';
 interface EventDetailsModalProps {
   event: Event | null;
   isOpen: boolean;
@@ -81,7 +81,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
           {/* Cover image */}
           {event.coverImage && (
             <div className="mb-6">
-              <img 
+              <Image 
                 src={event.coverImage} 
                 alt={eventTitle} 
                 className="w-full h-64 object-cover rounded-lg"
@@ -179,7 +179,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                   <div key={index} className="border border-[var(--cognac)] rounded-lg p-4 flex">
                     {speaker.image && (
                       <div className="mr-4">
-                        <img 
+                        <Image 
                           src={speaker.image} 
                           alt={speaker.name} 
                           className="w-20 h-20 object-cover rounded-full"
@@ -277,7 +277,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
               
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {event.galleryImages.map((imageUrl, index) => (
-                  <img 
+                  <Image 
                     key={index}
                     src={imageUrl} 
                     alt={`${eventTitle} - ${index + 1}`}

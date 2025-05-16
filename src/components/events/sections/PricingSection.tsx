@@ -56,6 +56,7 @@ const PricingSection: React.FC<PricingSectionProps> = ({ defaultOpen = false }) 
         currency: currency
       }).format(amount);
     } catch (e) {
+      console.error('Error formatting currency:', e);
       return `${amount} ${currency}`;
     }
   };

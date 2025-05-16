@@ -61,7 +61,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ redirectUrl = '/login' }) =
     setSuccess(null);
 
     // Remove confirmPassword from data sent to API
-    const { confirmPassword, ...registerData } = data;
+    const { ...registerData } = data;
 
     try {
       const response = await registerUser(registerData);

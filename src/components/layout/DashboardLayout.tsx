@@ -4,7 +4,6 @@ import React, { ReactNode, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../auth/auth-context';
-import Navbar from '../common/Navbar';
 import LanguageSwitcher from '../common/LanguageSwitcher';
 
 interface SidebarItem {

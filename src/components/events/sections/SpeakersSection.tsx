@@ -10,7 +10,7 @@ import Textarea from '../../ui/textarea';
 import Button from '../../ui/Button';
 import { EventFormData } from '../EventFormTypes';
 import { renderImageSource, validateImage } from '../../../utils/imageUtils';
-
+import Image from 'next/image';
 interface SpeakersSectionProps {
   defaultOpen?: boolean;
 }
@@ -100,7 +100,7 @@ const SpeakersSection: React.FC<SpeakersSectionProps> = ({ defaultOpen = false }
               <div key={index} className="flex items-start space-x-4 p-4 border border-[var(--cognac)] rounded-lg">
                 <div className="flex-shrink-0">
                   {speaker.image ? (
-                    <img 
+                    <Image 
                       src={renderImageSource(speaker.image)}
                       alt={speaker.name}
                       className="w-16 h-16 object-cover rounded-full"
@@ -187,7 +187,7 @@ const SpeakersSection: React.FC<SpeakersSectionProps> = ({ defaultOpen = false }
                   </label>
                   {speakers[index]?.image && (
                     <div className="ml-3 relative w-12 h-12">
-                      <img
+                      <Image
                         src={renderImageSource(speakers[index].image)}
                         alt={speakers[index].name}
                         className="w-full h-full object-cover rounded-full"
