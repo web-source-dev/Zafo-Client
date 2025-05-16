@@ -14,7 +14,7 @@ interface Category {
 }
 
 // Helper function to always return sage background
-const getColorClass = (color: string) => {
+const getColorClass = () => {
   // Always return sage background
   return 'bg-[var(--sage)]';
 };
@@ -46,7 +46,7 @@ const CategoryCircles = ({ categories }: { categories: Category[] }) => {
         </h2>
         <div className="flex flex-wrap justify-center gap-8 md:gap-10 lg:gap-12">
           {categories.map((category) => {
-            const colorClass = getColorClass(category.color);
+            const colorClass = getColorClass();
             const textColorClass = getTextColorClass(category.color);
             
             // Get translation key based on category ID, convert hyphens for proper translation key lookup
