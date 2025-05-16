@@ -26,7 +26,7 @@ interface UIEvent extends Event {
 // Dashboard navigation with translations
 const getDashboardNavigation = (t: TranslationFunction) => [
   { name: t('admin.overview'), href: '/organizer', icon: DashboardIcon, current: true },
-  { name: t('organizer.createEvent'), href: '/organizer/events', icon: EventsIcon, current: false },
+  { name: t('organizer.createEvent'), href: '/organizer/events/create', icon: EventsIcon, current: false },
   { name: t('organizer.participants'), href: '/organizer/participants', icon: ParticipantsIcon, current: false },
   { name: t('admin.reports'), href: '/organizer/reports', icon: ReportsIcon, current: false },
 ];
