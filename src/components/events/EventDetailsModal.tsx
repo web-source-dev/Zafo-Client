@@ -85,6 +85,8 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                 src={event.coverImage} 
                 alt={eventTitle} 
                 className="w-full h-64 object-cover rounded-lg"
+                width={300}
+                height={150}
               />
             </div>
           )}
@@ -183,6 +185,8 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                           src={speaker.image} 
                           alt={speaker.name} 
                           className="w-20 h-20 object-cover rounded-full"
+                          width={300}
+                          height={150}
                         />
                       </div>
                     )}
@@ -282,6 +286,8 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                     src={imageUrl} 
                     alt={`${eventTitle} - ${index + 1}`}
                     className="w-full border border-[var(--cognac)] h-40 object-cover rounded-lg"
+                    width={300}
+                    height={150}
                   />
                 ))}
               </div>

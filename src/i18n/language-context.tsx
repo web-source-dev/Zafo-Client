@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 // Available languages
-export type Language = 'en' | 'de';
+export type Language = 'en' | 'de' | 'fr' | 'it';
 
 // Language context interface
 interface LanguageContextType {
@@ -25,7 +25,7 @@ interface LanguageProviderProps {
 }
 
 // Available languages
-const LANGUAGES: Language[] = ['en', 'de'];
+const LANGUAGES: Language[] = ['en', 'de', 'fr', 'it'];
 
 // Default language
 const DEFAULT_LANGUAGE: Language = 'en';

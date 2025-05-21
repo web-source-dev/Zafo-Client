@@ -8,6 +8,7 @@ interface ProtectedRouteProps {
   children: ReactNode;
   adminOnly?: boolean;
   organizerOnly?: boolean;
+  userOnly?: boolean;
   fallbackUrl?: string;
 }
 
@@ -34,9 +35,10 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   adminOnly = false, 
   organizerOnly = false,
+  userOnly = false,
   fallbackUrl = '/login'
 }) => {
-  const { isAuthenticated, isAdmin, isOrganizer, isLoading } = useAuth();
+  const { isAuthenticated, isAdmin, isOrganizer, isUser, isLoading } = useAuth();
   const router = useRouter();
 
   // Show nothing while authentication is being checked
@@ -50,6 +52,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (typeof window !== 'undefined') {
       console.log('Not authenticated, redirecting to:', fallbackUrl);
       router.push(fallbackUrl);
+    }
+    return null;
+  }
+
+  // Check user access if required
+  if (userOnly && !isUser) {
+    // Use redirects on client-side only
+    if (typeof window !== 'undefined') {
+      console.log('User access required, redirecting to unauthorized page');
+      router.push('/unauthorized');
     }
     return null;
   }

@@ -1,10 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ProtectedRoute from '../../auth/protected-route';
 import { useAuth } from '../../auth/auth-context';
 import { useLanguage } from '../../i18n/language-context';
-import DashboardLayout from '../../components/layout/DashboardLayout';
 import { DashboardIcon, EventsIcon, ParticipantsIcon, ReportsIcon } from '../../components/layout/DashboardIcons';
 import Button from '../../components/ui/Button';
 import { useRouter } from 'next/navigation';
@@ -22,14 +20,6 @@ interface UIEvent extends Event {
   date?: string;
   participants?: number;
 }
-
-// Dashboard navigation with translations
-const getDashboardNavigation = (t: TranslationFunction) => [
-  { name: t('admin.overview'), href: '/organizer', icon: DashboardIcon, current: true },
-  { name: t('organizer.createEvent'), href: '/organizer/events/create', icon: EventsIcon, current: false },
-  { name: t('organizer.participants'), href: '/organizer/participants', icon: ParticipantsIcon, current: false },
-  { name: t('admin.reports'), href: '/organizer/reports', icon: ReportsIcon, current: false },
-];
 
 // Event Card Component
 const EventCard = ({ 
@@ -131,8 +121,9 @@ const EventCard = ({
             src={event.coverImage} 
             alt={getLocalizedTitle()} 
             className="object-cover"
-            fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            width={300}
+            height={150}
           />
         </div>
       )}
@@ -254,9 +245,6 @@ export default function OrganizerPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
   const router = useRouter();
-
-  // Get navigation with translated items
-  const navigation = getDashboardNavigation(t);
 
   // Fetch events on component mount
   useEffect(() => {
@@ -387,298 +375,296 @@ export default function OrganizerPage() {
   };
 
   return (
-    <ProtectedRoute organizerOnly>
-      <DashboardLayout title={t('organizer.dashboard')} navigation={navigation}>
-        {/* Welcome Message */}
-        <div className="pb-5 border-b border-[var(--cognac)]">
-          <h2 className="text-2xl leading-6 font-bold text-[var(--sage-green)]">
-            {t('organizer.welcome', { name: user?.firstName || '' })}
-          </h2>
-          <p className="mt-2 max-w-4xl text-sm text-black">
-            {t('organizer.subheading')}
-          </p>
+    <>
+      {/* Welcome Message */}
+      <div className="pb-5 border-b border-[var(--cognac)]">
+        <h2 className="text-2xl leading-6 font-bold text-[var(--sage-green)]">
+          {t('organizer.welcome', { name: user?.firstName || '' })}
+        </h2>
+        <p className="mt-2 max-w-4xl text-sm text-black">
+          {t('organizer.subheading')}
+        </p>
+      </div>
+      
+      {/* Status Messages */}
+      {error && (
+        <div className="mt-4 mb-4 bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded">
+          {error}
+        </div>
+      )}
+      
+      {successMessage && (
+        <div className="mt-4 mb-4 bg-green-50 border border-green-300 text-green-700 px-4 py-3 rounded flex items-center">
+          <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          {successMessage}
+        </div>
+      )}
+
+      {/* Stats Row */}
+      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 rounded-md p-3 bg-[var(--sage-green)]">
+                <EventsIcon className="h-6 w-6 text-white" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
+                    {t('organizer.totalEvents')}
+                  </dt>
+                  <dd>
+                    <div className="text-lg font-medium text-black">
+                      {stats.totalEvents}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
         </div>
         
-        {/* Status Messages */}
-        {error && (
-          <div className="mt-4 mb-4 bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded">
-            {error}
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 rounded-md p-3 bg-[var(--sage)]">
+                <EventsIcon className="h-6 w-6 text-black" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
+                    {t('organizer.activeEvents')}
+                  </dt>
+                  <dd>
+                    <div className="text-lg font-medium text-black">
+                      {stats.activeEvents}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
         
-        {successMessage && (
-          <div className="mt-4 mb-4 bg-green-50 border border-green-300 text-green-700 px-4 py-3 rounded flex items-center">
-            <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            {successMessage}
-          </div>
-        )}
-
-        {/* Stats Row */}
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 rounded-md p-3 bg-[var(--sage-green)]">
-                  <EventsIcon className="h-6 w-6 text-white" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
-                      {t('organizer.totalEvents')}
-                    </dt>
-                    <dd>
-                      <div className="text-lg font-medium text-black">
-                        {stats.totalEvents}
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 rounded-md p-3 bg-[var(--cognac)]">
+                <ParticipantsIcon className="h-6 w-6 text-black" />
               </div>
-            </div>
-          </div>
-          
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 rounded-md p-3 bg-[var(--sage)]">
-                  <EventsIcon className="h-6 w-6 text-black" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
-                      {t('organizer.activeEvents')}
-                    </dt>
-                    <dd>
-                      <div className="text-lg font-medium text-black">
-                        {stats.activeEvents}
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 rounded-md p-3 bg-[var(--cognac)]">
-                  <ParticipantsIcon className="h-6 w-6 text-black" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
-                      {t('organizer.totalParticipants')}
-                    </dt>
-                    <dd>
-                      <div className="text-lg font-medium text-black">
-                        {stats.participantsCount}
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 rounded-md p-3 bg-[var(--taupe)]">
-                  <EventsIcon className="h-6 w-6 text-[var(--sage-green)]" />
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
-                      {t('organizer.completedEvents')}
-                    </dt>
-                    <dd>
-                      <div className="text-lg font-medium text-black">
-                        {stats.completedEvents}
-                      </div>
-                    </dd>
-                  </dl>
-                </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
+                    {t('organizer.totalParticipants')}
+                  </dt>
+                  <dd>
+                    <div className="text-lg font-medium text-black">
+                      {stats.participantsCount}
+                    </div>
+                  </dd>
+                </dl>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Event Tabs */}
-        <div className="mt-8">
-          <div className="sm:hidden">
-            <label htmlFor="tabs" className="sr-only">Select a tab</label>
-            <select
-              id="tabs"
-              name="tabs"
-              className="block w-full pl-3 pr-10 py-2 text-base border-[var(--cognac)] focus:outline-none focus:ring-[var(--sage-green)] focus:border-[var(--sage-green)] sm:text-sm rounded-md"
-              value={activeTab}
-              onChange={(e) => setActiveTab(e.target.value)}
-            >
-              <option value="upcoming">{t('organizer.upcomingEvents')}</option>
-              <option value="past">{t('organizer.pastEvents')}</option>
-              <option value="create">{t('organizer.createEvent')}</option>
-            </select>
-          </div>
-          <div className="hidden sm:block">
-            <div className="border-b border-[var(--cognac)]">
-              <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                <button
-                  onClick={() => setActiveTab('upcoming')}
-                  className={`${
-                    activeTab === 'upcoming'
-                      ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
-                      : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-                >
-                  {t('organizer.upcomingEvents')}
-                </button>
-                <button
-                  onClick={() => setActiveTab('past')}
-                  className={`${
-                    activeTab === 'past'
-                      ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
-                      : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-                >
-                  {t('organizer.pastEvents')}
-                </button>
-                <button
-                  onClick={() => setActiveTab('create')}
-                  className={`${
-                    activeTab === 'create'
-                      ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
-                      : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
-                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-                >
-                  {t('organizer.createEvent')}
-                </button>
-              </nav>
+        
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 rounded-md p-3 bg-[var(--taupe)]">
+                <EventsIcon className="h-6 w-6 text-[var(--sage-green)]" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
+                    {t('organizer.completedEvents')}
+                  </dt>
+                  <dd>
+                    <div className="text-lg font-medium text-black">
+                      {stats.completedEvents}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Tab Content */}
-        <div className="mt-6">
-          {activeTab === 'upcoming' && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)]">
-                  {t('organizer.upcomingEvents')}
-                </h3>
-                <Button size="sm" onClick={handleCreateEvent}>
-                  <span className="flex items-center">
-                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    {t('organizer.newEvent')}
-                  </span>
-                </Button>
-              </div>
-              
-              {isLoading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-                </div>
-              ) : error ? (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                  {error}
-                </div>
-              ) : upcomingEvents.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {upcomingEvents.map((event) => (
-                    <EventCard 
-                      key={event._id || event.id} 
-                      event={event} 
-                      t={t} 
-                      onEdit={handleEditEvent}
-                      onViewDetails={handleViewEventDetails}
-                      onDelete={handleDeleteEvent}
-                      onMarkCompleted={handleMarkAsCompleted}
-                      isDeletingThis={deletingEventId === (event._id || event.id)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center text-gray-500">
-                  {t('organizer.noUpcomingEvents')}
-                  <div className="mt-4">
-                    <Button onClick={handleCreateEvent}>
-                      {t('organizer.createFirstEvent')}
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'past' && (
-            <div>
-              <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)] mb-4">
+      {/* Event Tabs */}
+      <div className="mt-8">
+        <div className="sm:hidden">
+          <label htmlFor="tabs" className="sr-only">Select a tab</label>
+          <select
+            id="tabs"
+            name="tabs"
+            className="block w-full pl-3 pr-10 py-2 text-base border-[var(--cognac)] focus:outline-none focus:ring-[var(--sage-green)] focus:border-[var(--sage-green)] sm:text-sm rounded-md"
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value)}
+          >
+            <option value="upcoming">{t('organizer.upcomingEvents')}</option>
+            <option value="past">{t('organizer.pastEvents')}</option>
+            <option value="create">{t('organizer.createEvent')}</option>
+          </select>
+        </div>
+        <div className="hidden sm:block">
+          <div className="border-b border-[var(--cognac)]">
+            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+              <button
+                onClick={() => setActiveTab('upcoming')}
+                className={`${
+                  activeTab === 'upcoming'
+                    ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
+                    : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+              >
+                {t('organizer.upcomingEvents')}
+              </button>
+              <button
+                onClick={() => setActiveTab('past')}
+                className={`${
+                  activeTab === 'past'
+                    ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
+                    : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+              >
                 {t('organizer.pastEvents')}
-              </h3>
-              
-              {isLoading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-                </div>
-              ) : error ? (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                  {error}
-                </div>
-              ) : pastEvents.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {pastEvents.map((event) => (
-                    <EventCard 
-                      key={event._id || event.id} 
-                      event={event} 
-                      t={t} 
-                      onEdit={handleEditEvent}
-                      onViewDetails={handleViewEventDetails}
-                      onDelete={handleDeleteEvent}
-                      onMarkCompleted={handleMarkAsCompleted}
-                      isDeletingThis={deletingEventId === (event._id || event.id)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center text-gray-500">
-                  {t('organizer.noPastEvents')}
-                </div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'create' && (
-            <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-              <div className="px-4 py-5 sm:p-6">
-                <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)]">
-                  {t('organizer.createNewEvent')}
-                </h3>
-                <div className="mt-2 max-w-xl text-sm text-black">
-                  <p>{t('organizer.createNewEventDescription')}</p>
-                </div>
-                <Button
-                  className="mt-5"
-                  onClick={handleCreateEvent}
-                >
-                  {t('organizer.openAdvancedCreator')}
-                </Button>
-              </div>
-            </div>
-          )}
+              </button>
+              <button
+                onClick={() => setActiveTab('create')}
+                className={`${
+                  activeTab === 'create'
+                    ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
+                    : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+              >
+                {t('organizer.createEvent')}
+              </button>
+            </nav>
+          </div>
         </div>
-        
-        {/* Event Details Modal */}
-        <EventDetailsModal
-          event={selectedEvent}
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          onEdit={handleEditEvent}
-        />
-      </DashboardLayout>
-    </ProtectedRoute>
+      </div>
+
+      {/* Tab Content */}
+      <div className="mt-6">
+        {activeTab === 'upcoming' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)]">
+                {t('organizer.upcomingEvents')}
+              </h3>
+              <Button size="sm" onClick={handleCreateEvent}>
+                <span className="flex items-center">
+                  <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  {t('organizer.newEvent')}
+                </span>
+              </Button>
+            </div>
+            
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {error}
+              </div>
+            ) : upcomingEvents.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {upcomingEvents.map((event) => (
+                  <EventCard 
+                    key={event._id || event.id} 
+                    event={event} 
+                    t={t} 
+                    onEdit={handleEditEvent}
+                    onViewDetails={handleViewEventDetails}
+                    onDelete={handleDeleteEvent}
+                    onMarkCompleted={handleMarkAsCompleted}
+                    isDeletingThis={deletingEventId === (event._id || event.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center text-gray-500">
+                {t('organizer.noUpcomingEvents')}
+                <div className="mt-4">
+                  <Button onClick={handleCreateEvent}>
+                    {t('organizer.createFirstEvent')}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'past' && (
+          <div>
+            <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)] mb-4">
+              {t('organizer.pastEvents')}
+            </h3>
+            
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {error}
+              </div>
+            ) : pastEvents.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {pastEvents.map((event) => (
+                  <EventCard 
+                    key={event._id || event.id} 
+                    event={event} 
+                    t={t} 
+                    onEdit={handleEditEvent}
+                    onViewDetails={handleViewEventDetails}
+                    onDelete={handleDeleteEvent}
+                    onMarkCompleted={handleMarkAsCompleted}
+                    isDeletingThis={deletingEventId === (event._id || event.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center text-gray-500">
+                {t('organizer.noPastEvents')}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'create' && (
+          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+            <div className="px-4 py-5 sm:p-6">
+              <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)]">
+                {t('organizer.createNewEvent')}
+              </h3>
+              <div className="mt-2 max-w-xl text-sm text-black">
+                <p>{t('organizer.createNewEventDescription')}</p>
+              </div>
+              <Button
+                className="mt-5"
+                onClick={handleCreateEvent}
+              >
+                {t('organizer.openAdvancedCreator')}
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Event Details Modal */}
+      <EventDetailsModal
+        event={selectedEvent}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onEdit={handleEditEvent}
+      />
+    </>
   );
 } 

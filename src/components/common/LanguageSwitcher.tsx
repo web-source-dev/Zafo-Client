@@ -11,7 +11,7 @@ interface LanguageOption {
 
 const languages: LanguageOption[] = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' }
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
 ];
 
 interface LanguageSwitcherProps {

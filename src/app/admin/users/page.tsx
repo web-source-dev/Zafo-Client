@@ -3,25 +3,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../../i18n/language-context';
-import DashboardLayout from '../../../components/layout/DashboardLayout';
-import ProtectedRoute from '../../../auth/protected-route';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Badge from '../../../components/ui/Badge';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '../../../components/ui/Card';
-import { DashboardIcon, UsersIcon, RolesIcon, SettingsIcon, ReportsIcon } from '../../../components/layout/DashboardIcons';
-import { Users, Search, UserPlus, Filter, ChevronLeft, ChevronRight, Mail, Calendar, UserCog, Edit } from 'lucide-react';
+import { UsersIcon, Search, UserPlus, Filter, ChevronLeft, ChevronRight, Mail, Calendar, UserCog, Edit, Users } from 'lucide-react';
 import adminService, { AdminUser } from '../../../services/admin-service';
-
-// Dashboard navigation
-const getDashboardNavigation = (t: (key: string) => string) => [
-  { name: t('admin.overview'), href: '/admin', icon: DashboardIcon, current: false },
-  { name: t('admin.userManagement'), href: '/admin/users', icon: UsersIcon, current: true },
-  { name: t('admin.role'), href: '/admin/roles', icon: RolesIcon, current: false },
-  { name: t('common.settings'), href: '/admin/settings', icon: SettingsIcon, current: false },
-  { name: t('admin.reports'), href: '/admin/reports', icon: ReportsIcon, current: false },
-];
 
 // Filters for user list
 const filters = [
@@ -165,9 +153,6 @@ export default function UsersPage() {
     setShowFilters(!showFilters);
   };
   
-  // Get navigation with translated items
-  const navigation = getDashboardNavigation(t);
-  
   // User card component for mobile view
   const UserCard = ({ user }: { user: AdminUser }) => (
     <div 
@@ -224,282 +209,280 @@ export default function UsersPage() {
   );
   
   return (
-    <ProtectedRoute adminOnly>
-      <DashboardLayout title={t('admin.userManagement')} navigation={navigation}>
-        <div className="pb-5 border-b border-[var(--cognac)]">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-2xl leading-6 font-bold text-[var(--sage-green)]">
-                {t('admin.userManagement')}
-              </h2>
-              <p className="mt-2 max-w-4xl text-sm text-black">
-                {t('admin.userManagementDescription')}
-              </p>
+    <>
+      <div className="pb-5 border-b border-[var(--cognac)]">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-2xl leading-6 font-bold text-[var(--sage-green)]">
+              {t('admin.userManagement')}
+            </h2>
+            <p className="mt-2 max-w-4xl text-sm text-black">
+              {t('admin.userManagementDescription')}
+            </p>
+          </div>
+          <div className="mt-4 sm:mt-0">
+            <Button 
+              onClick={handleAddUser}
+              variant="primary"
+            >
+              <UserPlus className="mr-2 h-4 w-4" />
+              {t('admin.addUser')}
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      {/* Error message */}
+      {error && (
+        <div className="mt-4 p-4 bg-red-50 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+      
+      <div className="mt-6">
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <CardTitle>{t('admin.users')}</CardTitle>
+              <CardDescription className="mt-1 sm:mt-0">
+                {totalUsers > 0 && !isLoading && (
+                  <span>
+                    {t('admin.showingUsers', { 
+                      from: ((currentPage - 1) * pageSize + 1).toString(), 
+                      to: Math.min(currentPage * pageSize, totalUsers).toString(), 
+                      total: totalUsers.toString() 
+                    })}
+                  </span>
+                )}
+              </CardDescription>
             </div>
-            <div className="mt-4 sm:mt-0">
+          </CardHeader>
+          <CardContent>
+            {/* Mobile search and filter toggle */}
+            <div className="mb-4 flex items-center justify-between md:hidden">
+              <form onSubmit={handleSearch} className="flex flex-1">
+                <Input
+                  type="text"
+                  placeholder={t('admin.searchUsers')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="rounded-r-none"
+                />
+                <Button type="submit" className="bg-[var(--sage-green)] text-white h-10.5 rounded-l-none" variant="secondary">
+                  <Search className="h-4 w-4" />
+                </Button>
+              </form>
               <Button 
-                onClick={handleAddUser}
-                variant="primary"
+                variant="outline" 
+                className="ml-2 h-10.5" 
+                onClick={toggleFilters}
               >
-                <UserPlus className="mr-2 h-4 w-4" />
-                {t('admin.addUser')}
+                <Filter className="h-4 w-4" />
               </Button>
             </div>
-          </div>
-        </div>
-        
-        {/* Error message */}
-        {error && (
-          <div className="mt-4 p-4 bg-red-50 text-red-700 rounded">
-            {error}
-          </div>
-        )}
-        
-        <div className="mt-6">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                <CardTitle>{t('admin.users')}</CardTitle>
-                <CardDescription className="mt-1 sm:mt-0">
-                  {totalUsers > 0 && !isLoading && (
-                    <span>
-                      {t('admin.showingUsers', { 
-                        from: ((currentPage - 1) * pageSize + 1).toString(), 
-                        to: Math.min(currentPage * pageSize, totalUsers).toString(), 
-                        total: totalUsers.toString() 
-                      })}
-                    </span>
-                  )}
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {/* Mobile search and filter toggle */}
-              <div className="mb-4 flex items-center justify-between md:hidden">
-                <form onSubmit={handleSearch} className="flex flex-1">
-                  <Input
-                    type="text"
-                    placeholder={t('admin.searchUsers')}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="rounded-r-none"
-                  />
-                  <Button type="submit" className="bg-[var(--sage-green)] text-white h-10.5 rounded-l-none" variant="secondary">
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </form>
-                <Button 
-                  variant="outline" 
-                  className="ml-2 h-10.5" 
-                  onClick={toggleFilters}
-                >
-                  <Filter className="h-4 w-4" />
-                </Button>
-              </div>
-              
-              {/* Responsive filters (collapsible on mobile) */}
-              <div className={`${showFilters ? 'block' : 'hidden'} md:block mb-6`}>
-                <div className="md:flex md:flex-wrap md:items-center md:justify-between md:gap-4">
-                  {/* Search - desktop */}
-                  <div className="hidden md:block md:flex-1 md:min-w-[300px]">
-                    <form onSubmit={handleSearch} className="flex max-w-sm">
-                      <Input
-                        type="text"
-                        placeholder={t('admin.searchUsers')}
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="rounded-r-none"
-                      />
-                      <Button type="submit" className="bg-[var(--sage-green)] text-white h-10.5 rounded-l-none" variant="secondary">
-                        <Search className="h-4 w-4" />
-                      </Button>
-                    </form>
-                  </div>
+            
+            {/* Responsive filters (collapsible on mobile) */}
+            <div className={`${showFilters ? 'block' : 'hidden'} md:block mb-6`}>
+              <div className="md:flex md:flex-wrap md:items-center md:justify-between md:gap-4">
+                {/* Search - desktop */}
+                <div className="hidden md:block md:flex-1 md:min-w-[300px]">
+                  <form onSubmit={handleSearch} className="flex max-w-sm">
+                    <Input
+                      type="text"
+                      placeholder={t('admin.searchUsers')}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="rounded-r-none"
+                    />
+                    <Button type="submit" className="bg-[var(--sage-green)] text-white h-10.5 rounded-l-none" variant="secondary">
+                      <Search className="h-4 w-4" />
+                    </Button>
+                  </form>
+                </div>
 
-                  {/* Filter buttons */}
-                  <div className="mt-3 md:mt-0">
-                    <div className="flex flex-col md:flex-row md:items-center md:space-x-2">
-                      <div className="flex items-center mb-2 md:mb-0">
-                        <Filter className="h-4 w-4 text-[var(--sage-green)] mr-2" />
-                        <span className="text-sm text-[var(--sage-green)]">{t('admin.filter')}:</span>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        {filters.map((filter) => (
-                          <button
-                            key={filter.id}
-                            onClick={() => handleFilterChange(filter.id)}
-                            className={`px-3 py-1 text-sm rounded-full ${
-                              activeFilter === filter.id
-                                ? 'bg-[var(--sage-green)] text-white'
-                                : 'bg-[var(--taupe)] text-[var(--sage-green)] hover:bg-[var(--cognac)]'
-                            }`}
-                          >
-                            {t(filter.name)}
-                          </button>
-                        ))}
-                      </div>
+                {/* Filter buttons */}
+                <div className="mt-3 md:mt-0">
+                  <div className="flex flex-col md:flex-row md:items-center md:space-x-2">
+                    <div className="flex items-center mb-2 md:mb-0">
+                      <Filter className="h-4 w-4 text-[var(--sage-green)] mr-2" />
+                      <span className="text-sm text-[var(--sage-green)]">{t('admin.filter')}:</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {filters.map((filter) => (
+                        <button
+                          key={filter.id}
+                          onClick={() => handleFilterChange(filter.id)}
+                          className={`px-3 py-1 text-sm rounded-full ${
+                            activeFilter === filter.id
+                              ? 'bg-[var(--sage-green)] text-white'
+                              : 'bg-[var(--taupe)] text-[var(--sage-green)] hover:bg-[var(--cognac)]'
+                          }`}
+                        >
+                          {t(filter.name)}
+                        </button>
+                      ))}
                     </div>
                   </div>
-                  
-                  {/* Sort dropdown */}
-                  <div className="mt-3 md:mt-0 w-full md:w-48">
-                    <Select
-                      id="sort"
-                      value={sortBy}
-                      onChange={handleSortChange}
-                      options={sortOptions.map(option => ({
-                        value: option.value,
-                        label: t(option.label)
-                      }))}
-                      label={t('admin.sortBy')}
-                      fullWidth
-                    />
-                  </div>
+                </div>
+                
+                {/* Sort dropdown */}
+                <div className="mt-3 md:mt-0 w-full md:w-48">
+                  <Select
+                    id="sort"
+                    value={sortBy}
+                    onChange={handleSortChange}
+                    options={sortOptions.map(option => ({
+                      value: option.value,
+                      label: t(option.label)
+                    }))}
+                    label={t('admin.sortBy')}
+                    fullWidth
+                  />
                 </div>
               </div>
-            
-              {/* Users display - loading, empty, or content */}
-              {isLoading ? (
-                <div className="py-12 flex justify-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
+            </div>
+          
+            {/* Users display - loading, empty, or content */}
+            {isLoading ? (
+              <div className="py-12 flex justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
+              </div>
+            ) : users.length > 0 ? (
+              <>
+                {/* Mobile cards view */}
+                <div className="md:hidden">
+                  {users.map((user) => (
+                    <UserCard key={user._id} user={user} />
+                  ))}
                 </div>
-              ) : users.length > 0 ? (
-                <>
-                  {/* Mobile cards view */}
-                  <div className="md:hidden">
-                    {users.map((user) => (
-                      <UserCard key={user._id} user={user} />
-                    ))}
-                  </div>
-                  
-                  {/* Desktop table view */}
-                  <div className="hidden md:block overflow-x-auto">
-                    <table className="min-w-full divide-y divide-[var(--cognac)]">
-                      <thead className="bg-[var(--taupe)]">
-                        <tr>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
-                            {t('admin.name')}
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
-                            {t('admin.email')}
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
-                            {t('admin.role')}
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
-                            {t('admin.status')}
-                          </th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
-                            {t('admin.created')}
-                          </th>
-                          <th scope="col" className="relative px-6 py-3">
-                            <span className="sr-only">{t('common.edit')}</span>
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-[var(--cognac)]">
-                        {users.map((user) => (
-                          <tr 
-                            key={user._id} 
-                            onClick={() => handleEditUser(user._id)}
-                            className="cursor-pointer hover:bg-[var(--taupe-light)]"
-                          >
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[var(--taupe)] flex items-center justify-center">
-                                  <span className="text-[var(--sage-green)] font-medium">
-                                    {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-                                  </span>
-                                </div>
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium text-black">
-                                    {user.firstName} {user.lastName}
-                                  </div>
+                
+                {/* Desktop table view */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="min-w-full divide-y divide-[var(--cognac)]">
+                    <thead className="bg-[var(--taupe)]">
+                      <tr>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
+                          {t('admin.name')}
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
+                          {t('admin.email')}
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
+                          {t('admin.role')}
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
+                          {t('admin.status')}
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
+                          {t('admin.created')}
+                        </th>
+                        <th scope="col" className="relative px-6 py-3">
+                          <span className="sr-only">{t('common.edit')}</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-[var(--cognac)]">
+                      {users.map((user) => (
+                        <tr 
+                          key={user._id} 
+                          onClick={() => handleEditUser(user._id)}
+                          className="cursor-pointer hover:bg-[var(--taupe-light)]"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[var(--taupe)] flex items-center justify-center">
+                                <span className="text-[var(--sage-green)] font-medium">
+                                  {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                                </span>
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-medium text-black">
+                                  {user.firstName} {user.lastName}
                                 </div>
                               </div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--sage-green)]">
-                              {user.email}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
-                              {t(`role.${user.role.toLowerCase()}`)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <Badge variant={user.isActive ? 'success' : 'danger'}>
-                                {user.isActive ? t('admin.statusActive') : t('admin.statusInactive')}
-                              </Badge>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
-                              {formatDate(user.createdAt)}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleEditUser(user._id);
-                                }}
-                                className="text-[var(--sage-green)] hover:text-[#424b3c]"
-                              >
-                                {t('common.edit')}
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
-              ) : (
-                <div className="py-12 text-center">
-                  <Users className="mx-auto h-12 w-12 text-[var(--cognac)]" />
-                  <h3 className="mt-2 text-sm font-medium text-black">{t('admin.noUsers')}</h3>
-                  <p className="mt-1 text-sm text-[var(--sage-green)]">{t('admin.noUsersDescription')}</p>
-                  <div className="mt-6">
-                    <Button onClick={handleAddUser}>
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      {t('admin.addUser')}
-                    </Button>
-                  </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--sage-green)]">
+                            {user.email}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                            {t(`role.${user.role.toLowerCase()}`)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <Badge variant={user.isActive ? 'success' : 'danger'}>
+                              {user.isActive ? t('admin.statusActive') : t('admin.statusInactive')}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
+                            {formatDate(user.createdAt)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditUser(user._id);
+                              }}
+                              className="text-[var(--sage-green)] hover:text-[#424b3c]"
+                            >
+                              {t('common.edit')}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              )}
-            </CardContent>
-            
-            {/* Pagination */}
-            {!isLoading && users.length > 0 && totalPages > 1 && (
-              <CardFooter className="border-t border-[var(--cognac)] px-4 py-2">
-                <div className="flex items-center justify-between w-full">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    <span className="hidden sm:inline">{t('admin.previous')}</span>
-                  </Button>
-                  
-                  <div className="text-sm text-black">
-                    {t('admin.pageCount', { 
-                      current: currentPage.toString(), 
-                      total: totalPages.toString() 
-                    })}
-                  </div>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                  >
-                    <span className="hidden sm:inline">{t('admin.next')}</span>
-                    <ChevronRight className="h-4 w-4 ml-1" />
+              </>
+            ) : (
+              <div className="py-12 text-center">
+                <Users className="mx-auto h-12 w-12 text-[var(--cognac)]" />
+                <h3 className="mt-2 text-sm font-medium text-black">{t('admin.noUsers')}</h3>
+                <p className="mt-1 text-sm text-[var(--sage-green)]">{t('admin.noUsersDescription')}</p>
+                <div className="mt-6">
+                  <Button onClick={handleAddUser}>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    {t('admin.addUser')}
                   </Button>
                 </div>
-              </CardFooter>
+              </div>
             )}
-          </Card>
-        </div>
-      </DashboardLayout>
-    </ProtectedRoute>
+          </CardContent>
+          
+          {/* Pagination */}
+          {!isLoading && users.length > 0 && totalPages > 1 && (
+            <CardFooter className="border-t border-[var(--cognac)] px-4 py-2">
+              <div className="flex items-center justify-between w-full">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  <span className="hidden sm:inline">{t('admin.previous')}</span>
+                </Button>
+                
+                <div className="text-sm text-black">
+                  {t('admin.pageCount', { 
+                    current: currentPage.toString(), 
+                    total: totalPages.toString() 
+                  })}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <span className="hidden sm:inline">{t('admin.next')}</span>
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </CardFooter>
+          )}
+        </Card>
+      </div>
+    </>
   );
 } 

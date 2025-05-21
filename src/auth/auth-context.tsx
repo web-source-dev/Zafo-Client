@@ -10,6 +10,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   isOrganizer: boolean;
+  isUser: boolean;
   login: (credentials: LoginRequest) => Promise<AuthResponse>;
   register: (userData: RegisterRequest) => Promise<AuthResponse>;
   logout: () => void;
@@ -23,6 +24,7 @@ export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isAdmin: false,
   isOrganizer: false,
+  isUser: false,
   login: async () => ({ success: false, message: 'Not implemented' }),
   register: async () => ({ success: false, message: 'Not implemented' }),
   logout: () => {},
@@ -148,6 +150,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const isAuthenticated = !!user;
   const isAdmin = user?.role === 'admin' || false;
   const isOrganizer = user?.role === 'admin' || user?.role === 'organizer' || false;
+  const isUser = user?.role === 'user' || false;
 
   // Provide auth context
   return (
@@ -158,6 +161,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isAuthenticated,
         isAdmin,
         isOrganizer,
+        isUser,
         login,
         register,
         logout,
