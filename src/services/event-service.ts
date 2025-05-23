@@ -76,6 +76,8 @@ export interface Event {
   seo?: EventSEO;
   createdAt: Date;
   updatedAt: Date;
+  savedAt?: Date; // For saved events
+  isSaved?: boolean; // For UI state
 }
 
 export interface EventListResponse {
@@ -96,6 +98,13 @@ export interface EventFilters {
   sort?: string;
   limit?: number;
   page?: number;
+}
+
+export interface SavedEventResponse {
+  _id: string;
+  user: string;
+  event: string;
+  savedAt: Date;
 }
 
 /**
@@ -187,6 +196,53 @@ const eventService = {
    */
   deleteEvent: async (id: string): Promise<ApiResponse<void>> => {
     return api.delete(`/events/${id}`);
+  },
+  
+  /**
+   * Check if an event is saved by the current user
+   * @param eventId - Event ID
+   * @returns Promise with save status
+   */
+  checkSavedEvent: async (eventId: string): Promise<ApiResponse<{isSaved: boolean}>> => {
+    return api.get<{isSaved: boolean}>(`/saved-events/check/${eventId}`);
+  },
+  
+  /**
+   * Save an event for the current user
+   * @param eventId - Event ID to save
+   * @returns Promise with save result
+   */
+  saveEvent: async (eventId: string): Promise<ApiResponse<SavedEventResponse>> => {
+    return api.post<SavedEventResponse>('/saved-events', { eventId });
+  },
+  
+  /**
+   * Unsave an event for the current user
+   * @param eventId - Event ID to unsave
+   * @returns Promise with unsave result
+   */
+  unsaveEvent: async (eventId: string): Promise<ApiResponse<void>> => {
+    return api.delete(`/saved-events/${eventId}`);
+  },
+  
+  /**
+   * Get all saved events for the current user
+   * @param options - Pagination and sorting options
+   * @returns Promise with saved events
+   */
+  getSavedEvents: async (options?: { sort?: string; limit?: number; page?: number }): Promise<ApiResponse<EventListResponse>> => {
+    const queryParams = new URLSearchParams();
+    
+    if (options) {
+      Object.entries(options).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+    
+    const queryString = queryParams.toString();
+    return api.get<EventListResponse>(`/saved-events${queryString ? `?${queryString}` : ''}`);
   }
 };
 

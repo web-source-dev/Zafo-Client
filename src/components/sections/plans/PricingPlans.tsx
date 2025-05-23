@@ -40,7 +40,7 @@ export default function PricingPlans() {
   // Fetch subscription details and plans on component mount
   useEffect(() => {
     const initializeData = async () => {
-      // First check subscription status if authenticated
+      // First check subscription status if authenticated, but only once on mount
       if (isAuthenticated) {
         await refreshSubscription();
       }
@@ -49,7 +49,8 @@ export default function PricingPlans() {
     };
     
     initializeData();
-  }, [isAuthenticated, fetchPlans, refreshSubscription]);
+    // Remove refreshSubscription from dependencies to prevent infinite loop
+  }, [isAuthenticated, fetchPlans]);
   
   const toggleBillingCycle = () => {
     setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly');

@@ -18,22 +18,34 @@ import {
   Heart,
   ChevronRight,
   X,
+  Link2,
+  Copy,
+  ExternalLink,
+  Check,
+  LogIn
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import eventService, { Event } from '@/services/event-service';
 import Image from 'next/image';
+import { useAuth } from '@/auth/auth-context';
+import { toast } from 'react-hot-toast';
 // You should replace this with your actual Google Maps API key in a production environment
 // Ideally, this would be stored in an environment variable
-const GOOGLE_MAPS_API_KEY = 'YOUR_API_KEY_HERE';
+const GOOGLE_MAPS_API_KEY = 'AIzaSyDna_ucdoA86eG_TPfEpBz0OqYnrURx5xU';
 
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { isAuthenticated, user } = useAuth();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [savingEvent, setSavingEvent] = useState(false);
+  const [showShareOptions, setShowShareOptions] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   // Gallery state
   const [showGallery, setShowGallery] = useState(false);
@@ -51,6 +63,11 @@ export default function EventDetailPage() {
         const response = await eventService.getEvent(params.slug);
         if (response.success && response.data) {
           setEvent(response.data);
+          
+          // Check if event is saved by current user
+          if (isAuthenticated && user) {
+            checkSavedStatus(response.data._id);
+          }
         } else {
           setError(response.message || 'Failed to load event details');
         }
@@ -63,7 +80,99 @@ export default function EventDetailPage() {
     };
 
     fetchEvent();
-  }, [params.slug]);
+  }, [params.slug, isAuthenticated, user]);
+  
+  // Check if the event is saved by the current user
+  const checkSavedStatus = async (eventId: string) => {
+    try {
+      const response = await eventService.checkSavedEvent(eventId);
+      if (response.success && response.data) {
+        setIsSaved(response.data.isSaved);
+      }
+    } catch (err) {
+      console.error('Error checking saved status:', err);
+    }
+  };
+  
+  // Toggle save/unsave event
+  const toggleSaveEvent = async () => {
+    if (!isAuthenticated) {
+      // Redirect to login page if not authenticated
+      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
+      return;
+    }
+    
+    if (!event) return;
+    
+    setSavingEvent(true);
+    try {
+      if (isSaved) {
+        // Unsave the event
+        const response = await eventService.unsaveEvent(event._id);
+        if (response.success) {
+          setIsSaved(false);
+          toast.success('Event removed from saved items');
+        } else {
+          toast.error(response.message || 'Failed to unsave event');
+        }
+      } else {
+        // Save the event
+        const response = await eventService.saveEvent(event._id);
+        if (response.success) {
+          setIsSaved(true);
+          toast.success('Event saved successfully');
+        } else {
+          toast.error(response.message || 'Failed to save event');
+        }
+      }
+    } catch (err) {
+      console.error('Error toggling save event:', err);
+      toast.error('An error occurred. Please try again.');
+    } finally {
+      setSavingEvent(false);
+    }
+  };
+  
+  // Share event
+  const shareEvent = async (method: 'copy' | 'facebook' | 'twitter' | 'linkedin' | 'email') => {
+    if (!event) return;
+    
+    const eventUrl = typeof window !== 'undefined' ? window.location.href : '';
+    const eventTitle = event.title;
+    const eventDescription = event.smallDescription;
+    
+    switch (method) {
+      case 'copy':
+        try {
+          await navigator.clipboard.writeText(eventUrl);
+          setCopied(true);
+          toast.success('Link copied to clipboard');
+          setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+          toast.error('Failed to copy link');
+        }
+        break;
+        
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}`, '_blank');
+        break;
+        
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(eventUrl)}&text=${encodeURIComponent(`Check out this event: ${eventTitle}`)}`, '_blank');
+        break;
+        
+      case 'linkedin':
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(eventUrl)}`, '_blank');
+        break;
+        
+      case 'email':
+        window.open(`mailto:?subject=${encodeURIComponent(`Check out this event: ${eventTitle}`)}&body=${encodeURIComponent(`I thought you might be interested in this event:\n\n${eventTitle}\n\n${eventDescription}\n\n${eventUrl}`)}`, '_blank');
+        break;
+    }
+    
+    // Close share options after selection
+    setShowShareOptions(false);
+  };
 
   // Load Google Maps when event data is available
   useEffect(() => {
@@ -602,27 +711,101 @@ export default function EventDetailPage() {
                   <Button
                     size="lg"
                     fullWidth
+                    onClick={() => router.push(`/events/${event.slug}/checkout`)}
                   >
                     Register Now
                   </Button>
                   <div className="flex space-x-2">
                     <Button
                       variant="outline"
-                      className="flex-1"
+                      className={`flex-1 ${isSaved ? 'text-red-500 border-red-200 bg-red-50' : ''}`}
                       size="md"
+                      onClick={toggleSaveEvent}
+                      disabled={savingEvent}
                     >
-                      <Heart className="h-4 w-4 mr-1" />
-                      Save
+                      {savingEvent ? (
+                        <span className="flex items-center">
+                          <span className="animate-spin h-4 w-4 mr-1 border-2 border-t-0 border-r-0 rounded-full"></span>
+                          {isSaved ? 'Unsaving' : 'Saving'}
+                        </span>
+                      ) : (
+                        <>
+                          <Heart className={`h-4 w-4 mr-1 ${isSaved ? 'fill-red-500' : ''}`} />
+                          {isSaved ? 'Saved' : 'Save'}
+                        </>
+                      )}
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      size="md"
-                    >
-                      <Share2 className="h-4 w-4 mr-1" />
-                      Share
-                    </Button>
+                    <div className="relative flex-1">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        size="md"
+                        onClick={() => setShowShareOptions(!showShareOptions)}
+                      >
+                        <Share2 className="h-4 w-4 mr-1" />
+                        Share
+                      </Button>
+                      
+                      {/* Share options dropdown */}
+                      {showShareOptions && (
+                        <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-md shadow-xl z-20 border border-gray-200">
+                          <div className="flex flex-col">
+                            <button 
+                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" 
+                              onClick={() => shareEvent('copy')}
+                            >
+                              {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                              Copy Link
+                            </button>
+                            <button 
+                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" 
+                              onClick={() => shareEvent('facebook')}
+                            >
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Facebook
+                            </button>
+                            <button 
+                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" 
+                              onClick={() => shareEvent('twitter')}
+                            >
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Twitter
+                            </button>
+                            <button 
+                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" 
+                              onClick={() => shareEvent('linkedin')}
+                            >
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              LinkedIn
+                            </button>
+                            <button 
+                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" 
+                              onClick={() => shareEvent('email')}
+                            >
+                              <Link2 className="h-4 w-4 mr-2" />
+                              Email
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
+                  
+                  {/* Login message for non-authenticated users */}
+                  {!isAuthenticated && (
+                    <div className="text-sm text-center text-gray-600 mt-2">
+                      <LogIn className="h-3.5 w-3.5 inline-block mr-1" />
+                      <span>
+                        <a 
+                          href={`/login?redirect=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}`}
+                          className="text-[var(--sage-green)] hover:underline"
+                        >
+                          Log in
+                        </a>
+                        {' '}to save this event or purchase tickets
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {event.refundPolicy && (

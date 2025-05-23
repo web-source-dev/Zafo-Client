@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
 import authService, { User, LoginRequest, RegisterRequest, UpdateProfileRequest, AuthResponse } from '../services/auth-service';
 import subscriptionService, { Subscription, Plan } from '../services/subscription-service';
 
@@ -57,6 +57,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [subscribedPlan, setSubscribedPlan] = useState<Plan | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  // Add a ref to track if we've already fetched the subscription
+  const initialFetchDone = useRef(false);
 
   // Fetch user's subscription
   const fetchSubscription = useCallback(async () => {
@@ -112,6 +114,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Refresh subscription data
   const refreshSubscription = useCallback(async () => {
+    initialFetchDone.current = true; // Mark as fetched to avoid duplicate fetches
     await fetchSubscription();
   }, [fetchSubscription]);
 
@@ -129,8 +132,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const freshUserData = await authService.getProfile();
           setUser(freshUserData);
           
-          // Fetch subscription data if authenticated
-          await fetchSubscription();
+          // Fetch subscription data if authenticated and not already fetched
+          if (!initialFetchDone.current) {
+            await fetchSubscription();
+            initialFetchDone.current = true;
+          }
         } else {
           // If token is invalid, clear user data
           authService.logout();
@@ -150,7 +156,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     initAuth();
-  }, [fetchSubscription]);
+    // Remove fetchSubscription from dependencies to prevent infinite loop
+  }, []);
 
   // Login function
   const login = async (credentials: LoginRequest): Promise<AuthResponse> => {
