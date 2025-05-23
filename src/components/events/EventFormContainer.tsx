@@ -4,8 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../i18n/language-context';
+import { useAuth } from '../../auth/auth-context';
 import Button from '../ui/Button';
-import { Save, ArrowLeft } from 'lucide-react';
+import { Save, ArrowLeft, AlertCircle } from 'lucide-react';
 import eventService, { Event } from '../../services/event-service';
 import { EventFormData } from './EventFormTypes';
 import BasicInfoSection from './sections/BasicInfoSection';
@@ -18,6 +19,9 @@ import DetailsSection from './sections/DetailsSection';
 import AdditionalInfoSection from './sections/AdditionalInfoSection';
 import SEOSection from './sections/SEOSection';
 import { processImageForUpload } from '../../utils/imageUtils';
+import subscriptionService from '../../services/subscription-service';
+import { checkEventCreationLimits } from '../../utils/subscriptionUtils';
+import SubscriptionUpgrade from '../ui/SubscriptionUpgrade';
 
 interface EventFormContainerProps {
   event?: Event;
@@ -26,12 +30,57 @@ interface EventFormContainerProps {
 const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit = false }) => {
   const { t } = useLanguage();
   const router = useRouter();
+  const { subscription, subscribedPlan } = useAuth();
   
   // Form state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  
+  // Event creation limits
+  const [monthlyCount, setMonthlyCount] = useState(0);
+  const [yearlyCount, setYearlyCount] = useState(0);
+  const [isLoadingCounts, setIsLoadingCounts] = useState(true);
+  const [limitCheck, setLimitCheck] = useState<{ allowed: boolean; message?: string; requiredPlan?: string }>({ 
+    allowed: true 
+  });
+  
+  // Fetch event counts on component mount
+  useEffect(() => {
+    const fetchEventCounts = async () => {
+      try {
+        setIsLoadingCounts(true);
+        const response = await subscriptionService.getEventCounts();
+        
+        if (response.success && response.data) {
+          setMonthlyCount(response.data.monthlyCount);
+          setYearlyCount(response.data.yearlyCount);
+          
+          // Check if user has reached their limits
+          const check = checkEventCreationLimits(
+            response.data.monthlyCount, 
+            response.data.yearlyCount,
+            subscription,
+            subscribedPlan
+          );
+          
+          setLimitCheck(check);
+        }
+      } catch (error) {
+        console.error('Error fetching event counts:', error);
+      } finally {
+        setIsLoadingCounts(false);
+      }
+    };
+    
+    // Only fetch counts for new events, not when editing
+    if (!isEdit) {
+      fetchEventCounts();
+    } else {
+      setIsLoadingCounts(false);
+    }
+  }, [isEdit, subscription, subscribedPlan]);
   
   // Form setup with react-hook-form
   const methods = useForm<EventFormData>({
@@ -159,6 +208,12 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
   
   // Handle form submission
   const onSubmit = async (data: EventFormData, saveAsDraft = false) => {
+    // Check if user has reached their event creation limits
+    if (!isEdit && !limitCheck.allowed) {
+      setError(limitCheck.message || 'You have reached your event creation limit.');
+      return;
+    }
+    
     try {
       setIsSubmitting(true);
       setError(null);
@@ -343,6 +398,41 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
         </div>
       </div>
       
+      {/* Event creation limit warning */}
+      {!isEdit && !isLoadingCounts && !limitCheck.allowed && (
+        <div className="mb-6">
+          <SubscriptionUpgrade
+            message={limitCheck.message || "You've reached your event creation limit."}
+            requiredPlan={limitCheck.requiredPlan}
+          />
+        </div>
+      )}
+      
+      {/* Event count info */}
+      {!isEdit && !isLoadingCounts && limitCheck.allowed && (
+        <div className="mb-6 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded flex items-start">
+          <div className="mr-3 mt-0.5">
+            <AlertCircle size={20} />
+          </div>
+          <div>
+            <p className="font-medium">Event creation limits</p>
+            <p className="text-sm">
+              {subscription && subscribedPlan ? (
+                <>
+                  You have created {monthlyCount} out of {subscribedPlan.limits?.monthlyEvents || 'unlimited'} events this month
+                  and {yearlyCount} out of {subscribedPlan.limits?.yearlyEvents || 'unlimited'} events this year with your {subscribedPlan.name} plan.
+                </>
+              ) : (
+                <>
+                  You have created {monthlyCount} out of 2 events this month
+                  and {yearlyCount} out of 5 events this year with your free account.
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+      )}
+      
       {/* Error message display */}
       {error && (
         <div className="mb-6 bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded">
@@ -391,7 +481,7 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
             <div className="flex flex-wrap gap-4">
               <Button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || (!isEdit && !limitCheck.allowed)}
                 isLoading={isSubmitting}
                 className="flex items-center"
               >
@@ -402,7 +492,7 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
               <Button
                 type="button"
                 variant="secondary"
-                disabled={isSubmitting}
+                disabled={isSubmitting || (!isEdit && !limitCheck.allowed)}
                 onClick={() => methods.handleSubmit((data) => onSubmit(data, true))()}
               >
                 {t('events.saveAsDraft')}

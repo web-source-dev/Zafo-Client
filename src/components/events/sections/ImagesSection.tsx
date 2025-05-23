@@ -9,12 +9,17 @@ import Button from '../../ui/Button';
 import { EventFormData } from '../EventFormTypes';
 import { renderImageSource, validateImage } from '../../../utils/imageUtils';
 import Image from 'next/image';
+import { useAuth } from '../../../auth/auth-context';
+import { canAddGalleryImages } from '../../../utils/subscriptionUtils';
+import SubscriptionUpgrade from '../../ui/SubscriptionUpgrade';
+
 interface ImagesSectionProps {
   defaultOpen?: boolean;
 }
 
 const ImagesSection: React.FC<ImagesSectionProps> = ({ defaultOpen = false }) => {
   const { t } = useLanguage();
+  const { subscription, subscribedPlan } = useAuth();
   const [isEditing, setIsEditing] = useState(defaultOpen);
   const { watch, setValue, formState: { errors } } = useFormContext<EventFormData>();
   
@@ -32,6 +37,9 @@ const ImagesSection: React.FC<ImagesSectionProps> = ({ defaultOpen = false }) =>
   
   const isEmpty = !coverImage && (!galleryImages || galleryImages.length === 0);
   const isCompleted = !!coverImage;
+  
+  // Check if user can add gallery images
+  const galleryImagesCheck = canAddGalleryImages(subscription, subscribedPlan);
   
   // Toggle edit mode without saving data
   const handleEditToggle = () => {
@@ -72,6 +80,13 @@ const ImagesSection: React.FC<ImagesSectionProps> = ({ defaultOpen = false }) =>
       setGalleryImageError(null);
       const newImages = Array.from(files);
       setValue('galleryImages', [...galleryImages, ...newImages]);
+    }
+  };
+  
+  // Helper function to trigger the gallery file input click
+  const handleGalleryInputClick = () => {
+    if (galleryImageInputRef.current) {
+      galleryImageInputRef.current.click();
     }
   };
   
@@ -195,7 +210,16 @@ const ImagesSection: React.FC<ImagesSectionProps> = ({ defaultOpen = false }) =>
           )}
         </div>
         
-        <div>
+        {!galleryImagesCheck.allowed && (
+          <div className="mt-6 mb-2">
+            <SubscriptionUpgrade
+              message={galleryImagesCheck.message || "Gallery images require a subscription plan"}
+              requiredPlan={galleryImagesCheck.requiredPlan}
+            />
+          </div>
+        )}
+        
+        <div className="mt-6">
           <h4 className="text-sm font-medium text-black mb-2">{t('events.form.galleryImages')}</h4>
           <div className="border-2 border-dashed border-[var(--cognac)] rounded-lg p-6">
             <input
@@ -206,42 +230,60 @@ const ImagesSection: React.FC<ImagesSectionProps> = ({ defaultOpen = false }) =>
               multiple
               onChange={handleGalleryImageChange}
               className="hidden"
+              disabled={!galleryImagesCheck.allowed}
             />
             
-            <div className="mb-4 text-center">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => galleryImageInputRef.current?.click()}
-                className="inline-flex items-center"
-              >
-                <Plus size={16} className="mr-1.5" />
-                {t('events.form.addImages')}
-              </Button>
+            <div className="flex justify-center mb-4">
+              {!galleryImagesCheck.allowed ? (
+                <div className="flex items-center">
+                  <span className="text-[var(--cognac)] mr-2">
+                    Subscription required for gallery images
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={true}
+                    className="flex items-center opacity-50"
+                  >
+                    <Plus size={16} className="mr-1.5" />
+                    {t('events.form.addImages')}
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGalleryInputClick}
+                  className="flex items-center"
+                >
+                  <Plus size={16} className="mr-1.5" />
+                  {t('events.form.addImages')}
+                </Button>
+              )}
             </div>
             
             {galleryImageError && (
-              <div className="mb-3 text-red-600 flex items-start">
+              <div className="mb-4 text-red-600 flex items-start">
                 <AlertCircle size={16} className="mr-1.5 mt-0.5 flex-shrink-0" />
                 <p className="text-sm">{galleryImageError}</p>
               </div>
             )}
             
-            {galleryImages && galleryImages.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {galleryImages.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {galleryImages.map((image, index) => (
-                  <div key={index} className="relative">
+                  <div key={index} className="relative group">
                     <Image
                       src={renderImageSource(image)}
                       alt={`Gallery image ${index + 1}`}
                       className="w-full h-32 object-cover rounded-lg"
-                      width={256}
-                      height={256}
+                      width={128}
+                      height={128}
                     />
                     <button
                       type="button"
                       onClick={() => removeGalleryImage(index)}
-                      className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md text-red-500 hover:text-red-700"
+                      className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X size={16} />
                     </button>

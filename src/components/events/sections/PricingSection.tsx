@@ -1,11 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { DollarSign, Tag } from 'lucide-react';
+import { DollarSign, Tag, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../../i18n/language-context';
+import { useAuth } from '../../../auth/auth-context';
+import { canCreatePaidEvents } from '../../../utils/subscriptionUtils';
 import EventSection from './EventSection';
 import Input from '../../ui/Input';
+import SubscriptionUpgrade from '../../ui/SubscriptionUpgrade';
 import { EventFormData } from '../EventFormTypes';
 
 interface PricingSectionProps {
@@ -14,6 +17,7 @@ interface PricingSectionProps {
 
 const PricingSection: React.FC<PricingSectionProps> = ({ defaultOpen = false }) => {
   const { t } = useLanguage();
+  const { subscription, subscribedPlan } = useAuth();
   const [isEditing, setIsEditing] = useState(defaultOpen);
   const { register, watch, setValue, formState: { errors } } = useFormContext<EventFormData>();
   
@@ -21,6 +25,16 @@ const PricingSection: React.FC<PricingSectionProps> = ({ defaultOpen = false }) 
   const priceAmount = watch('price.amount');
   const priceCurrency = watch('price.currency');
   const tags = watch('tags') || [];
+  
+  // Check if user can create paid events
+  const pricingCheck = canCreatePaidEvents(subscription, subscribedPlan);
+  
+  // Force events to be free if user doesn't have permission to set pricing
+  useEffect(() => {
+    if (!pricingCheck.allowed && !isFree) {
+      setValue('isFree', true);
+    }
+  }, [pricingCheck.allowed, isFree, setValue]);
   
   const isEmpty = false; // Always has at least free/paid status
   const isCompleted = isFree || (!!priceAmount && !!priceCurrency);
@@ -99,19 +113,36 @@ const PricingSection: React.FC<PricingSectionProps> = ({ defaultOpen = false }) 
       }
     >
       <div className="space-y-6">
+        {!pricingCheck.allowed && (
+          <SubscriptionUpgrade
+            message={pricingCheck.message || "You need a subscription to create paid events."}
+            requiredPlan={pricingCheck.requiredPlan}
+            className="mb-4"
+          />
+        )}
+        
         <div className="flex items-center mb-4">
           <input
             type="checkbox"
             id="isFree"
             {...register('isFree')}
             className="h-4 w-4 text-[var(--sage-green)] border-[var(--cognac)] rounded focus:ring-[var(--sage-green)]"
+            disabled={!pricingCheck.allowed}
           />
-          <label htmlFor="isFree" className="ml-2 block text-sm text-black">
+          <label 
+            htmlFor="isFree" 
+            className={`ml-2 block text-sm ${!pricingCheck.allowed ? 'text-gray-500' : 'text-black'}`}
+          >
             {t('events.form.isFree')}
+            {!pricingCheck.allowed && (
+              <span className="ml-2 text-xs text-[var(--cognac)]">
+                (Required for your plan)
+              </span>
+            )}
           </label>
         </div>
         
-        {!isFree && (
+        {!isFree && pricingCheck.allowed && (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
               <Input

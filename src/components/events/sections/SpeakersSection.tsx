@@ -4,19 +4,24 @@ import React, { useState } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { User, Plus, X, Upload, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../../../i18n/language-context';
+import { useAuth } from '../../../auth/auth-context';
+import { canAddAdvancedFeatures } from '../../../utils/subscriptionUtils';
 import EventSection from './EventSection';
 import Input from '../../ui/Input';
 import Textarea from '../../ui/textarea';
 import Button from '../../ui/Button';
+import SubscriptionUpgrade from '../../ui/SubscriptionUpgrade';
 import { EventFormData } from '../EventFormTypes';
 import { renderImageSource, validateImage } from '../../../utils/imageUtils';
 import Image from 'next/image';
+
 interface SpeakersSectionProps {
   defaultOpen?: boolean;
 }
 
 const SpeakersSection: React.FC<SpeakersSectionProps> = ({ defaultOpen = false }) => {
   const { t } = useLanguage();
+  const { subscription, subscribedPlan } = useAuth();
   const [isEditing, setIsEditing] = useState(defaultOpen);
   const { control, register, watch, setValue, formState: { errors } } = useFormContext<EventFormData>();
   
@@ -27,6 +32,9 @@ const SpeakersSection: React.FC<SpeakersSectionProps> = ({ defaultOpen = false }
     control,
     name: 'speakers',
   });
+  
+  // Check if user can add advanced features (multiple speakers)
+  const advancedFeatureCheck = canAddAdvancedFeatures(subscription, subscribedPlan);
   
   const speakers = watch('speakers');
   
@@ -40,6 +48,17 @@ const SpeakersSection: React.FC<SpeakersSectionProps> = ({ defaultOpen = false }
   };
   
   const handleAddSpeaker = () => {
+    // Only allow adding 1 speaker for free users
+    // For users with Starter plan but no advanced features, allow 2 speakers
+    if (!subscription && speakers.length >= 1) {
+      return;
+    }
+    
+    // For users with subscription but no advanced features (Starter plan)
+    if (subscription && !advancedFeatureCheck.allowed && speakers.length >= 2) {
+      return;
+    }
+    
     append({ name: '', about: '', role: '' });
   };
   
@@ -86,6 +105,25 @@ const SpeakersSection: React.FC<SpeakersSectionProps> = ({ defaultOpen = false }
     });
   };
   
+  // Get the appropriate message for speaker limitations
+  const getSpeakerLimitMessage = () => {
+    if (!subscription) {
+      return "Upgrade to a paid plan to add more speakers to your event.";
+    }
+    return advancedFeatureCheck.message || "Upgrade to add more speakers to your event.";
+  };
+  
+  // Check if speaker button should be disabled
+  const isAddSpeakerDisabled = () => {
+    if (!subscription && speakers.length >= 1) {
+      return true;
+    }
+    if (subscription && !advancedFeatureCheck.allowed && speakers.length >= 2) {
+      return true;
+    }
+    return false;
+  };
+  
   return (
     <EventSection
       title={t('events.speakers')}
@@ -104,6 +142,8 @@ const SpeakersSection: React.FC<SpeakersSectionProps> = ({ defaultOpen = false }
                       src={renderImageSource(speaker.image)}
                       alt={speaker.name}
                       className="w-16 h-16 object-cover rounded-full"
+                      width={64}
+                      height={64}
                     />
                   ) : (
                     <div className="w-16 h-16 flex items-center justify-center bg-[rgba(83,94,75,0.1)] rounded-full">
@@ -124,6 +164,15 @@ const SpeakersSection: React.FC<SpeakersSectionProps> = ({ defaultOpen = false }
       }
     >
       <div className="space-y-6">
+        {((!subscription && speakers.length >= 1) || 
+          (subscription && !advancedFeatureCheck.allowed && speakers.length >= 2)) && (
+          <SubscriptionUpgrade
+            message={getSpeakerLimitMessage()}
+            requiredPlan={!subscription ? "Starter" : advancedFeatureCheck.requiredPlan}
+            className="mb-4"
+          />
+        )}
+        
         {fields.map((field, index) => (
           <div key={field.id} className="p-4 border border-[var(--cognac)] rounded-lg">
             <div className="flex justify-between items-center mb-4">
@@ -191,6 +240,8 @@ const SpeakersSection: React.FC<SpeakersSectionProps> = ({ defaultOpen = false }
                         src={renderImageSource(speakers[index].image)}
                         alt={speakers[index].name}
                         className="w-full h-full object-cover rounded-full"
+                        width={48}
+                        height={48}
                       />
                       <button
                         type="button"
@@ -215,15 +266,32 @@ const SpeakersSection: React.FC<SpeakersSectionProps> = ({ defaultOpen = false }
         ))}
         
         <div className="flex justify-center">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleAddSpeaker}
-            className="flex items-center"
-          >
-            <Plus size={16} className="mr-1.5" />
-            {t('events.form.addSpeaker')}
-          </Button>
+          {isAddSpeakerDisabled() ? (
+            <div className="flex flex-col items-center">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={true}
+                className="flex items-center opacity-50 mb-2"
+              >
+                <Plus size={16} className="mr-1.5" />
+                {t('events.form.addSpeaker')}
+              </Button>
+              <span className="text-xs text-[var(--cognac)]">
+                {!subscription ? "Paid plan required for more speakers" : "Upgrade required for more speakers"}
+              </span>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleAddSpeaker}
+              className="flex items-center"
+            >
+              <Plus size={16} className="mr-1.5" />
+              {t('events.form.addSpeaker')}
+            </Button>
+          )}
         </div>
       </div>
     </EventSection>

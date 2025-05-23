@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import authService from '../services/auth-service';
 
 // API base URL from environment or default to localhost
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 // Define generic types for API data
 export type ApiData = Record<string, unknown>;

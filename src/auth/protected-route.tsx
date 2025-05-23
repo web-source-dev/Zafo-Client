@@ -9,11 +9,14 @@ interface ProtectedRouteProps {
   adminOnly?: boolean;
   organizerOnly?: boolean;
   userOnly?: boolean;
+  requireSubscription?: boolean;
+  requiredPlanId?: string;
   fallbackUrl?: string;
+  subscriptionFallbackUrl?: string;
 }
 
 /**
- * Higher-order component for protecting routes based on authentication and roles
+ * Higher-order component for protecting routes based on authentication, roles, and subscription status
  * 
  * Usage examples:
  * - Basic authentication protection:
@@ -30,15 +33,35 @@ interface ProtectedRouteProps {
  *   <ProtectedRoute organizerOnly>
  *     <OrganizerComponent />
  *   </ProtectedRoute>
+ *
+ * - Subscription protection:
+ *   <ProtectedRoute requireSubscription>
+ *     <SubscriptionOnlyComponent />
+ *   </ProtectedRoute>
+ * 
+ * - Specific plan protection:
+ *   <ProtectedRoute requireSubscription requiredPlanId="plan-id-here">
+ *     <PremiumComponent />
+ *   </ProtectedRoute>
  */
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
   children, 
   adminOnly = false, 
   organizerOnly = false,
   userOnly = false,
-  fallbackUrl = '/login'
+  requireSubscription = false,
+  requiredPlanId,
+  fallbackUrl = '/login',
+  subscriptionFallbackUrl = '/plans'
 }) => {
-  const { isAuthenticated, isAdmin, isOrganizer, isUser, isLoading } = useAuth();
+  const { 
+    isAuthenticated, 
+    isAdmin, 
+    isOrganizer, 
+    isUser, 
+    isLoading, 
+    hasRequiredSubscription
+  } = useAuth();
   const router = useRouter();
 
   // Show nothing while authentication is being checked
@@ -82,6 +105,16 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (typeof window !== 'undefined') {
       console.log('Organizer access required, redirecting to unauthorized page');
       router.push('/unauthorized');
+    }
+    return null;
+  }
+
+  // Check subscription if required
+  if (requireSubscription && !hasRequiredSubscription(requiredPlanId)) {
+    // Use redirects on client-side only
+    if (typeof window !== 'undefined') {
+      console.log('Subscription required, redirecting to plans page');
+      router.push(subscriptionFallbackUrl);
     }
     return null;
   }

@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 
 // API base URL from environment or default to localhost
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
 
 // Error response interface
 export interface ApiErrorResponse {
@@ -16,6 +16,8 @@ export interface User {
   firstName: string;
   lastName: string;
   role: 'user' | 'admin' | 'organizer';
+  isSubscribed?: boolean;
+  stripeCustomerId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
