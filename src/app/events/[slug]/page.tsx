@@ -1,17 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { format, parseISO } from 'date-fns';
 import { Loader } from '@googlemaps/js-api-loader';
 import {
   Calendar,
-  Clock,
   MapPin,
   Tag,
   Users,
   Globe,
-  CreditCard,
   Ticket,
   Info,
   User,
@@ -20,12 +18,11 @@ import {
   Heart,
   ChevronRight,
   X,
-  Image
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import eventService, { Event } from '@/services/event-service';
-
+import Image from 'next/image';
 // You should replace this with your actual Google Maps API key in a production environment
 // Ideally, this would be stored in an environment variable
 const GOOGLE_MAPS_API_KEY = 'YOUR_API_KEY_HERE';
@@ -168,19 +165,19 @@ export default function EventDetailPage() {
     document.body.style.overflow = 'unset';
   };
 
-  const nextImage = () => {
+  const nextImage = useCallback(() => {
     if (!event || !event.galleryImages) return;
     setCurrentImageIndex((prevIndex) => 
       prevIndex === event.galleryImages!.length - 1 ? 0 : prevIndex + 1
     );
-  };
+  }, [event]);
 
-  const prevImage = () => {
+  const prevImage = useCallback(() => {
     if (!event || !event.galleryImages) return;
     setCurrentImageIndex((prevIndex) => 
       prevIndex === 0 ? event.galleryImages!.length - 1 : prevIndex - 1
     );
-  };
+  }, [event]);
 
   // Handle keyboard events for gallery navigation
   useEffect(() => {
@@ -194,7 +191,7 @@ export default function EventDetailPage() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showGallery, event]);
+  }, [showGallery, event, nextImage, prevImage]);
 
   if (loading) {
     return (
@@ -212,7 +209,7 @@ export default function EventDetailPage() {
             {error || 'Event not found'}
           </h2>
           <p className="text-gray-600 mb-6">
-            The event you're looking for might have been removed or is not available.
+            The event you&apos;re looking for might have been removed or is not available.
           </p>
           <Button onClick={() => router.push('/events')}>
             Back to Events
@@ -244,10 +241,12 @@ export default function EventDetailPage() {
         
         {/* Main image */}
         <div className="relative w-full h-full flex items-center justify-center p-4">
-          <img
+          <Image
             src={event.galleryImages[currentImageIndex]}
             alt={`Event gallery image ${currentImageIndex + 1}`}
             className="max-h-full max-w-full object-contain"
+            width={500}
+            height={500}
           />
         </div>
         
@@ -283,10 +282,12 @@ export default function EventDetailPage() {
                       : 'border-transparent opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img 
+                  <Image 
                     src={img} 
                     alt={`Thumbnail ${idx + 1}`}
                     className="w-full h-full object-cover"
+                    width={500}
+                    height={500}
                   />
                 </button>
               ))}
@@ -305,10 +306,12 @@ export default function EventDetailPage() {
       {/* Hero Section */}
       <div className="relative h-64 md:h-96 w-full">
         {event.coverImage ? (
-          <img
+          <Image
             src={event.coverImage}
             alt={event.title}
             className="w-full h-full object-contain"
+            width={500}
+            height={500}
           />
         ) : (
           <div className="w-full h-full bg-[var(--sage)] flex items-center justify-center">
@@ -335,10 +338,12 @@ export default function EventDetailPage() {
                         className="relative aspect-square rounded-md overflow-hidden cursor-pointer hover-lift transition-standard"
                         onClick={() => openGallery(index)}
                       >
-                        <img
+                        <Image
                           src={image}
                           alt={`Event gallery image ${index + 1}`}
                           className="w-full h-full object-cover"
+                          width={500}
+                          height={500}
                         />
                         {index === 7 && event.galleryImages && event.galleryImages.length > 8 && (
                           <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
@@ -359,7 +364,6 @@ export default function EventDetailPage() {
                         onClick={() => openGallery(0)}
                         className="mx-auto"
                       >
-                        <Image className="h-4 w-4 mr-2" />
                         View All Photos
                       </Button>
                     </div>
@@ -384,7 +388,7 @@ export default function EventDetailPage() {
             {event.eventIncludes && (
               <Card>
                 <CardHeader>
-                  <h2 className="text-2xl font-semibold text-[var(--sage-green)]">What's Included</h2>
+                  <h2 className="text-2xl font-semibold text-[var(--sage-green)]">What&apos;s Included</h2>
                 </CardHeader>
                 <CardContent>
                   <div className="prose max-w-none">
@@ -405,10 +409,12 @@ export default function EventDetailPage() {
                     {event.speakers.map((speaker, index) => (
                       <div key={index} className="flex space-x-4">
                         {speaker.image ? (
-                          <img
+                            <Image
                             src={speaker.image}
                             alt={speaker.name}
                             className="w-16 h-16 rounded-full object-cover"
+                            width={500}
+                            height={500}
                           />
                         ) : (
                           <div className="w-16 h-16 rounded-full bg-[var(--sage)] flex items-center justify-center">

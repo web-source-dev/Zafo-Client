@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Button from '@/components/ui/Button';
-import { useLanguage } from '@/i18n/language-context';
 import { motion } from 'framer-motion';
 import { FaCheck, FaStar, FaTrophy, FaRocket, FaSpinner, FaExchangeAlt, FaInfoCircle } from 'react-icons/fa';
 import { useAuth } from '@/auth/auth-context';
@@ -16,7 +15,6 @@ export default function PricingPlans() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubscribing, setIsSubscribing] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
-  const { t } = useLanguage();
   const { isAuthenticated, isOrganizer, isSubscribed, user, subscription, refreshSubscription } = useAuth();
   const router = useRouter();
   
@@ -51,7 +49,7 @@ export default function PricingPlans() {
     };
     
     initializeData();
-  }, [isAuthenticated, fetchPlans]);
+  }, [isAuthenticated, fetchPlans, refreshSubscription]);
   
   const toggleBillingCycle = () => {
     setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly');
@@ -401,7 +399,7 @@ export default function PricingPlans() {
                   </div>
                   
                   <div className="bg-gray-50 p-8 border-t border-gray-200">
-                    <h4 className="font-semibold text-gray-900 mb-4">What's included</h4>
+                    <h4 className="font-semibold text-gray-900 mb-4">What&apos;s included</h4>
                     <ul className="space-y-3">
                       {plan.features.map((feature, featureIndex) => (
                         <li key={featureIndex} className="flex items-start">

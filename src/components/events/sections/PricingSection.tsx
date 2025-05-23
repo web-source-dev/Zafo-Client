@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { DollarSign, Tag, AlertCircle } from 'lucide-react';
+import { DollarSign, Tag } from 'lucide-react';
 import { useLanguage } from '../../../i18n/language-context';
 import { useAuth } from '../../../auth/auth-context';
 import { canCreatePaidEvents } from '../../../utils/subscriptionUtils';

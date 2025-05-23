@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../auth/auth-context';
 import { useLanguage } from '../../i18n/language-context';
-import { DashboardIcon, EventsIcon, ParticipantsIcon, ReportsIcon } from '../../components/layout/DashboardIcons';
+import { EventsIcon, ParticipantsIcon } from '../../components/layout/DashboardIcons';
 import Button from '../../components/ui/Button';
 import { useRouter } from 'next/navigation';
 import eventService, { Event } from '../../services/event-service';

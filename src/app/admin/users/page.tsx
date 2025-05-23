@@ -8,7 +8,7 @@ import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Badge from '../../../components/ui/Badge';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '../../../components/ui/Card';
-import { UsersIcon, Search, UserPlus, Filter, ChevronLeft, ChevronRight, Mail, Calendar, UserCog, Edit, Users } from 'lucide-react';
+import { Search, UserPlus, Filter, ChevronLeft, ChevronRight, Mail, Calendar, UserCog, Edit, Users } from 'lucide-react';
 import adminService, { AdminUser } from '../../../services/admin-service';
 
 // Filters for user list

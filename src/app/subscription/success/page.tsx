@@ -84,7 +84,7 @@ const SubscriptionSuccessPage = () => {
             Something went wrong
           </h2>
           <p className="mt-2 text-base text-gray-600">
-            We couldn't process your subscription. Please try again or contact support.
+            We couldn&apos;t process your subscription. Please try again or contact support.
           </p>
           <div className="mt-6 flex justify-center gap-4">
             <Button onClick={goToPlans}>

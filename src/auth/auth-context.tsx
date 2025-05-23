@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 import authService, { User, LoginRequest, RegisterRequest, UpdateProfileRequest, AuthResponse } from '../services/auth-service';
 import subscriptionService, { Subscription, Plan } from '../services/subscription-service';
 
@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // Fetch user's subscription
-  const fetchSubscription = async () => {
+  const fetchSubscription = useCallback(async () => {
     if (!user) {
       setSubscription(null);
       setSubscribedPlan(null);
@@ -108,12 +108,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setSubscription(null);
       setSubscribedPlan(null);
     }
-  };
+  }, [user]);
 
   // Refresh subscription data
-  const refreshSubscription = async () => {
+  const refreshSubscription = useCallback(async () => {
     await fetchSubscription();
-  };
+  }, [fetchSubscription]);
 
   // Check authentication status on mount
   useEffect(() => {
@@ -150,7 +150,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
 
     initAuth();
-  }, []);
+  }, [fetchSubscription]);
 
   // Login function
   const login = async (credentials: LoginRequest): Promise<AuthResponse> => {
