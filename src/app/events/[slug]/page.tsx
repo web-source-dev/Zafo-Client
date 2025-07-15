@@ -1,311 +1,81 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { format, parseISO } from 'date-fns';
-import { Loader } from '@googlemaps/js-api-loader';
-import {
-  Calendar,
-  MapPin,
-  Tag,
-  Users,
-  Globe,
-  Ticket,
-  Info,
-  User,
-  ChevronLeft,
-  Share2,
-  Heart,
-  ChevronRight,
-  X,
-  Link2,
-  Copy,
-  ExternalLink,
-  Check,
-  LogIn
-} from 'lucide-react';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
-import Button from '@/components/ui/Button';
-import eventService, { Event } from '@/services/event-service';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useAuth } from '@/auth/auth-context';
-import { toast } from 'react-hot-toast';
-// You should replace this with your actual Google Maps API key in a production environment
-// Ideally, this would be stored in an environment variable
-const GOOGLE_MAPS_API_KEY = 'AIzaSyDna_ucdoA86eG_TPfEpBz0OqYnrURx5xU';
+import { useLanguage } from '@/i18n/language-context';
+import eventService, { Event } from '@/services/event-service';
+import ticketService, { Ticket } from '@/services/ticket-service';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Badge from '@/components/ui/Badge';
+import TicketPurchaseCard from '@/components/events/TicketPurchaseCard';
+import { formatDate, formatTime, formatDateRange } from '@/utils/dateUtils';
 
 export default function EventDetailPage() {
-  const params = useParams();
+  const { t } = useLanguage();
+  const { slug } = useParams();
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
-  const [event, setEvent] = useState<Event | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
-  const [savingEvent, setSavingEvent] = useState(false);
-  const [showShareOptions, setShowShareOptions] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const { isAuthenticated, isOrganizer } = useAuth();
   
-  // Gallery state
-  const [showGallery, setShowGallery] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [event, setEvent] = useState<Event | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [attendeeCount, setAttendeeCount] = useState<number>(0);
+  const [userTickets, setUserTickets] = useState<Ticket[]>([]);
+  const [showTicketPurchase, setShowTicketPurchase] = useState(false);
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false);
 
+  // Fetch event details and user tickets when component mounts
   useEffect(() => {
-    const fetchEvent = async () => {
-      try {
-        if (typeof params.slug !== 'string') {
-          setError('Invalid event slug');
-          setLoading(false);
-          return;
-        }
+    const fetchEventDetails = async () => {
+      if (!slug) return;
 
-        const response = await eventService.getEvent(params.slug);
+      setIsLoading(true);
+      try {
+        const response = await eventService.getEvent(slug as string);
         if (response.success && response.data) {
           setEvent(response.data);
           
-          // Check if event is saved by current user
-          if (isAuthenticated && user) {
-            checkSavedStatus(response.data._id);
+          // Fetch user's tickets for this event if authenticated
+          if (isAuthenticated) {
+            try {
+                          const ticketsResponse = await ticketService.getUserTickets();
+            if (ticketsResponse.success && ticketsResponse.data) {
+              const eventTickets = ticketsResponse.data.tickets.filter(
+                (ticket) => {
+                  const ticketEventId = typeof ticket.eventId === 'string' 
+                    ? ticket.eventId 
+                    : ticket.eventId._id;
+                  return ticketEventId === response.data!._id;
+                }
+              );
+              setUserTickets(eventTickets);
+            }
+            } catch (ticketErr) {
+              console.error('Error fetching user tickets:', ticketErr);
+            }
           }
         } else {
-          setError(response.message || 'Failed to load event details');
+          setError(response.message || t('events.detail.eventNotFound'));
         }
       } catch (err) {
-        console.error('Error fetching event:', err);
-        setError('An error occurred while loading the event');
+        setError(t('events.detail.error'));
+        console.error(err);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
 
-    fetchEvent();
-  }, [params.slug, isAuthenticated, user]);
-  
-  // Check if the event is saved by the current user
-  const checkSavedStatus = async (eventId: string) => {
-    try {
-      const response = await eventService.checkSavedEvent(eventId);
-      if (response.success && response.data) {
-        setIsSaved(response.data.isSaved);
-      }
-    } catch (err) {
-      console.error('Error checking saved status:', err);
-    }
-  };
-  
-  // Toggle save/unsave event
-  const toggleSaveEvent = async () => {
-    if (!isAuthenticated) {
-      // Redirect to login page if not authenticated
-      router.push(`/login?redirect=${encodeURIComponent(window.location.pathname)}`);
-      return;
-    }
-    
-    if (!event) return;
-    
-    setSavingEvent(true);
-    try {
-      if (isSaved) {
-        // Unsave the event
-        const response = await eventService.unsaveEvent(event._id);
-        if (response.success) {
-          setIsSaved(false);
-          toast.success('Event removed from saved items');
-        } else {
-          toast.error(response.message || 'Failed to unsave event');
-        }
-      } else {
-        // Save the event
-        const response = await eventService.saveEvent(event._id);
-        if (response.success) {
-          setIsSaved(true);
-          toast.success('Event saved successfully');
-        } else {
-          toast.error(response.message || 'Failed to save event');
-        }
-      }
-    } catch (err) {
-      console.error('Error toggling save event:', err);
-      toast.error('An error occurred. Please try again.');
-    } finally {
-      setSavingEvent(false);
-    }
-  };
-  
-  // Share event
-  const shareEvent = async (method: 'copy' | 'facebook' | 'twitter' | 'linkedin' | 'email') => {
-    if (!event) return;
-    
-    const eventUrl = typeof window !== 'undefined' ? window.location.href : '';
-    const eventTitle = event.title;
-    const eventDescription = event.smallDescription;
-    
-    switch (method) {
-      case 'copy':
-        try {
-          await navigator.clipboard.writeText(eventUrl);
-          setCopied(true);
-          toast.success('Link copied to clipboard');
-          setTimeout(() => setCopied(false), 2000);
-        } catch (err) {
-          toast.error('Failed to copy link');
-        }
-        break;
-        
-      case 'facebook':
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(eventUrl)}`, '_blank');
-        break;
-        
-      case 'twitter':
-        window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(eventUrl)}&text=${encodeURIComponent(`Check out this event: ${eventTitle}`)}`, '_blank');
-        break;
-        
-      case 'linkedin':
-        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(eventUrl)}`, '_blank');
-        break;
-        
-      case 'email':
-        window.open(`mailto:?subject=${encodeURIComponent(`Check out this event: ${eventTitle}`)}&body=${encodeURIComponent(`I thought you might be interested in this event:\n\n${eventTitle}\n\n${eventDescription}\n\n${eventUrl}`)}`, '_blank');
-        break;
-    }
-    
-    // Close share options after selection
-    setShowShareOptions(false);
-  };
+    fetchEventDetails();
+  }, [slug, t, isAuthenticated]);
 
-  // Load Google Maps when event data is available
-  useEffect(() => {
-    if (!event || !event.location || !event.location.coordinates || event.location.online) {
-      return;
-    }
-
-    const loadMap = async () => {
-      try {
-        const loader = new Loader({
-          apiKey: GOOGLE_MAPS_API_KEY,
-          version: 'weekly',
-        });
-
-        const google = await loader.load();
-        setMapLoaded(true);
-
-        const mapElement = document.getElementById('event-map');
-        if (mapElement && event.location.coordinates) {
-          const { latitude, longitude } = event.location.coordinates;
-          
-          // Map styling to match website theme
-          const mapStyles = [
-            {
-              featureType: "all",
-              elementType: "geometry.fill",
-              stylers: [{ saturation: -100 }]
-            },
-            {
-              featureType: "poi",
-              elementType: "labels",
-              stylers: [{ visibility: "off" }]
-            },
-            {
-              featureType: "transit",
-              elementType: "labels",
-              stylers: [{ visibility: "off" }]
-            }
-          ];
-          
-          const map = new google.maps.Map(mapElement, {
-            center: { lat: latitude, lng: longitude },
-            zoom: 15,
-            mapTypeControl: false,
-            fullscreenControl: true,
-            streetViewControl: true,
-            styles: mapStyles,
-            zoomControl: true
-          });
-
-          // Create info window with venue details
-          const infoWindow = new google.maps.InfoWindow({
-            content: `
-              <div style="padding: 8px; max-width: 200px;">
-                <h3 style="font-weight: bold; margin-bottom: 5px;">${event.location.name}</h3>
-                <p style="font-size: 12px; margin: 0;">
-                  ${event.location.address.street}, 
-                  ${event.location.address.city}
-                  ${event.location.address.state ? `, ${event.location.address.state}` : ''}
-                </p>
-              </div>
-            `
-          });
-
-          // Add marker for event location
-          const marker = new google.maps.Marker({
-            position: { lat: latitude, lng: longitude },
-            map,
-            title: event.location.name,
-            animation: google.maps.Animation.DROP,
-          });
-          
-          // Open info window when marker is clicked
-          marker.addListener('click', () => {
-            infoWindow.open(map, marker);
-          });
-          
-          // Open info window by default
-          infoWindow.open(map, marker);
-        }
-      } catch (err) {
-        console.error('Error loading Google Maps:', err);
-      }
-    };
-
-    loadMap();
-  }, [event]);
-
-  // Gallery navigation functions
-  const openGallery = (index: number = 0) => {
-    setCurrentImageIndex(index);
-    setShowGallery(true);
-    // Prevent scrolling when gallery is open
-    document.body.style.overflow = 'hidden';
-  };
-
-  const closeGallery = () => {
-    setShowGallery(false);
-    document.body.style.overflow = 'unset';
-  };
-
-  const nextImage = useCallback(() => {
-    if (!event || !event.galleryImages) return;
-    setCurrentImageIndex((prevIndex) => 
-      prevIndex === event.galleryImages!.length - 1 ? 0 : prevIndex + 1
-    );
-  }, [event]);
-
-  const prevImage = useCallback(() => {
-    if (!event || !event.galleryImages) return;
-    setCurrentImageIndex((prevIndex) => 
-      prevIndex === 0 ? event.galleryImages!.length - 1 : prevIndex - 1
-    );
-  }, [event]);
-
-  // Handle keyboard events for gallery navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!showGallery) return;
-      
-      if (e.key === 'Escape') closeGallery();
-      else if (e.key === 'ArrowRight') nextImage();
-      else if (e.key === 'ArrowLeft') prevImage();
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showGallery, event, nextImage, prevImage]);
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-12 flex justify-center items-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
+      <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -313,539 +83,409 @@ export default function EventDetailPage() {
   if (error || !event) {
     return (
       <div className="container mx-auto px-4 py-12">
-        <div className="bg-white rounded-lg shadow-md p-8 text-center">
-          <h2 className="text-2xl font-semibold text-[var(--sage-green)] mb-4">
-            {error || 'Event not found'}
-          </h2>
-          <p className="text-gray-600 mb-6">
-            The event you&apos;re looking for might have been removed or is not available.
-          </p>
-          <Button onClick={() => router.push('/events')}>
-            Back to Events
-          </Button>
+        <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg" role="alert">
+          <p className="text-lg font-medium mb-2">{t('events.detail.error')}</p>
+          <p>{error || t('events.detail.eventNotFound')}</p>
+          <div className="mt-4">
+            <Button onClick={() => router.push('/events')}>{t('events.detail.backToEvents')}</Button>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Gallery components
-  const FullscreenGallery = () => {
-    if (!showGallery || !event.galleryImages || event.galleryImages.length === 0) return null;
-    
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex flex-col justify-center items-center">
-        {/* Close button */}
-        <button 
-          onClick={closeGallery}
-          className="absolute top-4 right-4 z-50 text-white hover:text-gray-300 transition-colors"
-          aria-label="Close gallery"
-        >
-          <X className="h-8 w-8" />
-        </button>
-        
-        {/* Image counter */}
-        <div className="absolute top-4 left-4 z-50 text-white">
-          <span>{currentImageIndex + 1} / {event.galleryImages.length}</span>
-        </div>
-        
-        {/* Main image */}
-        <div className="relative w-full h-full flex items-center justify-center p-4">
-          <Image
-            src={event.galleryImages[currentImageIndex]}
-            alt={`Event gallery image ${currentImageIndex + 1}`}
-            className="max-h-full max-w-full object-contain"
-            width={500}
-            height={500}
-          />
-        </div>
-        
-        {/* Navigation buttons */}
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4">
-          <button 
-            onClick={prevImage}
-            className="bg-black bg-opacity-50 rounded-full p-2 text-white hover:bg-opacity-70 transition-opacity"
-            aria-label="Previous image"
-          >
-            <ChevronLeft className="h-8 w-8" />
-          </button>
-          <button 
-            onClick={nextImage}
-            className="bg-black bg-opacity-50 rounded-full p-2 text-white hover:bg-opacity-70 transition-opacity"
-            aria-label="Next image"
-          >
-            <ChevronRight className="h-8 w-8" />
-          </button>
-        </div>
-        
-        {/* Thumbnails */}
-        {event.galleryImages.length > 1 && (
-          <div className="absolute bottom-4 inset-x-0">
-            <div className="flex justify-center space-x-2 px-4 overflow-x-auto">
-              {event.galleryImages.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setCurrentImageIndex(idx)}
-                  className={`w-16 h-16 flex-shrink-0 rounded-md overflow-hidden border-2 transition-all ${
-                    idx === currentImageIndex 
-                      ? 'border-[var(--sage-green)] opacity-100 scale-110' 
-                      : 'border-transparent opacity-70 hover:opacity-100'
-                  }`}
-                >
-                  <Image 
-                    src={img} 
-                    alt={`Thumbnail ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                    width={500}
-                    height={500}
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
+  // Format organizer name
+  const organizerName = typeof event.organizer === 'object' 
+    ? `${event.organizer.firstName} ${event.organizer.lastName}`
+    : t('events.detail.organizer');
+
+  // Check if user has already purchased a ticket
+  const hasPurchasedTicket = userTickets.length > 0;
+  const purchasedTicket = userTickets[0]; // Get the first ticket if user has multiple
+
+  // Handle ticket purchase success
+  const handlePurchaseSuccess = () => {
+    setPurchaseSuccess(true);
+    setShowTicketPurchase(false);
+    // Refresh user tickets
+    window.location.reload();
+  };
+
+  // Handle ticket purchase cancel
+  const handlePurchaseCancel = () => {
+    setShowTicketPurchase(false);
   };
 
   return (
-    <div className="bg-[var(--taupe)]">
-      {/* Fullscreen gallery */}
-      <FullscreenGallery />
-      
-      {/* Hero Section */}
-      <div className="relative h-64 md:h-96 w-full">
+    <div className="container mx-auto px-4 py-8 bg-white w-full">
+      {/* Event Header */}
+      <div className="mb-6">
+        <Link href="/events" className="text-[var(--sage-green)] hover:underline mb-4 inline-block">
+          &larr; {t('events.detail.backToEvents')}
+        </Link>
+
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2">{event.title}</h1>
+            <p className="text-lg text-gray-600 mb-2">{event.smallDescription}</p>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Badge variant="default">{event.category}</Badge>
+              <Badge variant={event.price.isFree ? 'success' : 'info'}>
+                {event.price.isFree ? t('events.free') : `${event.price.amount} ${event.price.currency}`}
+              </Badge>
+              <Badge variant="outline">{event.status}</Badge>
+            </div>
+          </div>
+          
+          {isOrganizer && (
+            <div className="mt-4 md:mt-0">
+              <Button 
+                variant="outline" 
+                onClick={() => router.push(`/organizer/events/edit/${event._id}`)}
+                className="mr-2"
+              >
+                {t('events.detail.editEvent')}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Event Image */}
+      <div className="w-full h-80 md:h-96 relative mb-8 rounded-lg overflow-hidden">
         {event.coverImage ? (
           <Image
             src={event.coverImage}
             alt={event.title}
-            className="w-full h-full object-contain"
-            width={500}
-            height={500}
+            fill
+            className="object-cover"
+            priority
           />
         ) : (
-          <div className="w-full h-full bg-[var(--sage)] flex items-center justify-center">
-            <h1 className="text-3xl font-bold text-white">{event.title}</h1>
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+            <span className="text-gray-400 text-lg">{t('events.detail.noCoverImage')}</span>
           </div>
         )}
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Event Gallery (if available) */}
-            {event.galleryImages && event.galleryImages.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <h2 className="text-2xl font-semibold text-[var(--sage-green)]">Event Gallery</h2>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {event.galleryImages.slice(0, 8).map((image, index) => (
-                      <div
-                        key={index}
-                        className="relative aspect-square rounded-md overflow-hidden cursor-pointer hover-lift transition-standard"
-                        onClick={() => openGallery(index)}
-                      >
-                        <Image
-                          src={image}
-                          alt={`Event gallery image ${index + 1}`}
-                          className="w-full h-full object-cover"
-                          width={500}
-                          height={500}
-                        />
-                        {index === 7 && event.galleryImages && event.galleryImages.length > 8 && (
-                          <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
-                            <div className="text-white text-center">
-                              <p className="text-2xl font-bold">+{event.galleryImages.length - 8}</p>
-                              <p className="text-sm">More photos</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {event.galleryImages.length > 4 && (
-                    <div className="mt-4 text-center">
-                      <Button
-                        variant="outline"
-                        onClick={() => openGallery(0)}
-                        className="mx-auto"
-                      >
-                        View All Photos
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column - Event Details */}
+        <div className="lg:col-span-2">
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>{t('events.detail.aboutThisEvent')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="prose max-w-none">
+                <div dangerouslySetInnerHTML={{ __html: event.aboutEvent }} />
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Event Details Card */}
-            <Card>
+          {/* Speakers Section */}
+          {event.speakers && event.speakers.length > 0 && (
+            <Card className="mb-6">
               <CardHeader>
-                <h2 className="text-2xl font-semibold text-[var(--sage-green)]">About This Event</h2>
+                <CardTitle>{t('events.detail.speakers')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="prose max-w-none">
-                  <div dangerouslySetInnerHTML={{ __html: event.aboutEvent }} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {event.speakers.map((speaker, index) => (
+                    <div key={index} className="flex items-start space-x-4">
+                      {speaker.image ? (
+                        <div className="relative h-16 w-16 rounded-full overflow-hidden">
+                          <Image 
+                            src={speaker.image} 
+                            alt={speaker.name} 
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center">
+                          <span className="text-gray-400 text-lg">{speaker.name.charAt(0)}</span>
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="text-lg font-medium">{speaker.name}</h4>
+                        {speaker.role && <p className="text-sm text-gray-500 mb-1">{speaker.role}</p>}
+                        <p className="text-sm">{speaker.about}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
+          )}
 
-            {/* Event Includes Section (if available) */}
-            {event.eventIncludes && (
-              <Card>
-                <CardHeader>
-                  <h2 className="text-2xl font-semibold text-[var(--sage-green)]">What&apos;s Included</h2>
-                </CardHeader>
-                <CardContent>
-                  <div className="prose max-w-none">
-                    <div dangerouslySetInnerHTML={{ __html: event.eventIncludes }} />
+          {/* Additional Information */}
+          {event.additionalFields && event.additionalFields.length > 0 && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>{t('events.detail.additionalInformation')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {event.additionalFields.map((field, index) => (
+                  <div key={index} className="mb-4 last:mb-0">
+                    <h4 className="font-medium mb-1">{field.title}</h4>
+                    <p>{field.content}</p>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                ))}
+              </CardContent>
+            </Card>
+          )}
 
-            {/* Speakers Section (if available) */}
-            {event.speakers && event.speakers.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <h2 className="text-2xl font-semibold text-[var(--sage-green)]">Speakers</h2>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {event.speakers.map((speaker, index) => (
-                      <div key={index} className="flex space-x-4">
-                        {speaker.image ? (
-                            <Image
-                            src={speaker.image}
-                            alt={speaker.name}
-                            className="w-16 h-16 rounded-full object-cover"
-                            width={500}
-                            height={500}
-                          />
-                        ) : (
-                          <div className="w-16 h-16 rounded-full bg-[var(--sage)] flex items-center justify-center">
-                            <User className="h-8 w-8 text-white" />
-                          </div>
-                        )}
-                        <div>
-                          <h3 className="font-semibold text-lg text-[var(--sage-green)]">{speaker.name}</h3>
-                          {speaker.role && <p className="text-sm text-gray-600 mb-1">{speaker.role}</p>}
-                          {speaker.about && <p className="text-sm">{speaker.about}</p>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+          {/* Refund Policy */}
+          {event.refundPolicy && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>{t('events.detail.refundPolicy')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{event.refundPolicy}</p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
-            {/* Location Map (if not online) */}
-            {!event.location.online && event.location.coordinates && (
-              <Card>
-                <CardHeader>
-                  <h2 className="text-2xl font-semibold text-[var(--sage-green)]">Location</h2>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4">
-                    <h3 className="font-medium text-lg">{event.location.name}</h3>
-                    <p className="text-gray-600">
-                      {event.location.address.street}, {event.location.address.city}
-                      {event.location.address.state && `, ${event.location.address.state}`}
-                      <br />
-                      {event.location.address.postalCode}, {event.location.address.country}
-                    </p>
-                  </div>
-                  <div 
-                    id="event-map" 
-                    className="h-64 md:h-80 w-full rounded-md bg-gray-200 flex items-center justify-center shadow-md overflow-hidden"
-                  >
-                    {!mapLoaded && (
-                      <div className="text-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--sage-green)] mx-auto mb-2"></div>
-                        <p className="text-gray-500">Loading map...</p>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-3 text-sm text-gray-600">
+        {/* Right Column - Event Info */}
+        <div>
+          {/* Date & Time */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>{t('events.detail.dateAndTime')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="font-medium">{formatDateRange(new Date(event.startDate), new Date(event.endDate))}</p>
+              <p className="text-gray-600">
+                {formatTime(new Date(event.startDate))} - {formatTime(new Date(event.endDate))}
+              </p>
+              
+              {event.arriveBy && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium">{t('events.detail.arriveBy')}</p>
+                  <p className="text-sm">{event.arriveBy}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Location */}
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>{t('events.detail.location')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {event.location.online ? (
+                <div>
+                  <p className="font-medium">{t('events.detail.onlineEvent')}</p>
+                  {isAuthenticated && event.location.meetingLink && (
                     <a 
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${event.location.coordinates.latitude},${event.location.coordinates.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[var(--sage-green)] hover:underline"
+                      href={event.location.meetingLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-[var(--sage-green)] hover:underline mt-2 inline-block"
                     >
-                      Get directions →
+                      {t('events.detail.joinEvent')}
                     </a>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <p className="font-medium">{event.location.name}</p>
+                  <address className="not-italic text-gray-600">
+                    {event.location.address.street}<br />
+                    {event.location.address.city}, {event.location.address.state || ''} {event.location.address.postalCode}<br />
+                    {event.location.address.country}
+                  </address>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-            {/* Online Meeting Link (if online) */}
-            {event.location.online && event.location.meetingLink && (
-              <Card>
-                <CardHeader>
-                  <h2 className="text-2xl font-semibold text-[var(--sage-green)]">Online Event</h2>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-2 mb-4">
-                    <Globe className="h-5 w-5 text-[var(--sage-green)]" />
-                    <span>This is an online event</span>
+          {/* Capacity */}
+          {event.capacity && (
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle>{t('events.detail.capacity')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>{t('events.detail.sold')}:</span>
+                    <span className="font-medium">{attendeeCount}</span>
                   </div>
-                  <p className="mb-4">
-                    The event link will be available after registration.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+                  <div className="flex justify-between">
+                    <span>{t('events.detail.total')}:</span>
+                    <span className="font-medium">{event.capacity}</span>
+                  </div>
+                  <div className="flex justify-between text-[var(--sage-green)]">
+                    <span>{event.capacity - attendeeCount} {t('events.detail.remaining')}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-            {/* Additional Fields (if available) */}
-            {event.additionalFields && event.additionalFields.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <h2 className="text-2xl font-semibold text-[var(--sage-green)]">Additional Information</h2>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {event.additionalFields.map((field, index) => (
-                      <div key={index}>
-                        <h3 className="font-medium text-lg text-[var(--sage-green)]">{field.title}</h3>
-                        <div className="prose max-w-none mt-2">
-                          <div dangerouslySetInnerHTML={{ __html: field.content }} />
-                        </div>
-                      </div>
-                    ))}
+          {/* Registration/RSVP Button */}
+          <div className="mb-6">
+            {!isAuthenticated ? (
+              <Button 
+                className="w-full" 
+                size="lg" 
+                variant="outline"
+                onClick={() => router.push('/login')}
+              >
+                {t('events.detail.login')}
+              </Button>
+            ) : hasPurchasedTicket ? (
+              <div className="space-y-3">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-green-800">
+                        {t('events.detail.ticketPurchased')}
+                      </h3>
+                      <p className="text-sm text-green-700 mt-1">
+                        {purchasedTicket.paymentStatus === 'paid' 
+                          ? t('events.detail.ticketConfirmed')
+                          : t('events.detail.ticketPending')
+                        }
+                      </p>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => router.push('/dashboard/tickets')}
+                >
+                  {t('events.detail.viewMyTickets')}
+                </Button>
+              </div>
+            ) : (
+              <Button 
+                className="w-full" 
+                size="lg"
+                onClick={() => setShowTicketPurchase(true)}
+              >
+                {t('events.detail.register')}
+              </Button>
             )}
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Register Card */}
-            <Card className="sticky top-6">
-              <CardContent className="pt-6">
-                <div className="mb-6">
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center space-x-2">
-                      <Calendar className="h-5 w-5 text-[var(--sage-green)]" />
-                      <span className="font-medium">Date & Time</span>
-                    </div>
-                  </div>
-                  <div className="ml-7">
-                    <p className="mb-1">
-                      {format(parseISO(event.startDate.toString()), 'EEEE, MMMM d, yyyy')}
-                    </p>
-                    <p>
-                      {format(parseISO(event.startDate.toString()), 'h:mm a')} - 
-                      {format(parseISO(event.endDate.toString()), 'h:mm a')}
-                    </p>
-                  </div>
-                </div>
+          {/* Share Button */}
+          <div className="mb-6">
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: event.title,
+                    text: event.smallDescription,
+                    url: window.location.href,
+                  })
+                }
+              }}
+            >
+              {t('events.detail.shareEvent')}
+            </Button>
+          </div>
 
-                <div className="mb-6">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <MapPin className="h-5 w-5 text-[var(--sage-green)]" />
-                    <span className="font-medium">Location</span>
-                  </div>
-                  <div className="ml-7">
-                    {event.location.online ? (
-                      <p>Online Event</p>
-                    ) : (
-                      <>
-                        <p className="mb-1">{event.location.name}</p>
-                        <p className="text-sm text-gray-600">
-                          {event.location.address.city}, {event.location.address.country}
-                        </p>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Ticket className="h-5 w-5 text-[var(--sage-green)]" />
-                    <span className="font-medium">Price</span>
-                  </div>
-                  <div className="ml-7">
-                    {event.price.isFree ? (
-                      <span className="font-semibold text-green-600">Free</span>
-                    ) : (
-                      <span className="font-semibold">
-                        {event.price.amount} {event.price.currency}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {event.capacity && (
-                  <div className="mb-6">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Users className="h-5 w-5 text-[var(--sage-green)]" />
-                      <span className="font-medium">Capacity</span>
-                    </div>
-                    <div className="ml-7">
-                      <p>{event.capacity} attendees</p>
-                    </div>
-                  </div>
-                )}
-
-                {event.category && (
-                  <div className="mb-6">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Tag className="h-5 w-5 text-[var(--sage-green)]" />
-                      <span className="font-medium">Category</span>
-                    </div>
-                    <div className="ml-7">
-                      <span className="inline-block bg-[var(--sage-green)] text-white text-xs font-semibold px-2 py-1 rounded-full capitalize">
-                        {event.category}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="mt-8 flex flex-col space-y-3">
-                  <Button
-                    size="lg"
-                    fullWidth
-                    onClick={() => router.push(`/events/${event.slug}/checkout`)}
-                  >
-                    Register Now
-                  </Button>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      className={`flex-1 ${isSaved ? 'text-red-500 border-red-200 bg-red-50' : ''}`}
-                      size="md"
-                      onClick={toggleSaveEvent}
-                      disabled={savingEvent}
-                    >
-                      {savingEvent ? (
-                        <span className="flex items-center">
-                          <span className="animate-spin h-4 w-4 mr-1 border-2 border-t-0 border-r-0 rounded-full"></span>
-                          {isSaved ? 'Unsaving' : 'Saving'}
-                        </span>
-                      ) : (
-                        <>
-                          <Heart className={`h-4 w-4 mr-1 ${isSaved ? 'fill-red-500' : ''}`} />
-                          {isSaved ? 'Saved' : 'Save'}
-                        </>
-                      )}
-                    </Button>
-                    <div className="relative flex-1">
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        size="md"
-                        onClick={() => setShowShareOptions(!showShareOptions)}
-                      >
-                        <Share2 className="h-4 w-4 mr-1" />
-                        Share
-                      </Button>
-                      
-                      {/* Share options dropdown */}
-                      {showShareOptions && (
-                        <div className="absolute right-0 mt-2 py-2 w-48 bg-white rounded-md shadow-xl z-20 border border-gray-200">
-                          <div className="flex flex-col">
-                            <button 
-                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" 
-                              onClick={() => shareEvent('copy')}
-                            >
-                              {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                              Copy Link
-                            </button>
-                            <button 
-                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" 
-                              onClick={() => shareEvent('facebook')}
-                            >
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Facebook
-                            </button>
-                            <button 
-                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" 
-                              onClick={() => shareEvent('twitter')}
-                            >
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Twitter
-                            </button>
-                            <button 
-                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" 
-                              onClick={() => shareEvent('linkedin')}
-                            >
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              LinkedIn
-                            </button>
-                            <button 
-                              className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center" 
-                              onClick={() => shareEvent('email')}
-                            >
-                              <Link2 className="h-4 w-4 mr-2" />
-                              Email
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Login message for non-authenticated users */}
-                  {!isAuthenticated && (
-                    <div className="text-sm text-center text-gray-600 mt-2">
-                      <LogIn className="h-3.5 w-3.5 inline-block mr-1" />
-                      <span>
-                        <a 
-                          href={`/login?redirect=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname : '')}`}
-                          className="text-[var(--sage-green)] hover:underline"
-                        >
-                          Log in
-                        </a>
-                        {' '}to save this event or purchase tickets
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {event.refundPolicy && (
-                  <div className="mt-6 text-sm text-gray-600">
-                    <div className="flex items-center space-x-1 mb-1">
-                      <Info className="h-4 w-4" />
-                      <span className="font-medium">Refund Policy</span>
-                    </div>
-                    <p>{event.refundPolicy}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Organizer info */}
+          {/* Organizer Info */}
+          {typeof event.organizer === 'object' && (
             <Card>
               <CardHeader>
-                <h3 className="text-lg font-semibold text-[var(--sage-green)]">Organizer</h3>
+                <CardTitle>{t('events.detail.organizerInfo')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 rounded-full bg-[var(--sage)] flex items-center justify-center">
-                    <User className="h-6 w-6 text-white" />
+                <div className="flex items-center space-x-4 mb-3">
+                  <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                    {event.organizer.firstName.charAt(0)}
                   </div>
                   <div>
-                    {typeof event.organizer === 'object' ? (
-                      <>
-                        <p className="font-medium">{event.organizer.firstName} {event.organizer.lastName}</p>
-                        <p className="text-sm text-gray-600">{event.organizer.email}</p>
-                      </>
-                    ) : (
-                      <p className="font-medium">Event Organizer</p>
-                    )}
+                    <p className="font-medium">{organizerName}</p>
+                    <p className="text-sm text-gray-500">{t('events.detail.organizer')}</p>
                   </div>
                 </div>
+                {isAuthenticated && (
+                  <Button variant="outline" className="w-full text-sm">
+                    {t('events.detail.contactOrganizer')}
+                  </Button>
+                )}
               </CardContent>
             </Card>
-          </div>
+          )}
         </div>
       </div>
+
+      {/* Ticket Purchase Modal */}
+      {showTicketPurchase && event && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">{t('payment.purchaseTicket')}</h2>
+                <button
+                  onClick={handlePurchaseCancel}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <TicketPurchaseCard
+                event={event}
+                onSuccess={handlePurchaseSuccess}
+                onCancel={handlePurchaseCancel}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Message */}
+      {purchaseSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {t('events.detail.purchaseSuccess')}
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">
+                {t('events.detail.purchaseSuccessDesc')}
+              </p>
+              <div className="flex space-x-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setPurchaseSuccess(false)}
+                  className="flex-1"
+                >
+                  {t('common.close')}
+                </Button>
+                <Button
+                  onClick={() => router.push('/dashboard/tickets')}
+                  className="flex-1"
+                >
+                  {t('events.detail.viewMyTickets')}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 } 

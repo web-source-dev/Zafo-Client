@@ -69,7 +69,7 @@ export interface Event {
   coverImage?: string;
   galleryImages?: string[];
   price: EventPrice;
-  status: 'draft' | 'published' | 'canceled' | 'completed';
+  status: 'draft' | 'published' | 'canceled' | 'completed' | 'pending_payment';
   isPublic: boolean;
   organizer: string | { _id: string; firstName: string; lastName: string; email: string; };
   slug: string;
@@ -78,6 +78,9 @@ export interface Event {
   updatedAt: Date;
   savedAt?: Date; // For saved events
   isSaved?: boolean; // For UI state
+  isPaid?: boolean; // Whether the event has been paid for
+  paidAt?: Date; // When the event was paid for
+  paymentId?: string; // Payment ID from payment processor
 }
 
 export interface EventListResponse {

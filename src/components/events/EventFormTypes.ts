@@ -25,6 +25,8 @@ export interface EventFormData {
   price: {
     amount: number;
     currency: string;
+    calculatedAmount?: number; // Platform fee based on event duration
+    durationHours?: number;    // Calculated duration in hours
   };
   tags: string[];
   isPublic: boolean;

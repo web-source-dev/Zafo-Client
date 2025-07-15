@@ -51,6 +51,12 @@ export function useDashboardNavigation(dashboardType: DashboardType): Navigation
       current: pathname?.startsWith('/admin/roles') 
     },
     { 
+      name: 'Refund Requests', 
+      href: '/admin/refund-requests', 
+      icon: ReportsIcon, 
+      current: pathname?.startsWith('/admin/refund-requests') 
+    },
+    { 
       name: t('common.settings'), 
       href: '/admin/settings', 
       icon: SettingsIcon, 
@@ -85,6 +91,12 @@ export function useDashboardNavigation(dashboardType: DashboardType): Navigation
       current: pathname?.startsWith('/organizer/participants') 
     },
     { 
+      name: 'Refund Requests', 
+      href: '/organizer/refund-requests', 
+      icon: ReportsIcon, 
+      current: pathname?.startsWith('/organizer/refund-requests') 
+    },
+    { 
       name: t('admin.reports'), 
       href: '/organizer/reports', 
       icon: ReportsIcon, 
@@ -105,6 +117,12 @@ export function useDashboardNavigation(dashboardType: DashboardType): Navigation
       href: '/dashboard/events', 
       icon: EventsIcon, 
       current: pathname?.startsWith('/dashboard/events') 
+    },
+    { 
+      name: t('dashboard.myTickets'), 
+      href: '/dashboard/tickets', 
+      icon: EventsIcon, 
+      current: pathname?.startsWith('/dashboard/tickets') 
     },
     { 
       name: t('dashboard.reports'), 

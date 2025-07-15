@@ -43,6 +43,13 @@ const Navbar: React.FC = () => {
                 {t('common.home')}
               </Link>
 
+              <Link 
+                href="/events" 
+                className="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium text-black hover:text-[var(--sage-green)] hover:border-[var(--sage)]"
+              >
+                Events
+              </Link>
+
               {isAuthenticated && (
                 <Link 
                   href="/profile" 
@@ -135,6 +142,13 @@ const Navbar: React.FC = () => {
               className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-black hover:text-[var(--sage-green)] hover:bg-[#f2f3ed] hover:border-[var(--sage)]"
             >
               {t('common.home')}
+            </Link>
+
+            <Link 
+              href="/events" 
+              className="block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-black hover:text-[var(--sage-green)] hover:bg-[#f2f3ed] hover:border-[var(--sage)]"
+            >
+              Events
             </Link>
 
             {isAuthenticated && (

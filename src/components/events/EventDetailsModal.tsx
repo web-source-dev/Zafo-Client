@@ -5,8 +5,15 @@ import { useLanguage } from '../../i18n/language-context';
 import Button from '../ui/Button';
 import { Event } from '../../services/event-service';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+
+// Extended Event interface to include pending_payment status
+interface EventWithExtendedStatus extends Omit<Event, 'status'> {
+  status: 'draft' | 'published' | 'canceled' | 'completed' | 'pending_payment';
+}
+
 interface EventDetailsModalProps {
-  event: Event | null;
+  event: EventWithExtendedStatus | null;
   isOpen: boolean;
   onClose: () => void;
   onEdit?: (id: string) => void;
@@ -19,6 +26,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
   onEdit
 }) => {
   const { t } = useLanguage();
+  const router = useRouter();
   
   if (!isOpen || !event) return null;
   
@@ -46,6 +54,14 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
   const getLocalizedContent = (content: string | undefined): string => {
     if (!content) return '';
     return content;
+  };
+
+  // Handle complete payment
+  const handleCompletePayment = () => {
+    if (event) {
+      router.push(`/payment/event/${event._id}`);
+      onClose();
+    }
   };
   
   // Get event title
@@ -98,6 +114,7 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                 <span className={`px-2 py-1 text-xs font-semibold rounded-full 
                   ${event.status === 'published' ? 'bg-[var(--sage)] text-black' : 
                     event.status === 'draft' ? 'bg-[var(--cognac)] text-black' : 
+                    event.status === 'pending_payment' ? 'bg-yellow-200 text-yellow-800' :
                     'bg-[var(--taupe)] text-black'}`}>
                   {getStatusTranslation(event.status)}
                 </span>
@@ -105,6 +122,17 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                   {getCategoryTranslation(event.category)}
                 </span>
               </div>
+              
+              <div className="flex space-x-2">
+                {event.status === 'pending_payment' && (
+                  <Button 
+                    size="sm"
+                    className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                    onClick={handleCompletePayment}
+                  >
+                    {t('payment.completePayment')}
+                  </Button>
+                )}
               
               {onEdit && (
                 <Button 
@@ -115,6 +143,14 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
                 </Button>
               )}
             </div>
+            </div>
+            
+            {/* Payment required notice */}
+            {event.status === 'pending_payment' && (
+              <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded mb-4">
+                {t('payment.pendingMessage')}
+              </div>
+            )}
             
             {/* Small description */}
             <div className="mb-4">
@@ -201,15 +237,17 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
             </div>
           )}
           
-          {/* Price section */}
-          <div className="mb-6">
-            <h3 className="text-lg font-medium text-[var(--sage-green)] mb-2">{t('events.pricing')}</h3>
-            
-            {event.price.isFree ? (
-              <p className="text-black">{t('events.form.free')}</p>
-            ) : (
-              <p className="text-black">{event.price.amount} {event.price.currency}</p>
-            )}
+          {/* Price */}
+          <div>
+            <h4 className="text-sm font-medium text-gray-500">{t('events.form.price')}</h4>
+            <div className="flex items-center mt-1">
+              <span className="text-xl font-bold">
+                {new Intl.NumberFormat(undefined, {
+                  style: 'currency',
+                  currency: event.price.currency
+                }).format(event.price.amount)}
+              </span>
+            </div>
           </div>
           
           {/* What this event includes */}
@@ -315,7 +353,15 @@ const EventDetailsModal: React.FC<EventDetailsModalProps> = ({
         
         {/* Footer with close button */}
         <div className="p-6 border-t border-[var(--cognac)] bg-gray-50">
-          <div className="flex justify-end">
+          <div className="flex justify-end space-x-2">
+            {event.status === 'pending_payment' && (
+              <Button 
+                className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                onClick={handleCompletePayment}
+              >
+                {t('payment.completePayment')}
+              </Button>
+            )}
             <Button variant="outline" onClick={onClose}>
               {t('common.close')}
             </Button>

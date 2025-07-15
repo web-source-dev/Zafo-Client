@@ -9,16 +9,19 @@ import { useRouter } from 'next/navigation';
 import eventService, { Event } from '../../services/event-service';
 import EventDetailsModal from '../../components/events/EventDetailsModal';
 import Image from 'next/image';
+import DropdownMenu from '../../components/ui/DropdownMenu';
+import { Eye, Edit, CheckCircle, CreditCard, Trash } from 'lucide-react';
 
 // Type for the translation function
 type TranslationFunction = (key: string, params?: Record<string, string>) => string;
 
 // Extended Event type for UI purposes
-interface UIEvent extends Event {
+interface UIEvent extends Omit<Event, 'status'> {
   id?: string;
   name?: string;
   date?: string;
   participants?: number;
+  status: 'draft' | 'published' | 'canceled' | 'completed' | 'pending_payment';
 }
 
 // Event Card Component
@@ -39,12 +42,15 @@ const EventCard = ({
   onMarkCompleted: (id: number | string) => void,
   isDeletingThis: boolean
 }) => {
+  const router = useRouter();
+  
   // This translates the status for display
   const getTranslatedStatus = (status: string) => {
     if (status === 'published') return t('events.status.published');
     if (status === 'draft') return t('events.status.draft');
     if (status === 'completed') return t('events.status.completed');
     if (status === 'canceled') return t('events.status.canceled');
+    if (status === 'pending_payment') return t('events.status.pendingPayment');
     return status;
   };
 
@@ -76,6 +82,13 @@ const EventCard = ({
     e.stopPropagation();
     onMarkCompleted(event._id);
   };
+
+  // Handle complete payment button click
+  const handleCompletePayment = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    router.push(`/payment/event/${event._id}`);
+  };
+  
   // Get event small description by language
   const getLocalizedSmallDescription = () => {
     if (event.smallDescription) {
@@ -102,12 +115,30 @@ const EventCard = ({
   };
 
   // Check if the event is deletable (draft or canceled)
-  const isDeletable = event.status === 'draft' || event.status === 'canceled';
+  const isDeletable = event.status === 'draft' || event.status === 'canceled' || event.status === 'pending_payment' || event.status === 'completed' || event.status === 'published';
   
   // Check if event has ended but not marked as completed/canceled
   const hasEnded = new Date(event.endDate) < new Date() && 
                   event.status !== 'completed' && 
                   event.status !== 'canceled';
+
+  // Get event status color
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'published':
+        return 'bg-[var(--sage)] text-black';
+      case 'draft':
+        return 'bg-[var(--cognac)] text-black';
+      case 'canceled':
+        return 'bg-red-200 text-red-800';
+      case 'completed':
+        return 'bg-blue-200 text-blue-800';
+      case 'pending_payment':
+        return 'bg-yellow-200 text-yellow-800';
+      default:
+        return 'bg-[var(--taupe)] text-black';
+    }
+  };
 
   return (
     <div className={`bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200 ${isDeletingThis ? 'opacity-60' : ''}`}>
@@ -144,11 +175,7 @@ const EventCard = ({
           </div>
           <span 
             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-            ${event.status === 'published' ? 'bg-[var(--sage)] text-black' : 
-              event.status === 'draft' ? 'bg-[var(--cognac)] text-black' : 
-              event.status === 'canceled' ? 'bg-red-200 text-red-800' :
-              event.status === 'completed' ? 'bg-blue-200 text-blue-800' :
-              'bg-[var(--taupe)] text-black'}`}
+            ${getStatusColor(event.status)}`}
             title={hasEnded && event.status === 'published' ? t('events.status.endedTip') : ''}
           >
             {hasEnded && event.status === 'published' ? t('events.status.ended') : getTranslatedStatus(event.status)}
@@ -168,63 +195,46 @@ const EventCard = ({
               <ParticipantsIcon className="h-5 w-5 text-[var(--sage-green)] mr-2" />
               <span className="text-black">{formatParticipantCount(event.participants || 0)}</span>
             </div>
-            <div className="flex space-x-2">
-              <Button 
-                size="sm" 
-                variant="secondary" 
-                onClick={handleViewDetails}
-                disabled={isDeletingThis}
-              >
-                {t('events.details')}
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline" 
-                onClick={handleEdit}
-                disabled={isDeletingThis}
-              >
-                {t('organizer.manage')}
-              </Button>
-              {hasEnded && event.status === 'published' && (
-                <Button 
-                  size="sm" 
-                  variant="success" 
-                  onClick={handleMarkAsCompleted}
-                  disabled={isDeletingThis}
-                  title={t('events.markCompletedTip')}
-                >
-                  {isDeletingThis ? (
-                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                </Button>
-              )}
-              {isDeletable && (
-                <Button 
-                  size="sm" 
-                  variant="danger" 
-                  onClick={handleDelete}
-                  disabled={isDeletingThis}
-                  title={t('events.quickDelete')}
-                >
-                  {isDeletingThis ? (
-                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  )}
-                </Button>
-              )}
+            <div>
+              <DropdownMenu
+                items={[
+                  {
+                    label: t('events.details'),
+                    onClick: handleViewDetails,
+                    icon: <Eye className="h-4 w-4" />,
+                    disabled: isDeletingThis
+                  },
+                  {
+                    label: t('organizer.manage'),
+                    onClick: handleEdit,
+                    icon: <Edit className="h-4 w-4" />,
+                    disabled: isDeletingThis
+                  },
+                  ...(event.status === 'pending_payment' ? [{
+                    label: t('payment.completePayment'),
+                    onClick: handleCompletePayment,
+                    icon: <CreditCard className="h-4 w-4" />,
+                    disabled: isDeletingThis,
+                    variant: 'warning' as const
+                  }] : []),
+                  ...(hasEnded && event.status === 'published' ? [{
+                    label: t('events.markCompletedTip'),
+                    onClick: handleMarkAsCompleted,
+                    icon: <CheckCircle className="h-4 w-4" />,
+                    disabled: isDeletingThis,
+                    isLoading: isDeletingThis,
+                    variant: 'success' as const
+                  }] : []),
+                  ...(isDeletable ? [{
+                    label: t('events.quickDelete'),
+                    onClick: handleDelete,
+                    icon: <Trash className="h-4 w-4" />,
+                    disabled: isDeletingThis,
+                    isLoading: isDeletingThis,
+                    variant: 'danger' as const
+                  }] : [])
+                ]}
+              />
             </div>
           </div>
         </div>
@@ -254,7 +264,7 @@ export default function OrganizerPage() {
         const response = await eventService.getOrganizerEvents();
         
         if (response.success && response.data) {
-          setEvents(response.data.events);
+          setEvents(response.data.events as unknown as UIEvent[]);
         } else {
           setError(response.message || t('common.error'));
         }
@@ -274,16 +284,17 @@ export default function OrganizerPage() {
     totalEvents: events.length.toString(),
     activeEvents: events.filter(e => e.status === 'published').length.toString(),
     participantsCount: events.reduce((sum, e) => sum + (e.participants || 0), 0).toString(),
-    completedEvents: events.filter(e => e.status === 'completed').length.toString()
+    completedEvents: events.filter(e => e.status === 'completed').length.toString(),
+    pendingPaymentEvents: events.filter(e => e.status === 'pending_payment').length.toString()
   };
 
-  // Filter events by status and date for upcoming and past tabs
+  // Filter events by status and date for different tabs
   const currentDate = new Date();
   
   const upcomingEvents = events.filter(e => {
     // Check if end date is in the future
     const endDate = new Date(e.endDate);
-    return endDate >= currentDate && (e.status === 'published' || e.status === 'draft');
+    return endDate >= currentDate && (e.status === 'published' || e.status === 'draft' || e.status === 'pending_payment');
   });
   
   const pastEvents = events.filter(e => {
@@ -291,6 +302,9 @@ export default function OrganizerPage() {
     const endDate = new Date(e.endDate);
     return endDate < currentDate || e.status === 'completed' || e.status === 'canceled';
   });
+
+  // Get all events for the "All Events" tab
+  const allEvents = [...events];
 
   // Handle edit event
   const handleEditEvent = (id: string | number) => {
@@ -304,7 +318,7 @@ export default function OrganizerPage() {
   
   // Handle view event details
   const handleViewEventDetails = (event: UIEvent) => {
-    setSelectedEvent(event);
+    setSelectedEvent(event as any);
     setIsModalOpen(true);
   };
   
@@ -368,6 +382,11 @@ export default function OrganizerPage() {
       setDeletingEventId(null);
     }
   };
+
+  // Handle completing payment for an event
+  const handleCompletePayment = (id: string | number) => {
+    router.push(`/payment/event/${id}`);
+  };
   
   // Close modal
   const handleCloseModal = () => {
@@ -402,8 +421,31 @@ export default function OrganizerPage() {
         </div>
       )}
 
+      {/* Payment Setup Alert */}
+      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <CreditCard className="h-5 w-5 text-blue-600 mr-3" />
+            <div>
+              <h3 className="text-sm font-medium text-blue-900">
+                Set up your payment account
+              </h3>
+              <p className="text-sm text-blue-700">
+                Connect your Stripe account to receive payments from ticket sales
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={() => router.push('/organizer/stripe-connect')}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Set up Payments
+          </Button>
+        </div>
+      </div>
+
       {/* Stats Row */}
-      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
         <div className="bg-white overflow-hidden shadow rounded-lg">
           <div className="p-5">
             <div className="flex items-center">
@@ -491,6 +533,28 @@ export default function OrganizerPage() {
             </div>
           </div>
         </div>
+
+        <div className="bg-white overflow-hidden shadow rounded-lg">
+          <div className="p-5">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 rounded-md p-3 bg-yellow-200">
+                <EventsIcon className="h-6 w-6 text-yellow-800" />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dl>
+                  <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
+                    {t('organizer.pendingPayment')}
+                  </dt>
+                  <dd>
+                    <div className="text-lg font-medium text-black">
+                      {stats.pendingPaymentEvents}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Event Tabs */}
@@ -506,6 +570,8 @@ export default function OrganizerPage() {
           >
             <option value="upcoming">{t('organizer.upcomingEvents')}</option>
             <option value="past">{t('organizer.pastEvents')}</option>
+            <option value="all">{t('organizer.allEvents')}</option>
+            <option value="refunds">{t('payment.refundRequest')}</option>
             <option value="create">{t('organizer.createEvent')}</option>
           </select>
         </div>
@@ -531,6 +597,26 @@ export default function OrganizerPage() {
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 {t('organizer.pastEvents')}
+              </button>
+              <button
+                onClick={() => setActiveTab('all')}
+                className={`${
+                  activeTab === 'all'
+                    ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
+                    : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+              >
+                {t('organizer.allEvents')}
+              </button>
+              <button
+                onClick={() => setActiveTab('refunds')}
+                className={`${
+                  activeTab === 'refunds'
+                    ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
+                    : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+              >
+                {t('payment.refundRequest')}
               </button>
               <button
                 onClick={() => setActiveTab('create')}
@@ -635,6 +721,64 @@ export default function OrganizerPage() {
                 {t('organizer.noPastEvents')}
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'all' && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)]">
+                {t('organizer.allEvents')}
+              </h3>
+              <Button size="sm" onClick={handleCreateEvent}>
+                <span className="flex items-center">
+                  <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  {t('organizer.newEvent')}
+                </span>
+              </Button>
+            </div>
+            
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {error}
+              </div>
+            ) : allEvents.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {allEvents.map((event) => (
+                  <EventCard 
+                    key={event._id || event.id} 
+                    event={event} 
+                    t={t} 
+                    onEdit={handleEditEvent}
+                    onViewDetails={handleViewEventDetails}
+                    onDelete={handleDeleteEvent}
+                    onMarkCompleted={handleMarkAsCompleted}
+                    isDeletingThis={deletingEventId === (event._id || event.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center text-gray-500">
+                {t('organizer.noEvents')}
+                <div className="mt-4">
+                  <Button onClick={handleCreateEvent}>
+                    {t('organizer.createFirstEvent')}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'refunds' && (
+          <div>
+            <iframe src="/organizer/refund-requests" className="w-full min-h-[800px] border-none" title="Refund Requests" />
           </div>
         )}
 

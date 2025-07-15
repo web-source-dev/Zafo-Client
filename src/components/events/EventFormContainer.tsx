@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../i18n/language-context';
-import { useAuth } from '../../auth/auth-context';
 import Button from '../ui/Button';
 import { Save, ArrowLeft, AlertCircle } from 'lucide-react';
 import eventService, { Event } from '../../services/event-service';
@@ -18,19 +17,42 @@ import PricingSection from './sections/PricingSection';
 import DetailsSection from './sections/DetailsSection';
 import AdditionalInfoSection from './sections/AdditionalInfoSection';
 import SEOSection from './sections/SEOSection';
-import { processImageForUpload } from '../../utils/imageUtils';
-import subscriptionService from '../../services/subscription-service';
-import { checkEventCreationLimits } from '../../utils/subscriptionUtils';
-import SubscriptionUpgrade from '../ui/SubscriptionUpgrade';
 
 interface EventFormContainerProps {
   event?: Event;
   isEdit?: boolean;
 }
+
+const calculateEventPrice = (startDate: string, startTime: string, endDate: string, endTime: string): number => {
+  if (!startDate || !startTime || !endDate || !endTime) return 0;
+  
+  const start = new Date(`${startDate}T${startTime}`);
+  const end = new Date(`${endDate}T${endTime}`);
+  
+  const durationInHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+  
+  // If duration is 24 hours or less
+  if (durationInHours <= 24) {
+    return 350; // 350 CHF for events up to 1 day
+  }
+  
+  // For events longer than 24 hours
+  return 675; // 675 CHF for events of 1 day or more
+};
+
+// Helper function to convert File to base64 string
+const fileToBase64 = async (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+};
+
 const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit = false }) => {
   const { t } = useLanguage();
   const router = useRouter();
-  const { subscription, subscribedPlan } = useAuth();
   
   // Form state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -49,29 +71,7 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
   // Fetch event counts on component mount
   useEffect(() => {
     const fetchEventCounts = async () => {
-      try {
-        setIsLoadingCounts(true);
-        const response = await subscriptionService.getEventCounts();
-        
-        if (response.success && response.data) {
-          setMonthlyCount(response.data.monthlyCount);
-          setYearlyCount(response.data.yearlyCount);
-          
-          // Check if user has reached their limits
-          const check = checkEventCreationLimits(
-            response.data.monthlyCount, 
-            response.data.yearlyCount,
-            subscription,
-            subscribedPlan
-          );
-          
-          setLimitCheck(check);
-        }
-      } catch (error) {
-        console.error('Error fetching event counts:', error);
-      } finally {
-        setIsLoadingCounts(false);
-      }
+      setIsLoadingCounts(true); 
     };
     
     // Only fetch counts for new events, not when editing
@@ -80,7 +80,7 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
     } else {
       setIsLoadingCounts(false);
     }
-  }, [isEdit, subscription, subscribedPlan]);
+    }, [isEdit]);
   
   // Form setup with react-hook-form
   const methods = useForm<EventFormData>({
@@ -92,8 +92,8 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
       startTime: '',
       endDate: '',
       endTime: '',
-      category: 'conference',
-      capacity: 50,
+      category: 'other',
+      capacity: 1,
       isOnline: false,
       location: {
         name: '',
@@ -102,14 +102,12 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
           city: '',
           state: '',
           postalCode: '',
-          country: '',
-        },
-        meetingLink: '',
+          country: ''
+        }
       },
-      isFree: true,
       price: {
         amount: 0,
-        currency: 'EUR',
+        currency: 'EUR'
       },
       tags: [],
       isPublic: true,
@@ -117,14 +115,8 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
       eventIncludes: '',
       ageRange: {},
       arriveBy: '',
-      deliverBy: '',
       speakers: [],
-      additionalFields: [],
-      seo: {
-        metaTitle: '',
-        metaDescription: '',
-        ogImage: undefined
-      }
+      additionalFields: []
     }
   });
   
@@ -208,167 +200,129 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
   
   // Handle form submission
   const onSubmit = async (data: EventFormData, saveAsDraft = false) => {
-    // Check if user has reached their event creation limits
-    if (!isEdit && !limitCheck.allowed) {
-      setError(limitCheck.message || 'You have reached your event creation limit.');
-      return;
-    }
+    setIsSubmitting(true);
+    setError(null);
     
     try {
-      setIsSubmitting(true);
-      setError(null);
+      // Process images if needed
+      const processedData = { ...data };
       
-      // Combine date and time fields
-      const startDate = new Date(`${data.startDate}T${data.startTime}:00`);
-      const endDate = new Date(`${data.endDate}T${data.endTime}:00`);
-      
-      // Validate dates
-      if (startDate >= endDate) {
-        setError(t('events.validation.startBeforeEnd'));
-        setIsSubmitting(false);
-        return;
+      if (data.coverImage instanceof File) {
+        processedData.coverImage = await fileToBase64(data.coverImage);
       }
       
-      // Process image files
-      let coverImageBase64: string | undefined = undefined;
-      const galleryImagesBase64: string[] = [];
-      
-      // Process cover image
-      if (data.coverImage) {
-        if (data.coverImage instanceof File) {
-          try {
-            coverImageBase64 = await processImageForUpload(data.coverImage);
-          } catch (error) {
-            console.error('Error processing cover image:', error);
-            setError(t('events.validation.imageProcessingError'));
-            setIsSubmitting(false);
-            return;
-          }
-        } else if (typeof data.coverImage === 'string' && !data.coverImage.startsWith('blob:')) {
-          // Only keep the string if it's not a blob URL (meaning it's an existing image URL)
-          coverImageBase64 = data.coverImage;
-        }
-      }
-      
-      // Process gallery images
-      if (data.galleryImages && data.galleryImages.length > 0) {
-        for (const image of data.galleryImages) {
-          if (image instanceof File) {
-            try {
-              const base64 = await processImageForUpload(image);
-              galleryImagesBase64.push(base64);
-            } catch (error) {
-              console.error('Error processing gallery image:', error);
-              // Continue with other images if one fails
+      if (data.galleryImages) {
+        processedData.galleryImages = await Promise.all(
+          data.galleryImages.map(async (image) => {
+            if (image instanceof File) {
+              return await fileToBase64(image);
             }
-          } else if (typeof image === 'string' && !image.startsWith('blob:')) {
-            // Only keep strings that aren't blob URLs
-            galleryImagesBase64.push(image);
-          }
-        }
+            return image;
+          })
+        );
       }
       
-      // Process speaker images
-      const processedSpeakers = await Promise.all(
-        (data.speakers || []).map(async (speaker) => {
-          if (speaker.image instanceof File) {
-            try {
-              const base64 = await processImageForUpload(speaker.image);
-              return { ...speaker, image: base64 };
-            } catch (error) {
-              console.error('Error processing speaker image:', error);
-              return { ...speaker, image: undefined };
+      if (data.speakers) {
+        processedData.speakers = await Promise.all(
+          data.speakers.map(async (speaker) => {
+            if (speaker.image instanceof File) {
+              return {
+                ...speaker,
+                image: await fileToBase64(speaker.image)
+              };
             }
-          } else if (typeof speaker.image === 'string' && !speaker.image.startsWith('blob:')) {
-            // Keep the existing image URL
             return speaker;
-          } else {
-            // Remove any blob URLs
-            return { ...speaker, image: undefined };
-          }
-        })
-      );
-      
-      // Process SEO OG Image
-      let ogImageBase64: string | undefined = undefined;
-      if (data.seo?.ogImageFile) {
-        try {
-          ogImageBase64 = await processImageForUpload(data.seo.ogImageFile);
-        } catch (error) {
-          console.error('Error processing OG image:', error);
-          // Continue without OG image if processing fails
-        }
-      } else if (typeof data.seo?.ogImage === 'string' && !data.seo.ogImage.startsWith('blob:')) {
-        // Keep existing OG image URL
-        ogImageBase64 = data.seo.ogImage;
+          })
+        );
       }
       
-      // Prepare event data
+      if (data.seo?.ogImageFile) {
+        processedData.seo = {
+          ...data.seo,
+          ogImage: await fileToBase64(data.seo.ogImageFile)
+        };
+        delete processedData.seo.ogImageFile;
+      }
+      
+      // Combine date and time
+      const startDateTime = new Date(`${data.startDate}T${data.startTime}`);
+      const endDateTime = new Date(`${data.endDate}T${data.endTime}`);
+      
+      // Determine status based on context
+      let status = saveAsDraft ? 'draft' : data.isFree ? 'published' : 'pending_payment';
+      
+      // For existing events, preserve payment status
+      if (isEdit && event?.isPaid) {
+        // If the event is already paid, keep its current status
+        status = event.status;
+      }
+      
+      // Prepare final data
       const eventData = {
-        title: data.title,
-        smallDescription: data.smallDescription,
-        aboutEvent: data.aboutEvent,
-        startDate,
-        endDate,
-        category: data.category as 'conference' | 'workshop' | 'seminar' | 'networking' | 'social' | 'other',
-        capacity: data.capacity,
+        ...processedData,
+        startDate: startDateTime,
+        endDate: endDateTime,
         registrationDeadline: data.registrationDeadline ? new Date(data.registrationDeadline) : undefined,
+        status: status,
         location: {
           name: data.location.name,
           address: data.location.address,
           online: data.isOnline,
           meetingLink: data.isOnline ? data.location.meetingLink : undefined,
+          coordinates: undefined
         },
         price: {
-          amount: data.isFree ? 0 : data.price.amount,
+          amount: data.price.amount,
           currency: data.price.currency,
           isFree: data.isFree,
+          platformFee: data.isFree ? 0 : data.price.calculatedAmount || calculatePlatformFee(data)
         },
-        tags: data.tags.filter(tag => tag.trim() !== ''),
-        isPublic: data.isPublic,
-        status: saveAsDraft ? 'draft' : 'published',
-        refundPolicy: data.refundPolicy,
-        eventIncludes: data.eventIncludes,
-        ageRange: data.ageRange,
-        arriveBy: data.arriveBy,
-        deliverBy: data.deliverBy,
-        speakers: processedSpeakers,
-        additionalFields: data.additionalFields,
-        seo: {
-          metaTitle: data.seo?.metaTitle || '',
-          metaDescription: data.seo?.metaDescription || '',
-          ogImage: ogImageBase64
-        },
-        coverImage: coverImageBase64,
-        galleryImages: galleryImagesBase64,
-      };
+        speakers: data.speakers?.map(speaker => ({
+          name: speaker.name,
+          about: speaker.about,
+          role: speaker.role,
+          image: typeof speaker.image === 'string' ? speaker.image : undefined
+        })) || [],
+        organizer: event?.organizer || undefined
+      } as const;
       
-      // Create or update event
-      let response;
-      if (isEdit && event) {
-        response = await eventService.updateEvent(event._id, eventData as Partial<Event>);
-      } else {
-        response = await eventService.createEvent({
-          ...eventData,
-          organizer: ''
-        } as unknown as Event);
+      // If editing a paid event, preserve payment information
+      if (isEdit && event?.isPaid) {
+        Object.assign(eventData, {
+          isPaid: true,
+          paidAt: event.paidAt,
+          paymentId: event.paymentId
+        });
       }
       
-      // Handle response
+      // Submit to API
+      const response = isEdit
+        ? await eventService.updateEvent(event!._id, eventData as unknown as Partial<Event>)
+        : await eventService.createEvent(eventData as unknown as Omit<Event, '_id' | 'slug' | 'createdAt' | 'updatedAt'>);
+      
+      if (response.success && !saveAsDraft && !data.isFree && response.data) {
+        // Check if the event is already paid
+        if (isEdit && (response.data as any).isPaid) {
+          // If already paid, just show success
+          setSuccessMessage(t('events.paymentSuccess'));
+          setIsSubmitting(false);
+          
+          // Redirect to event list after a short delay
+          setTimeout(() => {
+            router.push('/organizer/events');
+          }, 1500);
+          return;
+        }
+        
+        // Redirect to payment page with event ID
+        router.push(`/payment/event/${response.data._id}`);
+        return;
+      }
+      
       if (response.success) {
-        setSuccessMessage(isEdit 
-          ? t('events.updateSuccess') 
-          : t('events.createSuccess'));
-        
-        // Reset dirty state after successful submission
-        setIsDirty(false);
-        
-        // Redirect after successful creation/update
-        setTimeout(() => {
-          router.push('/organizer');
-        }, 2000);
+        router.push('/organizer');
       } else {
-        setError(response.message || t('common.error'));
+        setError(response.message || t('events.submitError'));
       }
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
@@ -398,40 +352,7 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
         </div>
       </div>
       
-      {/* Event creation limit warning */}
-      {!isEdit && !isLoadingCounts && !limitCheck.allowed && (
-        <div className="mb-6">
-          <SubscriptionUpgrade
-            message={limitCheck.message || "You've reached your event creation limit."}
-            requiredPlan={limitCheck.requiredPlan}
-          />
-        </div>
-      )}
-      
-      {/* Event count info */}
-      {!isEdit && !isLoadingCounts && limitCheck.allowed && (
-        <div className="mb-6 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded flex items-start">
-          <div className="mr-3 mt-0.5">
-            <AlertCircle size={20} />
-          </div>
-          <div>
-            <p className="font-medium">Event creation limits</p>
-            <p className="text-sm">
-              {subscription && subscribedPlan ? (
-                <>
-                  You have created {monthlyCount} out of {subscribedPlan.limits?.monthlyEvents || 'unlimited'} events this month
-                  and {yearlyCount} out of {subscribedPlan.limits?.yearlyEvents || 'unlimited'} events this year with your {subscribedPlan.name} plan.
-                </>
-              ) : (
-                <>
-                  You have created {monthlyCount} out of 2 events this month
-                  and {yearlyCount} out of 5 events this year with your free account.
-                </>
-              )}
-            </p>
-          </div>
-        </div>
-      )}
+     
       
       {/* Error message display */}
       {error && (
@@ -523,6 +444,22 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
       </FormProvider>
     </div>
   );
+};
+
+// Helper function to calculate platform fee if not already set
+const calculatePlatformFee = (data: EventFormData): number => {
+  if (!data.startDate || !data.startTime || !data.endDate || !data.endTime) return 350;
+  
+  const start = new Date(`${data.startDate}T${data.startTime}`);
+  const end = new Date(`${data.endDate}T${data.endTime}`);
+  
+  // Calculate duration in milliseconds and convert to hours
+  const durationMs = end.getTime() - start.getTime();
+  const durationHours = Math.max(0, durationMs / (1000 * 60 * 60));
+  
+  // For events up to 1 day (24h): 350 CHF
+  // For events of 1 day or more: 675 CHF
+  return durationHours <= 24 ? 350 : 675;
 };
 
 export default EventFormContainer; 

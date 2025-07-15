@@ -1,80 +1,81 @@
 import api, { ApiResponse } from '../api/api';
 
 // Ticket interfaces
-export interface IndividualTicket {
-  ticketNumber: string;
-  attendeeName: string | null;
-  attendeeEmail: string | null;
-  isCheckedIn: boolean;
-  checkedInAt: Date | null;
-  qrCodeUrl: string | null;
+export interface TicketDetail {
+  attendeeName: string;
+  attendeeEmail: string;
+  ticketNumber: number;
+  refundStatus?: 'none' | 'requested' | 'approved' | 'rejected' | 'completed';
+  refundAmount?: number;
+  refundReason?: string;
+  refundedAt?: Date;
 }
 
-export interface TicketOrder {
+export interface Ticket {
   _id: string;
-  event: string | {
+  eventId: string | {
     _id: string;
     title: string;
     startDate: Date;
     endDate: Date;
     location: {
       name: string;
-      address: {
-        city: string;
-        country: string;
-      };
       online: boolean;
     };
-    status: string;
-    coverImage: string | null;
+    coverImage?: string;
     slug: string;
   };
-  user: string | {
+  attendee: string | {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  organizer: string | {
     _id: string;
     firstName: string;
     lastName: string;
     email: string;
   };
   quantity: number;
-  tickets: IndividualTicket[];
-  amount: number;
+  ticketDetails: TicketDetail[];
+  ticketPrice: number;
   currency: string;
-  paymentIntentId: string;
-  paymentStatus: 'pending' | 'processing' | 'succeeded' | 'failed' | 'refunded';
-  pdfUrl: string | null;
-  orderNumber: string;
-  createdAt: Date;
+  platformFee: number;
+  organizerPayment: number;
+  stripePaymentIntentId: string;
+  stripeTransferId?: string;
+  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'partially_refunded';
+  refundStatus: 'none' | 'requested' | 'approved' | 'rejected' | 'completed';
+  refundAmount: number;
+  cancellationFee: number;
+  refundReason?: string;
+  refundedAt?: Date;
+  organizerTransferStatus: 'pending' | 'completed' | 'failed';
+  organizerTransferDate?: Date;
+  purchasedAt: Date;
   updatedAt: Date;
 }
 
-export interface PurchaseRequest {
+export interface TicketPurchaseRequest {
   eventId: string;
+  ticketPrice: number;
+  currency?: string;
+  quantity: number;
+  ticketDetails: TicketDetail[];
+}
+
+export interface TicketPurchaseResponse {
+  ticketId: string;
+  clientSecret: string;
+  totalAmount: number;
+  platformFee: number;
+  organizerPayment: number;
   quantity: number;
 }
 
-export interface PurchaseResponse {
-  clientSecret: string;
-  ephemeralKey: string;
-  customerId: string;
-  paymentIntentId: string;
-  amount: number;
-  currency: string;
-  ticketOrderId: string;
-}
-
-export interface CompletePurchaseRequest {
-  paymentIntentId: string;
-  ticketOrderId: string;
-  attendeeInfo?: Array<{name: string, email: string}>;
-}
-
-export interface CompletePurchaseResponse {
-  ticketOrder: TicketOrder;
-  pdfUrl: string;
-}
-
 export interface TicketListResponse {
-  tickets: TicketOrder[];
+  tickets: Ticket[];
   pagination: {
     total: number;
     page: number;
@@ -82,11 +83,35 @@ export interface TicketListResponse {
   };
 }
 
-export interface AttendeeUpdateRequest {
-  ticketOrderId: string;
-  ticketNumber: string;
-  attendeeName?: string;
-  attendeeEmail?: string;
+export interface RefundRequest {
+  reason: string;
+  refundTickets?: number[]; // Array of ticket numbers to refund
+}
+
+export interface RefundResponse {
+  ticketId: string;
+  refundAmount: number;
+  cancellationFee: number;
+  refundStatus: string;
+  quantity: number;
+  refundedTickets?: Array<{
+    ticketNumber: number;
+    attendeeName: string;
+    attendeeEmail: string;
+  }>;
+}
+
+export interface ProcessRefundRequest {
+  action: 'approve' | 'reject';
+  refundTickets?: number[]; // Array of ticket numbers to refund
+}
+
+export interface ProcessRefundResponse {
+  ticketId: string;
+  refundAmount?: number;
+  refundStatus: string;
+  stripeRefundId?: string;
+  quantity: number;
 }
 
 /**
@@ -94,29 +119,49 @@ export interface AttendeeUpdateRequest {
  */
 const ticketService = {
   /**
-   * Initiate ticket purchase
+   * Create a ticket purchase
    * @param purchaseData - Ticket purchase data
-   * @returns Promise with payment details
+   * @returns Promise with ticket purchase result
    */
-  initiateTicketPurchase: async (purchaseData: PurchaseRequest): Promise<ApiResponse<PurchaseResponse>> => {
-    return api.post<PurchaseResponse>('/tickets/purchase', purchaseData);
+  createTicketPurchase: async (purchaseData: TicketPurchaseRequest): Promise<ApiResponse<TicketPurchaseResponse>> => {
+    return api.post<TicketPurchaseResponse>('/tickets/purchase', purchaseData);
   },
 
   /**
-   * Complete ticket purchase
-   * @param completeData - Data to complete purchase
-   * @returns Promise with purchase result and ticket PDF
+   * Confirm ticket payment
+   * @param ticketId - Ticket ID
+   * @returns Promise with payment confirmation result
    */
-  completeTicketPurchase: async (completeData: CompletePurchaseRequest): Promise<ApiResponse<CompletePurchaseResponse>> => {
-    return api.post<CompletePurchaseResponse>('/tickets/complete', completeData);
+  confirmTicketPayment: async (ticketId: string): Promise<ApiResponse<{ ticketId: string; paymentStatus: string; totalAmount: number; quantity: number }>> => {
+    return api.post(`/tickets/${ticketId}/confirm`);
+  },
+
+  /**
+   * Request ticket refund
+   * @param ticketId - Ticket ID
+   * @param refundData - Refund request data
+   * @returns Promise with refund request result
+   */
+  requestTicketRefund: async (ticketId: string, refundData: RefundRequest): Promise<ApiResponse<RefundResponse>> => {
+    return api.post<RefundResponse>(`/tickets/${ticketId}/refund/request`, refundData);
+  },
+
+  /**
+   * Process ticket refund (approve/reject)
+   * @param ticketId - Ticket ID
+   * @param processData - Process refund data
+   * @returns Promise with refund processing result
+   */
+  processTicketRefund: async (ticketId: string, processData: ProcessRefundRequest): Promise<ApiResponse<ProcessRefundResponse>> => {
+    return api.post<ProcessRefundResponse>(`/tickets/${ticketId}/refund/process`, processData);
   },
 
   /**
    * Get user's tickets
-   * @param filters - Optional filters
-   * @returns Promise with tickets list
+   * @param filters - Optional filters and pagination
+   * @returns Promise with user's tickets
    */
-  getUserTickets: async (filters?: { status?: string; limit?: number; page?: number; sort?: string }): Promise<ApiResponse<TicketListResponse>> => {
+  getUserTickets: async (filters?: { status?: string; page?: number; limit?: number }): Promise<ApiResponse<TicketListResponse>> => {
     const queryParams = new URLSearchParams();
     
     if (filters) {
@@ -128,25 +173,49 @@ const ticketService = {
     }
     
     const queryString = queryParams.toString();
-    return api.get<TicketListResponse>(`/tickets${queryString ? `?${queryString}` : ''}`);
+    return api.get<TicketListResponse>(`/tickets/user${queryString ? `?${queryString}` : ''}`);
   },
 
   /**
-   * Get ticket by ID
-   * @param id - Ticket ID
-   * @returns Promise with ticket details
+   * Get organizer's ticket sales
+   * @param filters - Optional filters and pagination
+   * @returns Promise with organizer's ticket sales
    */
-  getTicketById: async (id: string): Promise<ApiResponse<TicketOrder>> => {
-    return api.get<TicketOrder>(`/tickets/${id}`);
+  getOrganizerTickets: async (filters?: { status?: string; eventId?: string; page?: number; limit?: number }): Promise<ApiResponse<TicketListResponse>> => {
+    const queryParams = new URLSearchParams();
+    
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+    
+    const queryString = queryParams.toString();
+    return api.get<TicketListResponse>(`/tickets/organizer${queryString ? `?${queryString}` : ''}`);
   },
 
   /**
-   * Update attendee information
-   * @param updateData - Attendee update data
-   * @returns Promise with updated ticket
+   * Transfer money to organizers for completed events (admin only)
+   * @returns Promise with transfer results
    */
-  updateAttendeeInfo: async (updateData: AttendeeUpdateRequest): Promise<ApiResponse<IndividualTicket>> => {
-    return api.patch<IndividualTicket>('/tickets/attendee', updateData);
+  transferToOrganizers: async (): Promise<ApiResponse<{ totalProcessed: number; results: Array<{ ticketId: string; status: string; transferId?: string; amount?: number; error?: string; reason?: string }> }>> => {
+    return api.post('/tickets/transfer-to-organizers');
+  },
+
+  /**
+   * Get all refund requests (admin only)
+   */
+  getAllRefundRequests: async (): Promise<ApiResponse<Ticket[]>> => {
+    return api.get<Ticket[]>('/tickets/refund-requests');
+  },
+
+  /**
+   * Get organizer's refund requests (organizer only)
+   */
+  getOrganizerRefundRequests: async (): Promise<ApiResponse<Ticket[]>> => {
+    return api.get<Ticket[]>('/tickets/organizer/refund-requests');
   }
 };
 

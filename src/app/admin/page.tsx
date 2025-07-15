@@ -10,6 +10,7 @@ import { useLanguage } from '../../i18n/language-context';
 import Button from '../../components/ui/Button';
 import { Users, Activity, Calendar, TrendingUp, UserPlus, Server, Database, Clock, AlertCircle, Settings } from 'lucide-react';
 import adminService from '../../services/admin-service';
+import SchedulerManagement from '../../components/admin/SchedulerManagement';
 
 export default function AdminPage() {
   const { t } = useLanguage();
@@ -137,6 +138,7 @@ export default function AdminPage() {
               <TabsTrigger value="overview">{t('admin.overview')}</TabsTrigger>
               <TabsTrigger value="users">{t('admin.users')}</TabsTrigger>
               <TabsTrigger value="system">{t('admin.system')}</TabsTrigger>
+              <TabsTrigger value="scheduler">Payment Scheduler</TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview" className="space-y-6">
@@ -337,6 +339,10 @@ export default function AdminPage() {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="scheduler" className="space-y-6">
+              <SchedulerManagement />
             </TabsContent>
           </Tabs>
         </div>
