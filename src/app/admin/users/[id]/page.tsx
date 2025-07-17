@@ -358,7 +358,7 @@ export default function UserDetailPage() {
                           options={[
                             { value: 'user', label: t('role.user') },
                             { value: 'admin', label: t('role.admin') },
-                            { value: 'guest', label: t('role.guest') }
+                            { value: 'organizer', label: t('role.organizer') }
                           ]}
                         />
                       </div>

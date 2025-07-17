@@ -571,7 +571,6 @@ export default function OrganizerPage() {
             <option value="upcoming">{t('organizer.upcomingEvents')}</option>
             <option value="past">{t('organizer.pastEvents')}</option>
             <option value="all">{t('organizer.allEvents')}</option>
-            <option value="refunds">{t('payment.refundRequest')}</option>
             <option value="create">{t('organizer.createEvent')}</option>
           </select>
         </div>
@@ -607,16 +606,6 @@ export default function OrganizerPage() {
                 } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
               >
                 {t('organizer.allEvents')}
-              </button>
-              <button
-                onClick={() => setActiveTab('refunds')}
-                className={`${
-                  activeTab === 'refunds'
-                    ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
-                    : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-              >
-                {t('payment.refundRequest')}
               </button>
               <button
                 onClick={() => setActiveTab('create')}
@@ -773,12 +762,6 @@ export default function OrganizerPage() {
                 </div>
               </div>
             )}
-          </div>
-        )}
-
-        {activeTab === 'refunds' && (
-          <div>
-            <iframe src="/organizer/refund-requests" className="w-full min-h-[800px] border-none" title="Refund Requests" />
           </div>
         )}
 

@@ -60,6 +60,68 @@ export interface UserSearchParams {
   isActive?: boolean;
 }
 
+// Organizer payment stats interface
+export interface OrganizerPaymentStats {
+  totalTickets: number;
+  totalRevenue: number;
+  platformFees: number;
+  organizerPayments: number;
+  pendingTransfers: number;
+  completedTransfers: number;
+  failedTransfers: number;
+  totalSent: number;
+  totalRemaining: number;
+  hasStripeAccount: boolean;
+  transferStatus: 'none' | 'available' | 'blocked' | 'no_stripe';
+}
+
+// Organizer interface with payment stats
+export interface Organizer extends User {
+  isActive: boolean;
+  isPaymentBlocked: boolean;
+  paymentBlockReason?: string;
+  paymentBlockedAt?: string;
+  stripeCustomerId?: string;
+  createdAt: string;
+  updatedAt: string;
+  paymentStats: OrganizerPaymentStats;
+}
+
+// Organizer query params
+export interface OrganizerQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+}
+
+// Payment block request interface
+export interface PaymentBlockRequest {
+  isBlocked: boolean;
+  reason?: string;
+}
+
+// Transfer result interface
+export interface TransferResult {
+  ticketId: string;
+  status: string;
+  transferId?: string;
+  amount?: number;
+  error?: string;
+  code?: string;
+  message?: string;
+  reason?: string;
+}
+
+// Transfer response interface
+export interface TransferResponse {
+  totalProcessed: number;
+  successCount: number;
+  failureCount: number;
+  totalAmount: string;
+  results: TransferResult[];
+}
+
 // Admin service class
 class AdminService {
   /**
@@ -151,6 +213,48 @@ class AdminService {
       .join('&');
 
     return api.get(`/admin/activities${queryString ? `?${queryString}` : ''}`);
+  }
+
+  /**
+   * Get all organizers with payment stats
+   * @param params Query parameters (page, limit, search, status)
+   * @returns Promise with organizers list
+   */
+  async getOrganizers(params: OrganizerQueryParams = {}): Promise<ApiResponse<{ organizers: Organizer[], total: number, page: number, pages: number }>> {
+    const queryString = Object.entries(params)
+      .filter(([value]) => value !== undefined && value !== '')
+      .map(([key, value]) => `${key}=${encodeURIComponent(String(value))}`)
+      .join('&');
+
+    return api.get<{ organizers: Organizer[], total: number, page: number, pages: number }>(`/admin/organizers${queryString ? `?${queryString}` : ''}`);
+  }
+
+  /**
+   * Get organizer payment stats
+   * @param organizerId Organizer ID
+   * @returns Promise with organizer stats
+   */
+  async getOrganizerStats(organizerId: string): Promise<ApiResponse<{ organizer: Organizer, stats: OrganizerPaymentStats & { recentTickets: any[] } }>> {
+    return api.get<{ organizer: Organizer, stats: OrganizerPaymentStats & { recentTickets: any[] } }>(`/admin/organizers/${organizerId}/stats`);
+  }
+
+  /**
+   * Block/unblock organizer payments
+   * @param organizerId Organizer ID
+   * @param data Payment block data
+   * @returns Promise with success status
+   */
+  async toggleOrganizerPaymentBlock(organizerId: string, data: PaymentBlockRequest): Promise<ApiResponse<Organizer>> {
+    return api.put<Organizer>(`/admin/organizers/${organizerId}/payment-block`, data);
+  }
+
+  /**
+   * Manually transfer payment to organizer
+   * @param organizerId Organizer ID
+   * @returns Promise with transfer results
+   */
+  async transferToOrganizer(organizerId: string): Promise<ApiResponse<TransferResponse>> {
+    return api.post<TransferResponse>(`/admin/organizers/${organizerId}/transfer`);
   }
 }
 

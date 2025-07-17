@@ -13,9 +13,9 @@ import adminService, { AdminUser } from '../../../services/admin-service';
 
 // Filters for user list
 const filters = [
-  { id: 'all', name: 'admin.allUsers' },
-  { id: 'active', name: 'admin.activeUsers' },
-  { id: 'inactive', name: 'admin.inactiveUsers' }
+  { id: 'all', name: 'admin.allUsers', label: 'admin.allUsers' },
+  { id: 'active', name: 'admin.activeUsers', label: 'admin.activeUsers' },
+  { id: 'inactive', name: 'admin.inactiveUsers', label: 'admin.inactiveUsers' }
 ];
 
 // Sort options for user list
@@ -259,8 +259,8 @@ export default function UsersPage() {
           </CardHeader>
           <CardContent>
             {/* Mobile search and filter toggle */}
-            <div className="mb-4 flex items-center justify-between md:hidden">
-              <form onSubmit={handleSearch} className="flex flex-1">
+            <div className="flex items-center justify-between md:hidden">
+              <form onSubmit={handleSearch} className="flex flex-1 mt-4">
                 <Input
                   type="text"
                   placeholder={t('admin.searchUsers')}
@@ -282,11 +282,12 @@ export default function UsersPage() {
             </div>
             
             {/* Responsive filters (collapsible on mobile) */}
-            <div className={`${showFilters ? 'block' : 'hidden'} md:block mb-6`}>
-              <div className="md:flex md:flex-wrap md:items-center md:justify-between md:gap-4">
-                {/* Search - desktop */}
-                <div className="hidden md:block md:flex-1 md:min-w-[300px]">
-                  <form onSubmit={handleSearch} className="flex max-w-sm">
+            <div className={`${showFilters ? 'block' : 'hidden'} md:block mb-8`}>
+              {/* Desktop filters layout */}
+              <div className="hidden md:flex md:items-end md:space-x-6">
+                {/* Search section */}
+                <div className="flex-1 max-w-xs">
+                  <form onSubmit={handleSearch} className="flex">
                     <Input
                       type="text"
                       placeholder={t('admin.searchUsers')}
@@ -300,33 +301,22 @@ export default function UsersPage() {
                   </form>
                 </div>
 
-                {/* Filter buttons */}
-                <div className="mt-3 md:mt-0">
-                  <div className="flex flex-col md:flex-row md:items-center md:space-x-2">
-                    <div className="flex items-center mb-2 md:mb-0">
-                      <Filter className="h-4 w-4 text-[var(--sage-green)] mr-2" />
-                      <span className="text-sm text-[var(--sage-green)]">{t('admin.filter')}:</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {filters.map((filter) => (
-                        <button
-                          key={filter.id}
-                          onClick={() => handleFilterChange(filter.id)}
-                          className={`px-3 py-1 text-sm rounded-full ${
-                            activeFilter === filter.id
-                              ? 'bg-[var(--sage-green)] text-white'
-                              : 'bg-[var(--taupe)] text-[var(--sage-green)] hover:bg-[var(--cognac)]'
-                          }`}
-                        >
-                          {t(filter.name)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                {/* Filter dropdown section */}
+                <div className="flex-1 max-w-xs">
+                  <Select
+                    id="filter"
+                    value={activeFilter}
+                    onChange={(e) => handleFilterChange(e.target.value)}
+                    options={filters.map(filter => ({
+                      value: filter.id,
+                      label: t(filter.label)
+                    }))}
+                    fullWidth
+                  />
                 </div>
                 
-                {/* Sort dropdown */}
-                <div className="mt-3 md:mt-0 w-full md:w-48">
+                {/* Sort dropdown section */}
+                <div className="flex-1 max-w-xs">
                   <Select
                     id="sort"
                     value={sortBy}
@@ -335,9 +325,42 @@ export default function UsersPage() {
                       value: option.value,
                       label: t(option.label)
                     }))}
-                    label={t('admin.sortBy')}
                     fullWidth
                   />
+                </div>
+              </div>
+
+              {/* Mobile filters layout */}
+              <div className="md:hidden">
+                <div className="space-y-4">
+
+                  {/* Filter dropdown - mobile */}
+                  <div>
+                    <Select
+                      id="filter"
+                      value={activeFilter}
+                      onChange={(e) => handleFilterChange(e.target.value)}
+                      options={filters.map(filter => ({
+                        value: filter.id,
+                        label: t(filter.label)
+                      }))}
+                      fullWidth
+                    />
+                  </div>
+                  
+                  {/* Sort dropdown - mobile */}
+                  <div>
+                    <Select
+                      id="sort"
+                      value={sortBy}
+                      onChange={handleSortChange}
+                      options={sortOptions.map(option => ({
+                        value: option.value,
+                        label: t(option.label)
+                      }))}
+                      fullWidth
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -357,80 +380,88 @@ export default function UsersPage() {
                 </div>
                 
                 {/* Desktop table view */}
-                <div className="hidden md:block overflow-x-auto">
-                  <table className="min-w-full divide-y divide-[var(--cognac)]">
-                    <thead className="bg-[var(--taupe)]">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
-                          {t('admin.name')}
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
-                          {t('admin.email')}
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
-                          {t('admin.role')}
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
-                          {t('admin.status')}
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-[var(--sage-green)] uppercase tracking-wider">
-                          {t('admin.created')}
-                        </th>
-                        <th scope="col" className="relative px-6 py-3">
-                          <span className="sr-only">{t('common.edit')}</span>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-[var(--cognac)]">
-                      {users.map((user) => (
-                        <tr 
-                          key={user._id} 
-                          onClick={() => handleEditUser(user._id)}
-                          className="cursor-pointer hover:bg-[var(--taupe-light)]"
-                        >
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <div className="flex-shrink-0 h-10 w-10 rounded-full bg-[var(--taupe)] flex items-center justify-center">
-                                <span className="text-[var(--sage-green)] font-medium">
-                                  {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-                                </span>
-                              </div>
-                              <div className="ml-4">
-                                <div className="text-sm font-medium text-black">
-                                  {user.firstName} {user.lastName}
+                <div className="hidden md:block">
+                  <div className="overflow-hidden rounded-lg border border-[var(--cognac)]">
+                    <table className="min-w-full divide-y divide-[var(--cognac)]">
+                      <thead className="bg-[var(--taupe)]">
+                        <tr>
+                          <th scope="col" className="px-2 py-2 text-left text-xs font-semibold text-[var(--sage-green)] uppercase tracking-wider w-1/4">
+                            {t('admin.name')}
+                          </th>
+                          <th scope="col" className="px-2 py-2 text-left text-xs font-semibold text-[var(--sage-green)] uppercase tracking-wider w-1/4">
+                            {t('admin.email')}
+                          </th>
+                          <th scope="col" className="px-2 py-2 text-left text-xs font-semibold text-[var(--sage-green)] uppercase tracking-wider w-1/6">
+                            {t('admin.role')}
+                          </th>
+                          <th scope="col" className="px-2 py-2 text-left text-xs font-semibold text-[var(--sage-green)] uppercase tracking-wider w-1/6">
+                            {t('admin.status')}
+                          </th>
+                          <th scope="col" className="px-2 py-2 text-left text-xs font-semibold text-[var(--sage-green)] uppercase tracking-wider w-1/6">
+                            {t('admin.created')}
+                          </th>
+                          <th scope="col" className="relative px-2 py-2 w-16">
+                            <span className="sr-only">{t('common.edit')}</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-[var(--cognac)]">
+                        {users.map((user) => (
+                          <tr 
+                            key={user._id} 
+                            onClick={() => handleEditUser(user._id)}
+                            className="cursor-pointer hover:bg-[var(--taupe-light)] transition-colors"
+                          >
+                            <td className="px-2 py-2 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0 h-6 w-6 rounded-full bg-[var(--taupe)] flex items-center justify-center">
+                                  <span className="text-[var(--sage-green)] font-medium text-xs">
+                                    {user.firstName.charAt(0)}{user.lastName.charAt(0)}
+                                  </span>
+                                </div>
+                                <div className="ml-2">
+                                  <div className="text-sm font-semibold text-black">
+                                    {user.firstName} {user.lastName}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[var(--sage-green)]">
-                            {user.email}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
-                            {t(`role.${user.role.toLowerCase()}`)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <Badge variant={user.isActive ? 'success' : 'danger'}>
-                              {user.isActive ? t('admin.statusActive') : t('admin.statusInactive')}
-                            </Badge>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-black">
-                            {formatDate(user.createdAt)}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleEditUser(user._id);
-                              }}
-                              className="text-[var(--sage-green)] hover:text-[#424b3c]"
-                            >
-                              {t('common.edit')}
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap">
+                              <div className="text-sm text-[var(--sage-green)] font-medium">
+                                {user.email}
+                              </div>
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap">
+                              <div className="text-sm text-black">
+                                {t(`role.${user.role.toLowerCase()}`)}
+                              </div>
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap">
+                              <Badge variant={user.isActive ? 'success' : 'danger'}>
+                                {user.isActive ? t('admin.statusActive') : t('admin.statusInactive')}
+                              </Badge>
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap">
+                              <div className="text-sm text-black">
+                                {formatDate(user.createdAt)}
+                              </div>
+                            </td>
+                            <td className="px-2 py-2 whitespace-nowrap text-right">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleEditUser(user._id);
+                                }}
+                                className="text-[var(--sage-green)] hover:text-[#424b3c] font-medium text-sm transition-colors"
+                              >
+                                {t('common.edit')}
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </>
             ) : (

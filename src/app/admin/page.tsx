@@ -10,7 +10,6 @@ import { useLanguage } from '../../i18n/language-context';
 import Button from '../../components/ui/Button';
 import { Users, Activity, Calendar, TrendingUp, UserPlus, Server, Database, Clock, AlertCircle, Settings } from 'lucide-react';
 import adminService from '../../services/admin-service';
-import SchedulerManagement from '../../components/admin/SchedulerManagement';
 
 export default function AdminPage() {
   const { t } = useLanguage();
@@ -133,15 +132,6 @@ export default function AdminPage() {
         </div>
       ) : (
         <div className="mt-6">
-          <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="mb-6">
-              <TabsTrigger value="overview">{t('admin.overview')}</TabsTrigger>
-              <TabsTrigger value="users">{t('admin.users')}</TabsTrigger>
-              <TabsTrigger value="system">{t('admin.system')}</TabsTrigger>
-              <TabsTrigger value="scheduler">Payment Scheduler</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview" className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
                   title={t('admin.totalUsers')}
@@ -164,8 +154,7 @@ export default function AdminPage() {
                   icon={<TrendingUp className="h-8 w-8" />}
                 />
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                 <Card>
                   <CardHeader>
                     <CardTitle>{t('admin.systemStatus')}</CardTitle>
@@ -259,92 +248,6 @@ export default function AdminPage() {
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
-            
-            <TabsContent value="users" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('admin.userStatistics')}</CardTitle>
-                  <CardDescription>{t('admin.userStatsDescription')}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-[var(--cognac)] text-center">
-                      <p className="text-sm font-medium text-[var(--sage-green)]">{t('admin.totalUsers')}</p>
-                      <p className="mt-1 text-3xl font-semibold">{stats.users.total}</p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-[var(--cognac)] text-center">
-                      <p className="text-sm font-medium text-[var(--sage-green)]">{t('admin.activeUsers')}</p>
-                      <p className="mt-1 text-3xl font-semibold">{stats.users.active}</p>
-                      <p className="text-xs text-[var(--sage-green)] mt-1">
-                        {stats.users.total > 0 ? Math.round(stats.users.active / stats.users.total * 100) : 0}% {t('admin.ofTotal')}
-                      </p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-[var(--cognac)] text-center">
-                      <p className="text-sm font-medium text-[var(--sage-green)]">{t('admin.inactiveUsers')}</p>
-                      <p className="mt-1 text-3xl font-semibold">{stats.users.total - stats.users.active}</p>
-                      <p className="text-xs text-[var(--sage-green)] mt-1">
-                        {stats.users.total > 0 ? Math.round((stats.users.total - stats.users.active) / stats.users.total * 100) : 0}% {t('admin.ofTotal')}
-                      </p>
-                    </div>
-                    <div className="bg-white p-4 rounded-lg shadow-sm border border-[var(--cognac)] text-center">
-                      <p className="text-sm font-medium text-[var(--sage-green)]">{t('admin.userGrowth')}</p>
-                      <p className="mt-1 text-3xl font-semibold text-green-600">{stats.users.growth}</p>
-                      <p className="text-xs text-[var(--sage-green)] mt-1">{t('admin.lastMonth')}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="mt-6 flex justify-center">
-                    <Button onClick={handleManageUsers}>
-                      <Users className="h-4 w-4 mr-2" />
-                      {t('admin.viewAllUsers')}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="system" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('admin.systemHealth')}</CardTitle>
-                  <CardDescription>{t('admin.systemHealthDescription')}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <StatCard
-                        title={t('admin.serverStatus')}
-                        value={stats.system.serverStatus === 'healthy' ? t('admin.statusHealthy') : t('admin.statusUnhealthy')}
-                        icon={<Server className="h-8 w-8" />}
-                        variant={stats.system.serverStatus === 'healthy' ? 'success' : 'danger'}
-                      />
-                      <StatCard
-                        title={t('admin.databaseStatus')}
-                        value={stats.system.dbStatus === 'healthy' ? t('admin.statusHealthy') : t('admin.statusUnhealthy')}
-                        icon={<Database className="h-8 w-8" />}
-                        variant={stats.system.dbStatus === 'healthy' ? 'success' : 'danger'}
-                      />
-                      <StatCard
-                        title={t('admin.uptime')}
-                        value={stats.system.uptime}
-                        icon={<Calendar className="h-8 w-8" />}
-                      />
-                      <StatCard
-                        title={t('admin.avgResponseTime')}
-                        value={stats.system.averageResponseTime}
-                        icon={<Clock className="h-8 w-8" />}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="scheduler" className="space-y-6">
-              <SchedulerManagement />
-            </TabsContent>
-          </Tabs>
         </div>
       )}
     </>

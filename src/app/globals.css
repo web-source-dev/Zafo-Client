@@ -2,12 +2,12 @@
 
 :root {
   /* Theme colors */
-  --sage-green: #535e4b; /* Main color for buttons, actions, headings, highlight text */
-  --sage: #c1c2ad; /* Primary color for buttons, action boxes */
-  --cognac: #b5a4a3; /* Secondary color */
-  --taupe: #e9e6e2; /* Background color */
-  --black: #000000; /* Text color */
-  
+  --sage-green: #4B6478;  /* Muted navy */
+  --sage: #D3D9DD;        /* Sea foam gray */
+  --cognac: #9F8370;      /* Coral stone */
+  --taupe: #F0EEEB;       /* Cream sand */
+  --black: #2B2B2B;       /* Classic black */
+ 
   /* Base variables */
   --background: var(--taupe);
   --foreground: var(--black);

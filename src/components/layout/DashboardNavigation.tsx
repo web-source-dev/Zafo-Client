@@ -45,10 +45,10 @@ export function useDashboardNavigation(dashboardType: DashboardType): Navigation
       current: pathname?.startsWith('/admin/users') 
     },
     { 
-      name: t('admin.role'), 
-      href: '/admin/roles', 
-      icon: RolesIcon, 
-      current: pathname?.startsWith('/admin/roles') 
+      name: 'Organizers', 
+      href: '/admin/organizers', 
+      icon: ParticipantsIcon, 
+      current: pathname?.startsWith('/admin/organizers') 
     },
     { 
       name: 'Refund Requests', 
@@ -57,17 +57,11 @@ export function useDashboardNavigation(dashboardType: DashboardType): Navigation
       current: pathname?.startsWith('/admin/refund-requests') 
     },
     { 
-      name: t('common.settings'), 
-      href: '/admin/settings', 
-      icon: SettingsIcon, 
-      current: pathname?.startsWith('/admin/settings') 
-    },
-    { 
-      name: t('admin.reports'), 
-      href: '/admin/reports', 
+      name: t('admin.scheduler'), 
+      href: '/admin/scheduler', 
       icon: ReportsIcon, 
-      current: pathname?.startsWith('/admin/reports') 
-    }
+      current: pathname?.startsWith('/admin/scheduler') 
+    },
   ];
 
   // Organizer Dashboard Navigation

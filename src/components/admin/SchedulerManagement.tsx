@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { Clock, Play, Square, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 import api from '@/api/api';
+import { useLanguage } from '@/i18n/language-context';
 
 interface SchedulerStatus {
   isRunning: boolean;
@@ -13,6 +14,7 @@ interface SchedulerStatus {
 }
 
 export default function SchedulerManagement() {
+  const { t } = useLanguage();
   const [status, setStatus] = useState<SchedulerStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isRunningTransfer, setIsRunningTransfer] = useState(false);
@@ -31,7 +33,7 @@ export default function SchedulerManagement() {
       }
     } catch (error) {
       console.error('Error fetching scheduler status:', error);
-      setMessage({ type: 'error', text: 'Failed to fetch scheduler status' });
+      setMessage({ type: 'error', text: t('admin.failedToFetchSchedulerStatus') });
     } finally {
       setIsLoading(false);
     }
@@ -42,12 +44,12 @@ export default function SchedulerManagement() {
       setIsLoading(true);
       const response = await api.post('/admin/scheduler/start');
       if (response.success) {
-        setMessage({ type: 'success', text: 'Scheduler started successfully' });
+        setMessage({ type: 'success', text: t('admin.schedulerStarted') });
         fetchStatus();
       }
     } catch (error) {
       console.error('Error starting scheduler:', error);
-      setMessage({ type: 'error', text: 'Failed to start scheduler' });
+      setMessage({ type: 'error', text: t('admin.failedToStartScheduler') });
     } finally {
       setIsLoading(false);
     }
@@ -58,12 +60,12 @@ export default function SchedulerManagement() {
       setIsLoading(true);
       const response = await api.post('/admin/scheduler/stop');
       if (response.success) {
-        setMessage({ type: 'success', text: 'Scheduler stopped successfully' });
+        setMessage({ type: 'success', text: t('admin.schedulerStoppedSuccess') });
         fetchStatus();
       }
     } catch (error) {
       console.error('Error stopping scheduler:', error);
-      setMessage({ type: 'error', text: 'Failed to stop scheduler' });
+      setMessage({ type: 'error', text: t('admin.failedToStopScheduler') });
     } finally {
       setIsLoading(false);
     }
@@ -74,12 +76,12 @@ export default function SchedulerManagement() {
       setIsRunningTransfer(true);
       const response = await api.post('/admin/scheduler/run-transfer');
       if (response.success) {
-        setMessage({ type: 'success', text: 'Transfer completed successfully' });
+        setMessage({ type: 'success', text: t('admin.transferCompleted') });
         fetchStatus();
       }
     } catch (error) {
       console.error('Error running transfer:', error);
-      setMessage({ type: 'error', text: 'Failed to run transfer' });
+      setMessage({ type: 'error', text: t('admin.failedToRunTransfer') });
     } finally {
       setIsRunningTransfer(false);
     }
@@ -101,10 +103,10 @@ export default function SchedulerManagement() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center">
-            <Clock className="h-5 w-5 mr-2" />
-            Automated Payment Transfer Scheduler
-          </CardTitle>
+                  <CardTitle className="flex items-center">
+          <Clock className="h-5 w-5 mr-2" />
+          {t('admin.scheduler')}
+        </CardTitle>
         </CardHeader>
         <CardContent>
           {message && (
@@ -125,25 +127,25 @@ export default function SchedulerManagement() {
           {isLoading ? (
             <div className="text-center py-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading...</p>
+              <p className="mt-2 text-gray-600">{t('admin.loading')}</p>
             </div>
           ) : status ? (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <h3 className="font-semibold text-gray-900 mb-2">Scheduler Status</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">{t('admin.schedulerStatus')}</h3>
                   <div className="flex items-center">
                     <div className={`w-3 h-3 rounded-full mr-2 ${
                       status.isRunning ? 'bg-green-500' : 'bg-red-500'
                     }`}></div>
                     <span className={status.isRunning ? 'text-green-600' : 'text-red-600'}>
-                      {status.isRunning ? 'Running' : 'Stopped'}
+                      {status.isRunning ? t('admin.schedulerRunning') : t('admin.schedulerStopped')}
                     </span>
                   </div>
                 </div>
 
                 <div className="p-4 bg-gray-50 rounded-lg">
-                  <h3 className="font-semibold text-gray-900 mb-2">Next Transfer</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">{t('admin.nextTransfer')}</h3>
                   <p className="text-gray-600">
                     {formatNextTransfer(status.nextTransfer)}
                   </p>
@@ -151,7 +153,7 @@ export default function SchedulerManagement() {
               </div>
 
               <div className="p-4 bg-blue-50 rounded-lg">
-                <h3 className="font-semibold text-blue-900 mb-2">Active Jobs</h3>
+                <h3 className="font-semibold text-blue-900 mb-2">{t('admin.activeJobs')}</h3>
                 <ul className="space-y-1">
                   {status.activeJobs.map((job, index) => (
                     <li key={index} className="text-blue-800 flex items-center">
@@ -160,7 +162,7 @@ export default function SchedulerManagement() {
                     </li>
                   ))}
                   {status.activeJobs.length === 0 && (
-                    <li className="text-blue-800">No active jobs</li>
+                    <li className="text-blue-800">{t('admin.noActiveJobs')}</li>
                   )}
                 </ul>
               </div>
@@ -174,7 +176,7 @@ export default function SchedulerManagement() {
                     className="flex items-center"
                   >
                     <Square className="h-4 w-4 mr-2" />
-                    Stop Scheduler
+                    {t('admin.stopScheduler')}
                   </Button>
                 ) : (
                   <Button
@@ -183,7 +185,7 @@ export default function SchedulerManagement() {
                     className="flex items-center"
                   >
                     <Play className="h-4 w-4 mr-2" />
-                    Start Scheduler
+                    {t('admin.startScheduler')}
                   </Button>
                 )}
 
@@ -196,12 +198,12 @@ export default function SchedulerManagement() {
                   {isRunningTransfer ? (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Running Transfer...
+                      {t('admin.runningTransfer')}
                     </>
                   ) : (
                     <>
                       <RefreshCw className="h-4 w-4 mr-2" />
-                      Run Transfer Now
+                      {t('admin.runTransferNow')}
                     </>
                   )}
                 </Button>
@@ -212,14 +214,14 @@ export default function SchedulerManagement() {
                   variant="outline"
                   size="sm"
                 >
-                  Refresh Status
+                  {t('admin.refreshStatus')}
                 </Button>
               </div>
             </div>
           ) : (
             <div className="text-center py-4">
               <AlertCircle className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-              <p className="text-gray-600">Failed to load scheduler status</p>
+              <p className="text-gray-600">{t('admin.failedToLoadSchedulerStatus')}</p>
             </div>
           )}
         </CardContent>
@@ -227,38 +229,38 @@ export default function SchedulerManagement() {
 
       <Card>
         <CardHeader>
-          <CardTitle>How It Works</CardTitle>
+          <CardTitle>{t('admin.schedulerHowItWorks')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4 text-sm text-gray-600">
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">Automated Transfer Process</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">{t('admin.schedulerAutomatedTransferProcess')}</h4>
               <ul className="list-disc list-inside space-y-1">
-                <li>The scheduler runs daily at 2:00 AM (Swiss time)</li>
-                <li>It finds all paid tickets for completed events</li>
-                <li>Transfers 90% of ticket revenue to organizers (after 10% platform fee)</li>
-                <li>Updates ticket transfer status to 'completed' or 'failed'</li>
-                <li>Logs all transfer results for monitoring</li>
+                <li>{t('admin.schedulerRunsDaily')}</li>
+                <li>{t('admin.schedulerFindsPaidTickets')}</li>
+                <li>{t('admin.schedulerTransfersRevenue')}</li>
+                <li>{t('admin.schedulerUpdatesStatus')}</li>
+                <li>{t('admin.schedulerLogsResults')}</li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">Requirements</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">{t('admin.schedulerRequirements')}</h4>
               <ul className="list-disc list-inside space-y-1">
-                <li>Event must be completed (end date passed)</li>
-                <li>Ticket must be paid and not already transferred</li>
-                <li>Organizer must have a connected Stripe account</li>
-                <li>Platform must have sufficient funds for transfers</li>
+                <li>{t('admin.eventMustBeCompleted')}</li>
+                <li>{t('admin.ticketMustBePaid')}</li>
+                <li>{t('admin.organizerMustHaveStripe')}</li>
+                <li>{t('admin.platformMustHaveFunds')}</li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">Manual Controls</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">{t('admin.schedulerManualControls')}</h4>
               <ul className="list-disc list-inside space-y-1">
-                <li>Start/Stop scheduler as needed</li>
-                <li>Run immediate transfers for testing</li>
-                <li>Monitor transfer status and results</li>
-                <li>View next scheduled transfer time</li>
+                <li>{t('admin.startStopScheduler')}</li>
+                <li>{t('admin.runImmediateTransfers')}</li>
+                <li>{t('admin.monitorTransferStatus')}</li>
+                <li>{t('admin.viewNextTransferTime')}</li>
               </ul>
             </div>
           </div>
