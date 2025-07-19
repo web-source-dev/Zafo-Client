@@ -315,12 +315,12 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
         }
         
         // Redirect to payment page with event ID
-        router.push(`/payment/event/${response.data._id}`);
+        router.push(`/payment/create/${response.data._id}`);
         return;
       }
       
       if (response.success) {
-        router.push('/organizer');
+        router.push('/organizer/events');
       } else {
         setError(response.message || t('events.submitError'));
       }

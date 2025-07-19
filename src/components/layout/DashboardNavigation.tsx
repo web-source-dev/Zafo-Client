@@ -73,16 +73,22 @@ export function useDashboardNavigation(dashboardType: DashboardType): Navigation
       current: pathname === '/organizer' 
     },
     { 
+      name: t('organizer.events'), 
+      href: '/organizer/events', 
+      icon: EventsIcon, 
+      current: pathname?.startsWith('/organizer/events') 
+    },
+    { 
       name: t('organizer.createEvent'), 
       href: '/organizer/events/create', 
       icon: EventsIcon, 
       current: pathname?.startsWith('/organizer/events/create') 
     },
     { 
-      name: t('organizer.participants'), 
-      href: '/organizer/participants', 
+      name: t('organizer.stripeConnect'), 
+      href: '/organizer/stripe-connect', 
       icon: ParticipantsIcon, 
-      current: pathname?.startsWith('/organizer/participants') 
+      current: pathname?.startsWith('/organizer/stripe-connect') 
     },
     { 
       name: 'Refund Requests', 
@@ -105,12 +111,6 @@ export function useDashboardNavigation(dashboardType: DashboardType): Navigation
       href: '/dashboard', 
       icon: DashboardIcon, 
       current: pathname === '/dashboard' 
-    },
-    { 
-      name: t('dashboard.myEvents'), 
-      href: '/dashboard/events', 
-      icon: EventsIcon, 
-      current: pathname?.startsWith('/dashboard/events') 
     },
     { 
       name: t('dashboard.myTickets'), 

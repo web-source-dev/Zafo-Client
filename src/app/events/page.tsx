@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import eventService, { Event, EventFilters } from '@/services/event-service';
+import eventService, { Event, EventFilters, EventStats } from '@/services/event-service';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
@@ -14,6 +14,7 @@ import { useLanguage } from '@/i18n/language-context';
 export default function EventsPage() {
   const { t } = useLanguage();
   const [events, setEvents] = useState<Event[]>([]);
+  const [eventStats, setEventStats] = useState<{ [key: string]: EventStats }>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<EventFilters>({
@@ -34,6 +35,28 @@ export default function EventsPage() {
         if (response.success && response.data) {
           setEvents(response.data.events);
           setTotalPages(response.data.pagination.pages);
+          
+          // Fetch statistics for each event
+          const statsPromises = response.data.events.map(async (event) => {
+            try {
+              const statsResponse = await eventService.getEventStats(event._id);
+              if (statsResponse.success && statsResponse.data) {
+                return { eventId: event._id, stats: statsResponse.data };
+              }
+            } catch (err) {
+              console.error(`Error fetching stats for event ${event._id}:`, err);
+            }
+            return null;
+          });
+          
+          const statsResults = await Promise.all(statsPromises);
+          const statsMap: { [key: string]: EventStats } = {};
+          statsResults.forEach(result => {
+            if (result) {
+              statsMap[result.eventId] = result.stats;
+            }
+          });
+          setEventStats(statsMap);
         } else {
           setError(response.message || t('events.listing.error'));
         }
@@ -86,44 +109,73 @@ export default function EventsPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {events.map((event) => (
-          <Card key={event._id} className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
-            <div onClick={() => handleEventClick(event.slug)}>
-              <div className="relative h-48">
-                {event.coverImage ? (
-                  <Image
-                    src={event.coverImage}
-                    alt={event.title}
-                    fill
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    <span className="text-gray-400">{t('events.noImage')}</span>
+        {events.map((event) => {
+          const stats = eventStats[event._id];
+          const soldTickets = stats?.soldTickets || 0;
+          const remainingCapacity = stats?.remainingCapacity || event.capacity;
+          const isSoldOut = stats?.isSoldOut || false;
+          
+          return (
+            <Card key={event._id} className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
+              <div onClick={() => handleEventClick(event.slug)}>
+                <div className="relative h-48">
+                  {event.coverImage ? (
+                    <Image
+                      src={event.coverImage}
+                      alt={event.title}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                      <span className="text-gray-400">{t('events.noImage')}</span>
+                    </div>
+                  )}
+                  {isSoldOut && (
+                    <div className="absolute top-2 right-2">
+                      <Badge variant="danger">{t('events.soldOut')}</Badge>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <Badge variant={event.price.isFree ? 'success' : 'default'}>
+                      {event.price.isFree ? t('events.free') : `${event.price.amount} ${event.price.currency}`}
+                    </Badge>
+                    <Badge variant="outline">{event.category}</Badge>
                   </div>
-                )}
-              </div>
-              <div className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <Badge variant={event.price.isFree ? 'success' : 'default'}>
-                    {event.price.isFree ? t('events.free') : `${event.price.amount} ${event.price.currency}`}
-                  </Badge>
-                  <Badge variant="outline">{event.category}</Badge>
+                  <h3 className="text-lg font-semibold mb-2">{event.title}</h3>
+                  <p className="text-sm text-gray-600 mb-3">{formatDate(new Date(event.startDate))}</p>
+                  <p className="text-sm mb-4 line-clamp-2">{event.smallDescription}</p>
+                  
+                  {/* Ticket Statistics */}
+                  <div className="mb-3">
+                    <div className="flex justify-between text-xs text-gray-500 mb-1">
+                      <span>{t('events.sold')}: {soldTickets}</span>
+                      <span>{t('events.remaining')}: {remainingCapacity}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className="bg-[var(--sage-green)] h-2 rounded-full transition-all duration-300"
+                        style={{ 
+                          width: `${event.capacity > 0 ? (soldTickets / event.capacity) * 100 : 0}%` 
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-gray-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 mr-1">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>{event.location.online ? t('events.online') : event.location.name}</span>
+                  </div>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">{event.title}</h3>
-                <p className="text-sm text-gray-600 mb-3">{formatDate(new Date(event.startDate))}</p>
-                <p className="text-sm mb-4 line-clamp-2">{event.smallDescription}</p>
-                <div className="flex items-center text-sm text-gray-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-4 h-4 mr-1">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  <span>{event.location.online ? t('events.online') : event.location.name}</span>
-                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
       {/* Pagination */}

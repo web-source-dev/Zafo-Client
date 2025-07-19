@@ -4,7 +4,7 @@ import api, { ApiResponse } from '../api/api';
 export interface TicketDetail {
   attendeeName: string;
   attendeeEmail: string;
-  ticketNumber: number;
+  ticketNumber: string;
   refundStatus?: 'none' | 'requested' | 'approved' | 'rejected' | 'completed';
   refundAmount?: number;
   refundReason?: string;
@@ -74,6 +74,35 @@ export interface TicketPurchaseResponse {
   quantity: number;
 }
 
+export interface AddTicketsToExistingRequest {
+  existingTicketId: string;
+  additionalQuantity: number;
+  additionalTicketDetails: TicketDetail[];
+}
+
+export interface AddTicketsToExistingResponse {
+  existingTicketId: string;
+  clientSecret: string;
+  additionalTotalAmount: number;
+  additionalPlatformFee: number;
+  additionalOrganizerPayment: number;
+  additionalQuantity: number;
+  paymentIntentId: string;
+}
+
+export interface ConfirmAdditionalTicketRequest {
+  existingTicketId: string;
+  paymentIntentId: string;
+  additionalTicketDetails: TicketDetail[];
+}
+
+export interface ConfirmAdditionalTicketResponse {
+  ticketId: string;
+  totalQuantity: number;
+  additionalQuantity: number;
+  totalAmount: number;
+}
+
 export interface TicketListResponse {
   tickets: Ticket[];
   pagination: {
@@ -85,7 +114,7 @@ export interface TicketListResponse {
 
 export interface RefundRequest {
   reason: string;
-  refundTickets?: number[]; // Array of ticket numbers to refund
+  refundTickets?: string[]; // Array of ticket numbers to refund (as strings)
 }
 
 export interface RefundResponse {
@@ -114,6 +143,72 @@ export interface ProcessRefundResponse {
   quantity: number;
 }
 
+export interface UserReportsOverview {
+  totalTickets: number; // Total individual attendee tickets (not ticket records)
+  totalSpent: number;
+  totalEvents: number;
+  averageTicketPrice: number;
+  refundedAmount: number;
+  refundRequests: number;
+}
+
+export interface UserReportsTicketsByStatus {
+  paid: number; // Individual attendee tickets with paid status (excluding refunded ones)
+  pending: number; // Individual attendee tickets with pending status
+  failed: number; // Individual attendee tickets with failed status
+  refunded: number; // Individual attendee tickets that have been refunded
+  partially_refunded: number; // Individual attendee tickets that are still active after partial refund
+}
+
+export interface MonthlySpendingData {
+  month: string;
+  spending: number;
+  tickets: number; // Individual attendee tickets for this month
+}
+
+export interface CategoryBreakdownData {
+  category: string;
+  tickets: number; // Individual attendee tickets in this category
+  spending: number;
+  events: number;
+}
+
+export interface RecentActivityData {
+  ticketId: string;
+  eventTitle: string;
+  eventDate: Date | null;
+  quantity: number; // Individual attendee tickets in this purchase
+  amount: number;
+  currency: string;
+  paymentStatus: string;
+  purchasedAt: Date;
+  organizer: string;
+}
+
+export interface FavoriteOrganizerData {
+  id: string;
+  name: string;
+  tickets: number; // Individual attendee tickets from this organizer
+  spending: number;
+  events: number;
+}
+
+export interface UserReportsEvents {
+  attended: number; // Individual attendee tickets for attended events
+  upcoming: number; // Individual attendee tickets for upcoming events
+  total: number; // Total unique events
+}
+
+export interface UserReportsData {
+  overview: UserReportsOverview;
+  ticketsByStatus: UserReportsTicketsByStatus;
+  monthlySpending: MonthlySpendingData[];
+  categoryBreakdown: CategoryBreakdownData[];
+  recentActivity: RecentActivityData[];
+  favoriteOrganizers: FavoriteOrganizerData[];
+  events: UserReportsEvents;
+}
+
 /**
  * Service for ticket-related API calls
  */
@@ -125,6 +220,24 @@ const ticketService = {
    */
   createTicketPurchase: async (purchaseData: TicketPurchaseRequest): Promise<ApiResponse<TicketPurchaseResponse>> => {
     return api.post<TicketPurchaseResponse>('/tickets/purchase', purchaseData);
+  },
+
+  /**
+   * Add tickets to existing purchase
+   * @param data - Additional ticket data
+   * @returns Promise with additional purchase result
+   */
+  addTicketsToExistingPurchase: async (data: AddTicketsToExistingRequest): Promise<ApiResponse<AddTicketsToExistingResponse>> => {
+    return api.post<AddTicketsToExistingResponse>('/tickets/add-to-existing', data);
+  },
+
+  /**
+   * Confirm additional ticket payment and merge with existing ticket
+   * @param data - Additional ticket confirmation data
+   * @returns Promise with confirmation result
+   */
+  confirmAdditionalTicketPayment: async (data: ConfirmAdditionalTicketRequest): Promise<ApiResponse<ConfirmAdditionalTicketResponse>> => {
+    return api.post<ConfirmAdditionalTicketResponse>('/tickets/confirm-additional', data);
   },
 
   /**
@@ -216,6 +329,14 @@ const ticketService = {
    */
   getOrganizerRefundRequests: async (): Promise<ApiResponse<Ticket[]>> => {
     return api.get<Ticket[]>('/tickets/organizer/refund-requests');
+  },
+
+  /**
+   * Get user's comprehensive reports and statistics
+   * @returns Promise with user's reports data
+   */
+  getUserReports: async (): Promise<ApiResponse<UserReportsData>> => {
+    return api.get<UserReportsData>('/tickets/user/reports');
   }
 };
 

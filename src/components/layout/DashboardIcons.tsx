@@ -146,3 +146,63 @@ export const RolesIcon = (className: string | {className: string}) => {
     </svg>
   );
 }; 
+
+export const Calendar = (className: string | {className: string}) => {
+  const classNameStr = typeof className === 'string' ? className : className.className;
+  return (
+    <svg 
+      className={classNameStr}
+      xmlns="http://www.w3.org/2000/svg" 
+      fill="none" 
+      viewBox="0 0 24 24" 
+      stroke="currentColor"
+    >
+      <path 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        strokeWidth={2} 
+        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" 
+      />
+    </svg>
+  );
+};
+
+export const Clock = (className: string | {className: string}) => {
+  const classNameStr = typeof className === 'string' ? className : className.className;
+  return (
+    <svg 
+      className={classNameStr}
+      xmlns="http://www.w3.org/2000/svg" 
+      fill="none" 
+      viewBox="0 0 24 24" 
+      stroke="currentColor"
+    >
+      <path 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        strokeWidth={2} 
+        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" 
+      />
+    </svg>
+  );
+};
+
+export const DollarSign = (className: string | {className: string}) => {
+  const classNameStr = typeof className === 'string' ? className : className.className;
+  return (
+    <svg 
+      className={classNameStr}
+      xmlns="http://www.w3.org/2000/svg" 
+      fill="none" 
+      viewBox="0 0 24 24" 
+      stroke="currentColor"
+    >
+      <path 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        strokeWidth={2} 
+        d="M16 15v-1a4 4 0 00-4-4H8a4 4 0 00-4 4v1M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" 
+      />
+    </svg>
+  );
+};  

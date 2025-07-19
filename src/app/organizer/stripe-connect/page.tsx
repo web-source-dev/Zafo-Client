@@ -28,6 +28,10 @@ interface PaymentSummaryData {
   pendingTransfers: number;
   completedTransfers: number;
   failedTransfers: number;
+  totalAttendees: number;
+  paidTickets: number;
+  pendingTickets: number;
+  refundedTickets: number;
 }
 
 export default function StripeConnectPage() {
@@ -125,28 +129,23 @@ export default function StripeConnectPage() {
               </CardHeader>
               <CardContent>
                 {paymentSummary ? (
-                  <div className="space-y-4">
+                  <div className="space-y-4">                    
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Total Tickets</span>
-                      <span className="font-semibold">{paymentSummary.totalTickets}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Total Revenue</span>
+                      <span className="text-sm text-gray-600">{t('payment.totalRevenue')}</span>
                       <span className="font-semibold text-green-600">
                         CHF {paymentSummary.totalRevenue.toFixed(2)}
                       </span>
                     </div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Platform Fees</span>
+                      <span className="text-sm text-gray-600">{t('payment.platformFees')}</span>
                       <span className="font-semibold text-red-600">
                         CHF {paymentSummary.platformFees.toFixed(2)}
                       </span>
                     </div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Your Earnings</span>
+                      <span className="text-sm text-gray-600">{t('payment.yourEarnings')}</span>
                       <span className="font-semibold text-blue-600">
                         CHF {paymentSummary.organizerPayments.toFixed(2)}
                       </span>
@@ -156,21 +155,21 @@ export default function StripeConnectPage() {
                     
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Pending Transfers</span>
+                        <span className="text-sm text-gray-600">{t('payment.pendingTransfers')}</span>
                         <span className="font-semibold text-yellow-600">
                           {paymentSummary.pendingTransfers}
                         </span>
                       </div>
                       
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Completed Transfers</span>
+                        <span className="text-sm text-gray-600">{t('payment.completedTransfers')}</span>
                         <span className="font-semibold text-green-600">
                           {paymentSummary.completedTransfers}
                         </span>
                       </div>
                       
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Failed Transfers</span>
+                        <span className="text-sm text-gray-600">{t('payment.failedTransfers')}</span>
                         <span className="font-semibold text-red-600">
                           {paymentSummary.failedTransfers}
                         </span>

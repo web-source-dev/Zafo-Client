@@ -7,6 +7,7 @@ export interface StatCardProps {
   title: string;
   value: string;
   icon: React.ReactNode;
+  description?: string;
   className?: string;
   variant?: 'default' | 'success' | 'warning' | 'danger';
 }
@@ -15,6 +16,7 @@ const StatCard = ({
   title,
   value,
   icon,
+  description,
   className,
   variant = 'default',
 }: StatCardProps) => {
@@ -46,6 +48,11 @@ const StatCard = ({
               {value}
             </div>
           </dd>
+          {description && (
+            <dd className="text-sm text-gray-500 mt-1">
+              {description}
+            </dd>
+          )}
         </div>
       </div>
     </div>

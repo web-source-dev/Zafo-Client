@@ -15,6 +15,7 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  phone?: string;
   role: 'user' | 'admin' | 'organizer';
   isSubscribed?: boolean;
   stripeCustomerId?: string;
@@ -50,6 +51,7 @@ export interface AuthResponse {
 export interface UpdateProfileRequest {
   firstName?: string;
   lastName?: string;
+  phone?: string;
 }
 
 // Auth service class
@@ -226,6 +228,74 @@ class AuthService {
       return {
         success: false,
         message: axiosError.response?.data?.message || 'Profile update failed',
+        error: axiosError.response?.data?.error || axiosError.message
+      };
+    }
+  }
+
+  /**
+   * Change user password
+   * @param currentPassword string
+   * @param newPassword string
+   * @returns Promise<AuthResponse>
+   */
+  async changePassword(currentPassword: string, newPassword: string): Promise<AuthResponse> {
+    const token = this.getToken();
+    if (!token) {
+      return {
+        success: false,
+        message: 'Authentication required'
+      };
+    }
+    
+    try {
+      const response = await axios.post(
+        `${API_URL}/auth/change-password`,
+        { currentPassword, newPassword },
+        this.authHeader(token)
+      );
+      
+      return response.data;
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      return {
+        success: false,
+        message: axiosError.response?.data?.message || 'Password change failed',
+        error: axiosError.response?.data?.error || axiosError.message
+      };
+    }
+  }
+
+  /**
+   * Delete user account
+   * @returns Promise<AuthResponse>
+   */
+  async deleteAccount(): Promise<AuthResponse> {
+    const token = this.getToken();
+    if (!token) {
+      return {
+        success: false,
+        message: 'Authentication required'
+      };
+    }
+    
+    try {
+      const response = await axios.delete(
+        `${API_URL}/auth/delete-account`,
+        this.authHeader(token)
+      );
+      
+      // Clear local storage on successful deletion
+      if (response.data.success) {
+        this.logout();
+      }
+      
+      return response.data;
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      return {
+        success: false,
+        message: axiosError.response?.data?.message || 'Account deletion failed',
         error: axiosError.response?.data?.error || axiosError.message
       };
     }

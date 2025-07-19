@@ -1,797 +1,528 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../auth/auth-context';
-import { useLanguage } from '../../i18n/language-context';
-import { EventsIcon, ParticipantsIcon } from '../../components/layout/DashboardIcons';
-import Button from '../../components/ui/Button';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import eventService, { Event } from '../../services/event-service';
-import EventDetailsModal from '../../components/events/EventDetailsModal';
-import Image from 'next/image';
-import DropdownMenu from '../../components/ui/DropdownMenu';
-import { Eye, Edit, CheckCircle, CreditCard, Trash } from 'lucide-react';
+import { useAuth } from '@/auth/auth-context';
+import { useLanguage } from '@/i18n/language-context';
+import organizerService, { DashboardOverview } from '@/services/organizer-service';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Badge from '@/components/ui/Badge';
+import StatCard from '@/components/ui/StatCard';
+import { formatDate, formatCurrency } from '@/utils/dateUtils';
 
-// Type for the translation function
-type TranslationFunction = (key: string, params?: Record<string, string>) => string;
-
-// Extended Event type for UI purposes
-interface UIEvent extends Omit<Event, 'status'> {
-  id?: string;
-  name?: string;
-  date?: string;
-  participants?: number;
-  status: 'draft' | 'published' | 'canceled' | 'completed' | 'pending_payment';
-}
-
-// Event Card Component
-const EventCard = ({ 
-  event, 
-  t, 
-  onEdit, 
-  onViewDetails, 
-  onDelete,
-  onMarkCompleted,
-  isDeletingThis
-}: { 
-  event: UIEvent, 
-  t: TranslationFunction, 
-  onEdit: (id: number | string) => void,
-  onViewDetails: (event: UIEvent) => void,
-  onDelete: (id: number | string) => void,
-  onMarkCompleted: (id: number | string) => void,
-  isDeletingThis: boolean
-}) => {
+export default function OrganizerDashboard() {
+  const { t } = useLanguage();
+  const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   
-  // This translates the status for display
-  const getTranslatedStatus = (status: string) => {
-    if (status === 'published') return t('events.status.published');
-    if (status === 'draft') return t('events.status.draft');
-    if (status === 'completed') return t('events.status.completed');
-    if (status === 'canceled') return t('events.status.canceled');
-    if (status === 'pending_payment') return t('events.status.pendingPayment');
-    return status;
-  };
-
-  // This formats the participant count with proper translation
-  const formatParticipantCount = (count: number) => {
-    return `${count} ${t('organizer.participants')}`;
-  };
-
-  // Handle edit button click
-  const handleEdit = () => {
-    onEdit(event._id);
-  };
-  
-  // Handle view details click
-  const handleViewDetails = () => {
-    onViewDetails(event);
-  };
-  
-  // Handle delete button click
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (window.confirm(t('events.deleteConfirm'))) {
-      onDelete(event._id);
-    }
-  };
-  
-  // Handle mark as completed button click
-  const handleMarkAsCompleted = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onMarkCompleted(event._id);
-  };
-
-  // Handle complete payment button click
-  const handleCompletePayment = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    router.push(`/payment/event/${event._id}`);
-  };
-  
-  // Get event small description by language
-  const getLocalizedSmallDescription = () => {
-    if (event.smallDescription) {
-      return event.smallDescription;
-    }
-    if (event.aboutEvent) {
-      return event.aboutEvent;
-    }
-    return '';
-  };
-  
-  // Get event title by language
-  const getLocalizedTitle = () => {
-    if (event.title) {
-      return event.title;
-    }
-    return event.name || t('events.untitledEvent');
-  };
-  
-  // Format date
-  const formatDate = (date: Date | string) => {
-    const dateObj = date instanceof Date ? date : new Date(date);
-    return dateObj.toLocaleDateString();
-  };
-
-  // Check if the event is deletable (draft or canceled)
-  const isDeletable = event.status === 'draft' || event.status === 'canceled' || event.status === 'pending_payment' || event.status === 'completed' || event.status === 'published';
-  
-  // Check if event has ended but not marked as completed/canceled
-  const hasEnded = new Date(event.endDate) < new Date() && 
-                  event.status !== 'completed' && 
-                  event.status !== 'canceled';
-
-  // Get event status color
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published':
-        return 'bg-[var(--sage)] text-black';
-      case 'draft':
-        return 'bg-[var(--cognac)] text-black';
-      case 'canceled':
-        return 'bg-red-200 text-red-800';
-      case 'completed':
-        return 'bg-blue-200 text-blue-800';
-      case 'pending_payment':
-        return 'bg-yellow-200 text-yellow-800';
-      default:
-        return 'bg-[var(--taupe)] text-black';
-    }
-  };
-
-  return (
-    <div className={`bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200 ${isDeletingThis ? 'opacity-60' : ''}`}>
-      {/* Cover image if available */}
-      {event.coverImage && (
-        <div 
-          className="h-40 w-full overflow-hidden cursor-pointer relative"
-          onClick={handleViewDetails}
-        >
-          <Image 
-            src={event.coverImage} 
-            alt={getLocalizedTitle()} 
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            width={300}
-            height={150}
-          />
-        </div>
-      )}
-      <div className="p-5">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 
-              className="text-lg font-medium text-[var(--sage-green)] cursor-pointer hover:underline"
-              onClick={handleViewDetails}
-            >
-              {getLocalizedTitle()}
-            </h3>
-            <p className="mt-1 text-sm text-black">
-              {event.startDate 
-                ? formatDate(event.startDate) 
-                : event.date}
-            </p>
-          </div>
-          <span 
-            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-            ${getStatusColor(event.status)}`}
-            title={hasEnded && event.status === 'published' ? t('events.status.endedTip') : ''}
-          >
-            {hasEnded && event.status === 'published' ? t('events.status.ended') : getTranslatedStatus(event.status)}
-          </span>
-        </div>
-        
-        {/* Short description preview */}
-        <div className="mt-2">
-          <p className="text-sm text-gray-600 line-clamp-2">
-            {getLocalizedSmallDescription()}
-          </p>
-        </div>
-        
-        <div className="mt-4">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center">
-              <ParticipantsIcon className="h-5 w-5 text-[var(--sage-green)] mr-2" />
-              <span className="text-black">{formatParticipantCount(event.participants || 0)}</span>
-            </div>
-            <div>
-              <DropdownMenu
-                items={[
-                  {
-                    label: t('events.details'),
-                    onClick: handleViewDetails,
-                    icon: <Eye className="h-4 w-4" />,
-                    disabled: isDeletingThis
-                  },
-                  {
-                    label: t('organizer.manage'),
-                    onClick: handleEdit,
-                    icon: <Edit className="h-4 w-4" />,
-                    disabled: isDeletingThis
-                  },
-                  ...(event.status === 'pending_payment' ? [{
-                    label: t('payment.completePayment'),
-                    onClick: handleCompletePayment,
-                    icon: <CreditCard className="h-4 w-4" />,
-                    disabled: isDeletingThis,
-                    variant: 'warning' as const
-                  }] : []),
-                  ...(hasEnded && event.status === 'published' ? [{
-                    label: t('events.markCompletedTip'),
-                    onClick: handleMarkAsCompleted,
-                    icon: <CheckCircle className="h-4 w-4" />,
-                    disabled: isDeletingThis,
-                    isLoading: isDeletingThis,
-                    variant: 'success' as const
-                  }] : []),
-                  ...(isDeletable ? [{
-                    label: t('events.quickDelete'),
-                    onClick: handleDelete,
-                    icon: <Trash className="h-4 w-4" />,
-                    disabled: isDeletingThis,
-                    isLoading: isDeletingThis,
-                    variant: 'danger' as const
-                  }] : [])
-                ]}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default function OrganizerPage() {
-  const { user } = useAuth();
-  const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState('upcoming');
-  const [events, setEvents] = useState<UIEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<UIEvent | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
-  const router = useRouter();
+  const [dashboardData, setDashboardData] = useState<DashboardOverview | null>(null);
 
-  // Fetch events on component mount
+  // Fetch dashboard data
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchDashboardData = async () => {
+      if (!isAuthenticated || !user) return;
+
+      setIsLoading(true);
+      setError(null);
+
       try {
-        setIsLoading(true);
-        const response = await eventService.getOrganizerEvents();
+        console.log('Fetching dashboard overview for organizer:', user._id);
         
-        if (response.success && response.data) {
-          setEvents(response.data.events as unknown as UIEvent[]);
-        } else {
-          setError(response.message || t('common.error'));
-        }
-      } catch (err: unknown) {
-        const error = err instanceof Error ? err : new Error(String(err));
-        setError(error.message || t('common.error'));
+        // Fetch comprehensive dashboard data
+        const data = await organizerService.getDashboardOverview();
+        console.log('Dashboard data:', data);
+        
+        setDashboardData(data);
+
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data. Please try refreshing the page.');
       } finally {
         setIsLoading(false);
       }
     };
     
-    fetchEvents();
-  }, [t]);
+    fetchDashboardData();
+  }, [isAuthenticated, user]);
 
-  // Calculate stats
-  const stats = {
-    totalEvents: events.length.toString(),
-    activeEvents: events.filter(e => e.status === 'published').length.toString(),
-    participantsCount: events.reduce((sum, e) => sum + (e.participants || 0), 0).toString(),
-    completedEvents: events.filter(e => e.status === 'completed').length.toString(),
-    pendingPaymentEvents: events.filter(e => e.status === 'pending_payment').length.toString()
-  };
-
-  // Filter events by status and date for different tabs
-  const currentDate = new Date();
-  
-  const upcomingEvents = events.filter(e => {
-    // Check if end date is in the future
-    const endDate = new Date(e.endDate);
-    return endDate >= currentDate && (e.status === 'published' || e.status === 'draft' || e.status === 'pending_payment');
-  });
-  
-  const pastEvents = events.filter(e => {
-    // Check if end date is in the past or event is completed/canceled
-    const endDate = new Date(e.endDate);
-    return endDate < currentDate || e.status === 'completed' || e.status === 'canceled';
-  });
-
-  // Get all events for the "All Events" tab
-  const allEvents = [...events];
-
-  // Handle edit event
-  const handleEditEvent = (id: string | number) => {
-    router.push(`/organizer/events/edit/${id}`);
-  };
-
-  // Handle create event
-  const handleCreateEvent = () => {
-    router.push('/organizer/events/create');
-  };
-  
-  // Handle view event details
-  const handleViewEventDetails = (event: UIEvent) => {
-    setSelectedEvent(event as any);
-    setIsModalOpen(true);
-  };
-  
-  // Handle delete event
-  const handleDeleteEvent = async (id: string | number) => {
-    try {
-      setDeletingEventId(id.toString());
-      setError(null);
-      setSuccessMessage(null);
-      const response = await eventService.deleteEvent(id.toString());
-      
-      if (response.success) {
-        // Remove the deleted event from the state
-        setEvents(events.filter(event => event._id !== id));
-        setSuccessMessage(t('events.deleteSuccess'));
-        
-        // Auto-clear success message after 3 seconds
-        setTimeout(() => {
-          setSuccessMessage(null);
-        }, 3000);
-      } else {
-        setError(response.message || t('common.error'));
-      }
-    } catch (err: unknown) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      setError(error.message || t('common.error'));
-    } finally {
-      setDeletingEventId(null);
+  // Redirect if not authenticated or not organizer
+  useEffect(() => {
+    if (isAuthenticated && user && user.role !== 'organizer' && user.role !== 'admin') {
+      router.push('/dashboard');
     }
-  };
-  
-  // Handle marking event as completed
-  const handleMarkAsCompleted = async (id: string | number) => {
-    try {
-      setDeletingEventId(id.toString()); // Reuse the same state for loading indicator
-      setError(null);
-      setSuccessMessage(null);
-      
-      const response = await eventService.changeEventStatus(id.toString(), 'completed');
-      
-      if (response.success) {
-        // Update the event status in the state
-        setEvents(events.map(event => 
-          event._id === id 
-            ? { ...event, status: 'completed' } 
-            : event
-        ));
-        setSuccessMessage(t('events.markCompletedSuccess'));
-        
-        // Auto-clear success message after 3 seconds
-        setTimeout(() => {
-          setSuccessMessage(null);
-        }, 3000);
-      } else {
-        setError(response.message || t('common.error'));
-      }
-    } catch (err: unknown) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      setError(error.message || t('common.error'));
-    } finally {
-      setDeletingEventId(null);
-    }
-  };
+  }, [isAuthenticated, user, router]);
 
-  // Handle completing payment for an event
-  const handleCompletePayment = (id: string | number) => {
-    router.push(`/payment/event/${id}`);
-  };
-  
-  // Close modal
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
+  // Show error if user doesn't have organizer role
+  if (isAuthenticated && user && user.role !== 'organizer' && user.role !== 'admin') {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg">
+          <p className="text-lg font-medium mb-2">Access Denied</p>
+          <p>You need organizer permissions to access this dashboard.</p>
+          <div className="mt-4">
+            <Button onClick={() => router.push('/dashboard')}>Go to Dashboard</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Please log in to access the organizer dashboard</h1>
+          <Button onClick={() => router.push('/login')}>Login</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg">
+          <p className="text-lg font-medium mb-2">Error</p>
+          <p>{error}</p>
+          <div className="mt-4">
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="container mx-auto px-4 py-12">
+        <div className="text-center">
+          <p>No dashboard data available</p>
+        </div>
+      </div>
+    );
+  }
+
+  const { eventStats, ticketStats, transferStats, monthlyRevenue, recentEvents, recentTickets, refundRequests, stripeAccountStatus } = dashboardData;
 
   return (
-    <>
-      {/* Welcome Message */}
-      <div className="pb-5 border-b border-[var(--cognac)]">
-        <h2 className="text-2xl leading-6 font-bold text-[var(--sage-green)]">
-          {t('organizer.welcome', { name: user?.firstName || '' })}
-        </h2>
-        <p className="mt-2 max-w-4xl text-sm text-black">
-          {t('organizer.subheading')}
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Organizer Dashboard
+        </h1>
+        <p className="text-gray-600">
+          Welcome back, {user?.firstName} {user?.lastName}
+        </p>
+        <p className="text-sm text-gray-500 mt-1">
+          Manage your events, track sales, and monitor your earnings
         </p>
       </div>
       
-      {/* Status Messages */}
-      {error && (
-        <div className="mt-4 mb-4 bg-red-50 border border-red-300 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
-      )}
-      
-      {successMessage && (
-        <div className="mt-4 mb-4 bg-green-50 border border-green-300 text-green-700 px-4 py-3 rounded flex items-center">
-          <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-          {successMessage}
-        </div>
-      )}
-
-      {/* Payment Setup Alert */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <CreditCard className="h-5 w-5 text-blue-600 mr-3" />
-            <div>
-              <h3 className="text-sm font-medium text-blue-900">
-                Set up your payment account
-              </h3>
-              <p className="text-sm text-blue-700">
-                Connect your Stripe account to receive payments from ticket sales
-              </p>
-            </div>
-          </div>
-          <Button
-            onClick={() => router.push('/organizer/stripe-connect')}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+      {/* Quick Actions */}
+      <div className="mb-8">
+        <div className="flex flex-wrap gap-4">
+          <Button 
+            onClick={() => router.push('/organizer/events/create')}
+            className="bg-[var(--sage-green)] hover:bg-emerald-600"
           >
-            Set up Payments
+            Create New Event
           </Button>
-        </div>
-      </div>
-
-      {/* Stats Row */}
-      <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 rounded-md p-3 bg-[var(--sage-green)]">
-                <EventsIcon className="h-6 w-6 text-white" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
-                    {t('organizer.totalEvents')}
-                  </dt>
-                  <dd>
-                    <div className="text-lg font-medium text-black">
-                      {stats.totalEvents}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 rounded-md p-3 bg-[var(--sage)]">
-                <EventsIcon className="h-6 w-6 text-black" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
-                    {t('organizer.activeEvents')}
-                  </dt>
-                  <dd>
-                    <div className="text-lg font-medium text-black">
-                      {stats.activeEvents}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 rounded-md p-3 bg-[var(--cognac)]">
-                <ParticipantsIcon className="h-6 w-6 text-black" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
-                    {t('organizer.totalParticipants')}
-                  </dt>
-                  <dd>
-                    <div className="text-lg font-medium text-black">
-                      {stats.participantsCount}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 rounded-md p-3 bg-[var(--taupe)]">
-                <EventsIcon className="h-6 w-6 text-[var(--sage-green)]" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
-                    {t('organizer.completedEvents')}
-                  </dt>
-                  <dd>
-                    <div className="text-lg font-medium text-black">
-                      {stats.completedEvents}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="p-5">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 rounded-md p-3 bg-yellow-200">
-                <EventsIcon className="h-6 w-6 text-yellow-800" />
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-[var(--sage-green)] truncate">
-                    {t('organizer.pendingPayment')}
-                  </dt>
-                  <dd>
-                    <div className="text-lg font-medium text-black">
-                      {stats.pendingPaymentEvents}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Event Tabs */}
-      <div className="mt-8">
-        <div className="sm:hidden">
-          <label htmlFor="tabs" className="sr-only">Select a tab</label>
-          <select
-            id="tabs"
-            name="tabs"
-            className="block w-full pl-3 pr-10 py-2 text-base border-[var(--cognac)] focus:outline-none focus:ring-[var(--sage-green)] focus:border-[var(--sage-green)] sm:text-sm rounded-md"
-            value={activeTab}
-            onChange={(e) => setActiveTab(e.target.value)}
+          <Button 
+            variant="outline"
+            onClick={() => router.push('/organizer/events')}
           >
-            <option value="upcoming">{t('organizer.upcomingEvents')}</option>
-            <option value="past">{t('organizer.pastEvents')}</option>
-            <option value="all">{t('organizer.allEvents')}</option>
-            <option value="create">{t('organizer.createEvent')}</option>
-          </select>
-        </div>
-        <div className="hidden sm:block">
-          <div className="border-b border-[var(--cognac)]">
-            <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-              <button
-                onClick={() => setActiveTab('upcoming')}
-                className={`${
-                  activeTab === 'upcoming'
-                    ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
-                    : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-              >
-                {t('organizer.upcomingEvents')}
-              </button>
-              <button
-                onClick={() => setActiveTab('past')}
-                className={`${
-                  activeTab === 'past'
-                    ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
-                    : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-              >
-                {t('organizer.pastEvents')}
-              </button>
-              <button
-                onClick={() => setActiveTab('all')}
-                className={`${
-                  activeTab === 'all'
-                    ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
-                    : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-              >
-                {t('organizer.allEvents')}
-              </button>
-              <button
-                onClick={() => setActiveTab('create')}
-                className={`${
-                  activeTab === 'create'
-                    ? 'border-[var(--sage-green)] text-[var(--sage-green)]'
-                    : 'border-transparent text-black hover:text-[var(--sage-green)] hover:border-[var(--cognac)]'
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-              >
-                {t('organizer.createEvent')}
-              </button>
-            </nav>
-          </div>
+            View All Events
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push('/organizer/refund-requests')}
+          >
+            Refund Requests ({refundRequests})
+          </Button>
+          {stripeAccountStatus && !stripeAccountStatus.hasAccount && (
+            <Button 
+              variant="outline"
+              onClick={() => router.push('/organizer/stripe-connect')}
+              className="border-orange-300 text-orange-700 hover:bg-orange-50"
+            >
+              Set Up Payments
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Tab Content */}
-      <div className="mt-6">
-        {activeTab === 'upcoming' && (
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)]">
-                {t('organizer.upcomingEvents')}
-              </h3>
-              <Button size="sm" onClick={handleCreateEvent}>
-                <span className="flex items-center">
-                  <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  {t('organizer.newEvent')}
-                </span>
-              </Button>
-            </div>
-            
-            {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <StatCard
+          title="Total Events"
+          value={eventStats.totalEvents.toString()}
+          icon="📅"
+          description={`${eventStats.publishedEvents} published`}
+        />
+        <StatCard
+          title="Total Tickets Sold"
+          value={ticketStats.totalAttendees.toString()}
+          icon="🎫"
+          description={`${ticketStats.totalAttendees} attendees`}
+        />
+        <StatCard
+          title="Total Revenue"
+          value={formatCurrency(ticketStats.totalRevenue, 'CHF')}
+          icon="💰"
+          description={`Avg: ${formatCurrency(ticketStats.averageTicketPrice, 'CHF')}`}
+        />
+        <StatCard
+          title="Your Earnings"
+          value={formatCurrency(ticketStats.organizerPayments, 'CHF')}
+          icon="💳"
+          description={`90% per ticket - ${transferStats.completedTransfers} transfers`}
+        />
+      </div>
+
+      {/* Payment Summary and Account Status */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Payment Summary */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Financial Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Total Revenue</span>
+                <span className="font-semibold">{formatCurrency(ticketStats.totalRevenue, 'CHF')}</span>
               </div>
-            ) : error ? (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Platform Fees (10% per ticket)</span>
+                <span className="text-gray-500">{formatCurrency(ticketStats.platformFees, 'CHF')}</span>
               </div>
-            ) : upcomingEvents.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {upcomingEvents.map((event) => (
-                  <EventCard 
-                    key={event._id || event.id} 
-                    event={event} 
-                    t={t} 
-                    onEdit={handleEditEvent}
-                    onViewDetails={handleViewEventDetails}
-                    onDelete={handleDeleteEvent}
-                    onMarkCompleted={handleMarkAsCompleted}
-                    isDeletingThis={deletingEventId === (event._id || event.id)}
-                  />
-                ))}
+              <div className="border-t pt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 font-semibold">Your Earnings (90% per ticket)</span>
+                  <span className="font-semibold text-lg text-[var(--sage-green)]">
+                    {formatCurrency(ticketStats.organizerPayments, 'CHF')}
+                  </span>
+        </div>
               </div>
-            ) : (
-              <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center text-gray-500">
-                {t('organizer.noUpcomingEvents')}
-                <div className="mt-4">
-                  <Button onClick={handleCreateEvent}>
-                    {t('organizer.createFirstEvent')}
-                  </Button>
+              <div className="border-t pt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600">Pending Transfers</span>
+                  <span className="font-semibold text-orange-600">
+                    {transferStats.pendingTransfers} transfers
+                  </span>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'past' && (
-          <div>
-            <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)] mb-4">
-              {t('organizer.pastEvents')}
-            </h3>
-            
-            {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-              </div>
-            ) : error ? (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            ) : pastEvents.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {pastEvents.map((event) => (
-                  <EventCard 
-                    key={event._id || event.id} 
-                    event={event} 
-                    t={t} 
-                    onEdit={handleEditEvent}
-                    onViewDetails={handleViewEventDetails}
-                    onDelete={handleDeleteEvent}
-                    onMarkCompleted={handleMarkAsCompleted}
-                    isDeletingThis={deletingEventId === (event._id || event.id)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center text-gray-500">
-                {t('organizer.noPastEvents')}
-              </div>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'all' && (
-          <div>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)]">
-                {t('organizer.allEvents')}
-              </h3>
-              <Button size="sm" onClick={handleCreateEvent}>
-                <span className="flex items-center">
-                  <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                  {t('organizer.newEvent')}
-                </span>
-              </Button>
-            </div>
-            
-            {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-              </div>
-            ) : error ? (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            ) : allEvents.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {allEvents.map((event) => (
-                  <EventCard 
-                    key={event._id || event.id} 
-                    event={event} 
-                    t={t} 
-                    onEdit={handleEditEvent}
-                    onViewDetails={handleViewEventDetails}
-                    onDelete={handleDeleteEvent}
-                    onMarkCompleted={handleMarkAsCompleted}
-                    isDeletingThis={deletingEventId === (event._id || event.id)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6 text-center text-gray-500">
-                {t('organizer.noEvents')}
-                <div className="mt-4">
-                  <Button onClick={handleCreateEvent}>
-                    {t('organizer.createFirstEvent')}
-                  </Button>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-gray-600">Completed Transfers</span>
+                  <span className="font-semibold text-green-600">
+                    {transferStats.completedTransfers} transfers
+                  </span>
                 </div>
+                {transferStats.failedTransfers > 0 && (
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-gray-600">Failed Transfers</span>
+                    <span className="font-semibold text-red-600">
+                      {transferStats.failedTransfers} transfers
+                    </span>
+                    </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Stripe Account Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment Account</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Account Status</span>
+                <Badge 
+                  variant={
+                    stripeAccountStatus.status === 'active' ? 'success' : 
+                    stripeAccountStatus.status === 'pending' ? 'warning' : 'danger'
+                  }
+                >
+                  {stripeAccountStatus.status}
+                </Badge>
+              </div>
+              
+              {stripeAccountStatus.hasAccount && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Charges Enabled</span>
+                    <Badge variant={stripeAccountStatus.chargesEnabled ? 'success' : 'danger'}>
+                      {stripeAccountStatus.chargesEnabled ? 'Yes' : 'No'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Payouts Enabled</span>
+                    <Badge variant={stripeAccountStatus.payoutsEnabled ? 'success' : 'danger'}>
+                      {stripeAccountStatus.payoutsEnabled ? 'Yes' : 'No'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Account ID</span>
+                    <span className="text-sm font-mono text-gray-500">
+                      {stripeAccountStatus.accountId?.slice(-8)}
+                    </span>
+                    </div>
+                </>
+              )}
+              
+              {!stripeAccountStatus.hasAccount && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <p className="text-orange-800 text-sm">
+                    Set up your Stripe Connect account to receive payments from ticket sales.
+                  </p>
+                  <Button 
+                    onClick={() => router.push('/organizer/stripe-connect')}
+                    className="mt-3 bg-orange-600 hover:bg-orange-700"
+                    size="sm"
+                  >
+                    Set Up Now
+                  </Button>
+              </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        </div>
+        
+      {/* Recent Events and Ticket Sales */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Recent Events */}
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>Recent Events</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {recentEvents.length > 0 ? (
+              <div className="space-y-4">
+                {recentEvents.map((event) => (
+                  <div key={event._id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 truncate">{event.title}</h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant={
+                          event.status === 'published' ? 'success' : 
+                          event.status === 'draft' ? 'outline' : 
+                          event.status === 'completed' ? 'info' : 'warning'
+                        }>
+                          {event.status}
+                        </Badge>
+                        <span className="text-sm text-gray-500">
+                          {formatDate(new Date(event.startDate))}
+                        </span>
+                        <span className="text-sm text-gray-400">•</span>
+                        <span className="text-sm text-gray-500 capitalize">{event.category}</span>
+                      </div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        {event.location.online ? 'Online Event' : event.location.name}
+              </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-medium">{event.soldTickets}/{event.capacity} tickets</div>
+                      <div className="text-sm text-gray-500">
+                        {formatCurrency(event.totalRevenue, 'CHF')}
+              </div>
+            </div>
+          </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No events created yet</p>
+                <Button 
+                  onClick={() => router.push('/organizer/events/create')}
+                  className="mt-2"
+                  size="sm"
+                >
+                  Create Your First Event
+                </Button>
               </div>
             )}
-          </div>
-        )}
+          </CardContent>
+        </Card>
 
-        {activeTab === 'create' && (
-          <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-            <div className="px-4 py-5 sm:p-6">
-              <h3 className="text-lg leading-6 font-medium text-[var(--sage-green)]">
-                {t('organizer.createNewEvent')}
-              </h3>
-              <div className="mt-2 max-w-xl text-sm text-black">
-                <p>{t('organizer.createNewEventDescription')}</p>
+        {/* Recent Ticket Sales */}
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>Recent Ticket Sales</CardTitle>
+             
+            </div>
+          </CardHeader>
+          <CardContent>
+            {recentTickets.length > 0 ? (
+              <div className="space-y-4">
+                {recentTickets.map((ticket) => (
+                  <div key={ticket._id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900 truncate">
+                        {typeof ticket.eventId === 'string' ? 'Event' : ticket.eventId.title}
+                      </h4>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant={
+                          ticket.paymentStatus === 'paid' ? 'success' : 
+                          ticket.paymentStatus === 'pending' ? 'warning' : 'danger'
+                        }>
+                          {ticket.paymentStatus}
+                        </Badge>
+                        <span className="text-sm text-gray-500">
+                          {formatDate(new Date(ticket.purchasedAt))}
+                        </span>
+          </div>
+                      <div className="text-sm text-gray-500 mt-1">
+                        {typeof ticket.attendee === 'string' ? 'Attendee' : 
+                         `${ticket.attendee.firstName} ${ticket.attendee.lastName}`}
+        </div>
+      </div>
+                    <div className="text-right">
+                      <div className="text-sm font-medium">{ticket.quantity} tickets</div>
+                      <div className="text-sm text-gray-500">
+                        {formatCurrency(ticket.totalAmount, 'CHF')}
+          </div>
+        </div>
+      </div>
+                ))}
               </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No ticket sales yet</p>
+                <p className="text-sm">Create and publish events to start selling tickets</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+          </div>
+
+      {/* Event Status Breakdown and Monthly Revenue */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        {/* Event Status Breakdown */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Event Status Overview</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-2xl font-bold text-blue-600">{eventStats.totalEvents}</div>
+                <div className="text-sm text-blue-800">Total Events</div>
+              </div>
+              <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-2xl font-bold text-green-600">{eventStats.publishedEvents}</div>
+                <div className="text-sm text-green-800">Published</div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-lg">
+                <div className="text-2xl font-bold text-gray-600">{eventStats.draftEvents}</div>
+                <div className="text-sm text-gray-800">Draft</div>
+              </div>
+              <div className="text-center p-4 bg-purple-50 rounded-lg">
+                <div className="text-2xl font-bold text-purple-600">{eventStats.completedEvents}</div>
+                <div className="text-sm text-purple-800">Completed</div>
+              </div>
+            </div>
+            {eventStats.canceledEvents > 0 && (
+              <div className="mt-4 text-center p-4 bg-red-50 rounded-lg">
+                <div className="text-2xl font-bold text-red-600">{eventStats.canceledEvents}</div>
+                <div className="text-sm text-red-800">Canceled</div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Monthly Revenue */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Monthly Revenue (Last 6 Months)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {monthlyRevenue.length > 0 ? (
+              <div className="space-y-3">
+                {monthlyRevenue.map((month) => (
+                  <div key={month.month} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        {new Date(month.month + '-01').toLocaleDateString('en-US', { 
+                          month: 'long', 
+                          year: 'numeric' 
+                        })}
+                      </div>
+                      <div className="text-sm text-gray-500">{month.tickets} tickets sold</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold text-[var(--sage-green)]">
+                        {formatCurrency(month.revenue, 'CHF')}
+                      </div>
+                    </div>
+              </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <p>No revenue data available</p>
+                <p className="text-sm">Start selling tickets to see monthly revenue</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+          </div>
+
+      {/* Refund Requests Summary */}
+      {refundRequests > 0 && (
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>Pending Refund Requests</CardTitle>
               <Button
-                className="mt-5"
-                onClick={handleCreateEvent}
+                variant="outline" 
+                size="sm"
+                onClick={() => router.push('/organizer/refund-requests')}
               >
-                {t('organizer.openAdvancedCreator')}
+                View All ({refundRequests})
               </Button>
             </div>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-yellow-800">
+                    {refundRequests} refund request{refundRequests !== 1 ? 's' : ''} pending review
+                  </h3>
+                  <p className="text-sm text-yellow-700 mt-1">
+                    Review and process refund requests from your event attendees.
+                  </p>
+                </div>
+            </div>
           </div>
+          </CardContent>
+        </Card>
         )}
       </div>
-      
-      {/* Event Details Modal */}
-      <EventDetailsModal
-        event={selectedEvent}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onEdit={handleEditEvent}
-      />
-    </>
   );
-} 
+}

@@ -45,7 +45,7 @@ interface RefundRequest {
   ticketPrice: number;
   currency: string;
   platformFee: number;
-  organizerPayment: number;
+  organizerPayment: number; 
   stripePaymentIntentId: string;
   stripeTransferId?: string;
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded' | 'partially_refunded';

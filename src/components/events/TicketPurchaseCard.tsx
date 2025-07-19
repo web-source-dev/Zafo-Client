@@ -5,7 +5,15 @@ import { useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Event } from '@/services/event-service';
-import ticketService, { TicketPurchaseRequest, TicketPurchaseResponse, TicketDetail } from '@/services/ticket-service';
+import ticketService, { 
+  TicketPurchaseRequest, 
+  TicketPurchaseResponse, 
+  TicketDetail,
+  Ticket,
+  AddTicketsToExistingRequest,
+  AddTicketsToExistingResponse,
+  ConfirmAdditionalTicketRequest
+} from '@/services/ticket-service';
 import { useAuth } from '@/auth/auth-context';
 import { useLanguage } from '@/i18n/language-context';
 import Button from '@/components/ui/Button';
@@ -21,12 +29,22 @@ interface TicketPurchaseCardProps {
   event: Event;
   onSuccess?: () => void;
   onCancel?: () => void;
+  existingTicket?: Ticket;
+  isAddingToExisting?: boolean;
 }
 
-const TicketPurchaseForm: React.FC<{ event: Event; onSuccess?: () => void; onCancel?: () => void }> = ({ 
+const TicketPurchaseForm: React.FC<{ 
+  event: Event; 
+  onSuccess?: () => void; 
+  onCancel?: () => void;
+  existingTicket?: Ticket;
+  isAddingToExisting?: boolean;
+}> = ({ 
   event, 
   onSuccess, 
-  onCancel 
+  onCancel,
+  existingTicket,
+  isAddingToExisting = false
 }) => {
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -36,10 +54,10 @@ const TicketPurchaseForm: React.FC<{ event: Event; onSuccess?: () => void; onCan
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [purchaseData, setPurchaseData] = useState<TicketPurchaseResponse | null>(null);
+  const [purchaseData, setPurchaseData] = useState<TicketPurchaseResponse | AddTicketsToExistingResponse | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [ticketDetails, setTicketDetails] = useState<TicketDetail[]>([
-    { attendeeName: '', attendeeEmail: '', ticketNumber: 1 }
+    { attendeeName: '', attendeeEmail: '', ticketNumber: '' }
   ]);
 
   // Calculate ticket price (use event price or default)
@@ -62,7 +80,7 @@ const TicketPurchaseForm: React.FC<{ event: Event; onSuccess?: () => void; onCan
       newTicketDetails.push({
         attendeeName: ticketDetails[i]?.attendeeName || '',
         attendeeEmail: ticketDetails[i]?.attendeeEmail || user?.email || '',
-        ticketNumber: i + 1
+        ticketNumber: ''
       });
     }
     setTicketDetails(newTicketDetails);
@@ -74,7 +92,7 @@ const TicketPurchaseForm: React.FC<{ event: Event; onSuccess?: () => void; onCan
     newTicketDetails[index] = {
       ...newTicketDetails[index],
       [field]: value,
-      ticketNumber: index + 1
+      ticketNumber: ''
     };
     setTicketDetails(newTicketDetails);
   };
@@ -113,27 +131,52 @@ const TicketPurchaseForm: React.FC<{ event: Event; onSuccess?: () => void; onCan
     setError(null);
 
     try {
-      // Create ticket purchase
-      const purchaseRequest: TicketPurchaseRequest = {
-        eventId: event._id,
-        ticketPrice: ticketPrice,
-        currency: event.price.currency || 'CHF',
-        quantity: quantity,
-        ticketDetails: ticketDetails
-      };
+      let response;
+      let clientSecret: string;
 
-      const response = await ticketService.createTicketPurchase(purchaseRequest);
+      if (isAddingToExisting && existingTicket) {
+        // Add tickets to existing purchase
+        const addRequest: AddTicketsToExistingRequest = {
+          existingTicketId: existingTicket._id,
+          additionalQuantity: quantity,
+          additionalTicketDetails: ticketDetails
+        };
 
-      if (!response.success) {
-        setError(response.message || t('payment.purchaseFailed'));
-        return;
+        const addResponse = await ticketService.addTicketsToExistingPurchase(addRequest);
+
+        if (!addResponse.success) {
+          setError(addResponse.message || t('payment.purchaseFailed'));
+          return;
+        }
+
+        response = addResponse;
+        clientSecret = addResponse.data!.clientSecret;
+        setPurchaseData(addResponse.data!);
+      } else {
+        // Create new ticket purchase
+        const purchaseRequest: TicketPurchaseRequest = {
+          eventId: event._id,
+          ticketPrice: ticketPrice,
+          currency: event.price.currency || 'CHF',
+          quantity: quantity,
+          ticketDetails: ticketDetails
+        };
+
+        const purchaseResponse = await ticketService.createTicketPurchase(purchaseRequest);
+
+        if (!purchaseResponse.success) {
+          setError(purchaseResponse.message || t('payment.purchaseFailed'));
+          return;
+        }
+
+        response = purchaseResponse;
+        clientSecret = purchaseResponse.data!.clientSecret;
+        setPurchaseData(purchaseResponse.data!);
       }
-
-      setPurchaseData(response.data!);
 
       // Confirm the payment with Stripe
       const { error: stripeError, paymentIntent } = await stripe.confirmCardPayment(
-        response.data!.clientSecret,
+        clientSecret,
         {
           payment_method: {
             card: elements.getElement(CardElement)!,
@@ -151,19 +194,43 @@ const TicketPurchaseForm: React.FC<{ event: Event; onSuccess?: () => void; onCan
       }
 
       if (paymentIntent.status === 'succeeded') {
-        // Confirm the payment with our backend
-        const confirmResponse = await ticketService.confirmTicketPayment(response.data!.ticketId);
+        if (isAddingToExisting && existingTicket) {
+          // Confirm additional ticket payment and merge with existing ticket
+          const confirmRequest: ConfirmAdditionalTicketRequest = {
+            existingTicketId: existingTicket._id,
+            paymentIntentId: paymentIntent.id,
+            additionalTicketDetails: ticketDetails
+          };
 
-        if (confirmResponse.success) {
-          // Show success message
-          setError(null);
-          if (onSuccess) {
-            onSuccess();
+          const confirmResponse = await ticketService.confirmAdditionalTicketPayment(confirmRequest);
+
+          if (confirmResponse.success) {
+            // Show success message
+            setError(null);
+            if (onSuccess) {
+              onSuccess();
+            } else {
+              router.push('/dashboard/tickets');
+            }
           } else {
-            router.push('/dashboard/tickets');
+            setError(confirmResponse.message || t('payment.confirmationFailed'));
           }
         } else {
-          setError(confirmResponse.message || t('payment.confirmationFailed'));
+          // Confirm the payment with our backend for new purchase
+          const purchaseData = response.data as TicketPurchaseResponse;
+          const confirmResponse = await ticketService.confirmTicketPayment(purchaseData.ticketId);
+
+          if (confirmResponse.success) {
+            // Show success message
+            setError(null);
+            if (onSuccess) {
+              onSuccess();
+            } else {
+              router.push('/dashboard/tickets');
+            }
+          } else {
+            setError(confirmResponse.message || t('payment.confirmationFailed'));
+          }
         }
       } else {
         setError(t('payment.paymentNotCompleted'));
@@ -189,7 +256,9 @@ const TicketPurchaseForm: React.FC<{ event: Event; onSuccess?: () => void; onCan
       {/* Header */}
       <div className="bg-gradient-to-r from-[var(--sage-green)] to-emerald-600 px-6 py-4">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold text-white">{t('payment.purchaseTicket')}</h2>
+          <h2 className="text-xl font-bold text-white">
+            {isAddingToExisting ? t('payment.addMoreTickets') : t('payment.purchaseTicket')}
+          </h2>
           <button
             onClick={handleCancel}
             className="text-white hover:text-gray-200 transition-colors"
@@ -210,12 +279,19 @@ const TicketPurchaseForm: React.FC<{ event: Event; onSuccess?: () => void; onCan
             <span>•</span>
             <span>{event.location.name}</span>
           </div>
+          {isAddingToExisting && existingTicket && (
+            <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                                 {t('payment.addingToExisting', { currentTickets: String(existingTicket.quantity) })}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Quantity Selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            {t('payment.quantity')}
+            {isAddingToExisting ? t('payment.additionalQuantity') : t('payment.quantity')}
           </label>
           <div className="flex items-center justify-center space-x-4">
             <Button
@@ -248,9 +324,9 @@ const TicketPurchaseForm: React.FC<{ event: Event; onSuccess?: () => void; onCan
         {/* Ticket Details */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            {t('payment.attendeeDetails')}
+            {isAddingToExisting ? t('payment.additionalAttendeeDetails') : t('payment.attendeeDetails')}
           </label>
-          <div className="space-y-4 max-h-60 overflow-y-auto">
+          <div className="space-y-4">
             {ticketDetails.map((detail, index) => (
               <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                 <div className="flex items-center mb-3">
@@ -293,10 +369,14 @@ const TicketPurchaseForm: React.FC<{ event: Event; onSuccess?: () => void; onCan
         
         {/* Price Breakdown */}
         <div className="bg-gray-50 rounded-lg p-4 mb-6">
-          <h4 className="font-medium text-gray-900 mb-3">{t('payment.priceBreakdown')}</h4>
+          <h4 className="font-medium text-gray-900 mb-3">
+            {isAddingToExisting ? t('payment.additionalPriceBreakdown') : t('payment.priceBreakdown')}
+          </h4>
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">{t('payment.ticketPrice')} ({quantity} × {ticketPrice} {event.price.currency})</span>
+              <span className="text-gray-600">
+                {t('payment.ticketPrice')} ({quantity} × {ticketPrice} {event.price.currency})
+              </span>
               <span className="font-medium">{totalTicketPrice} {event.price.currency}</span>
             </div>
             <div className="flex justify-between text-sm text-gray-500">
@@ -309,7 +389,7 @@ const TicketPurchaseForm: React.FC<{ event: Event; onSuccess?: () => void; onCan
             </div>
             <div className="border-t pt-2 mt-2">
               <div className="flex justify-between font-semibold text-lg">
-                <span>{t('payment.total')}</span>
+                <span>{isAddingToExisting ? t('payment.additionalTotal') : t('payment.total')}</span>
                 <span className="text-[var(--sage-green)]">{totalAmount} {event.price.currency}</span>
               </div>
             </div>
@@ -368,7 +448,7 @@ const TicketPurchaseForm: React.FC<{ event: Event; onSuccess?: () => void; onCan
                 {t('payment.processing')}
               </div>
             ) : (
-              `${t('payment.purchase')} ${totalAmount} ${event.price.currency}`
+              `${isAddingToExisting ? t('payment.addTickets') : t('payment.purchase')} ${totalAmount} ${event.price.currency}`
             )}
           </Button>
         </div>
@@ -377,7 +457,13 @@ const TicketPurchaseForm: React.FC<{ event: Event; onSuccess?: () => void; onCan
   );
 };
 
-const TicketPurchaseCard: React.FC<TicketPurchaseCardProps> = ({ event, onSuccess, onCancel }) => {
+const TicketPurchaseCard: React.FC<TicketPurchaseCardProps> = ({ 
+  event, 
+  onSuccess, 
+  onCancel, 
+  existingTicket,
+  isAddingToExisting = false
+}) => {
   const { t } = useLanguage();
   const { user } = useAuth();
 
@@ -445,7 +531,13 @@ const TicketPurchaseCard: React.FC<TicketPurchaseCardProps> = ({ event, onSucces
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <Elements stripe={stripePromise}>
-        <TicketPurchaseForm event={event} onSuccess={onSuccess} onCancel={onCancel} />
+        <TicketPurchaseForm 
+          event={event} 
+          onSuccess={onSuccess} 
+          onCancel={onCancel}
+          existingTicket={existingTicket}
+          isAddingToExisting={isAddingToExisting}
+        />
       </Elements>
     </div>
   );

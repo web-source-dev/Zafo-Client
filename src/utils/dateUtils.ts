@@ -56,4 +56,17 @@ export const formatDateRange = (startDate: Date, endDate: Date): string => {
   
   // Different years
   return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+};
+
+/**
+ * Format currency to a human-readable string
+ * @param amount The amount to format
+ * @param currency The currency code (default: CHF)
+ * @returns Formatted currency string
+ */
+export const formatCurrency = (amount: number, currency: string = 'CHF'): string => {
+  return new Intl.NumberFormat('en-CH', {
+    style: 'currency',
+    currency: currency
+  }).format(amount);
 }; 

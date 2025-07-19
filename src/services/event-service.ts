@@ -81,6 +81,9 @@ export interface Event {
   isPaid?: boolean; // Whether the event has been paid for
   paidAt?: Date; // When the event was paid for
   paymentId?: string; // Payment ID from payment processor
+  soldTickets?: number; // Number of tickets sold
+  remainingCapacity?: number; // Remaining capacity
+  isSoldOut?: boolean; // Whether the event is sold out
 }
 
 export interface EventListResponse {
@@ -108,6 +111,14 @@ export interface SavedEventResponse {
   user: string;
   event: string;
   savedAt: Date;
+}
+
+export interface EventStats {
+  eventId: string;
+  totalCapacity: number;
+  soldTickets: number;
+  remainingCapacity: number;
+  isSoldOut: boolean;
 }
 
 /**
@@ -246,6 +257,15 @@ const eventService = {
     
     const queryString = queryParams.toString();
     return api.get<EventListResponse>(`/saved-events${queryString ? `?${queryString}` : ''}`);
+  },
+
+  /**
+   * Get event statistics
+   * @param eventId - Event ID
+   * @returns Promise with event statistics
+   */
+  getEventStats: async (eventId: string): Promise<ApiResponse<EventStats>> => {
+    return api.get<EventStats>(`/events/${eventId}/stats`);
   }
 };
 

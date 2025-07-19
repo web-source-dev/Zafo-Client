@@ -6,12 +6,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/auth/auth-context';
 import { useLanguage } from '@/i18n/language-context';
-import eventService, { Event } from '@/services/event-service';
+import eventService, { Event, EventStats } from '@/services/event-service';
 import ticketService, { Ticket } from '@/services/ticket-service';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
-import TicketPurchaseCard from '@/components/events/TicketPurchaseCard';
 import { formatDate, formatTime, formatDateRange } from '@/utils/dateUtils';
 
 export default function EventDetailPage() {
@@ -23,9 +22,8 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<Event | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [attendeeCount, setAttendeeCount] = useState<number>(0);
+  const [eventStats, setEventStats] = useState<EventStats | null>(null);
   const [userTickets, setUserTickets] = useState<Ticket[]>([]);
-  const [showTicketPurchase, setShowTicketPurchase] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
 
   // Fetch event details and user tickets when component mounts
@@ -39,21 +37,31 @@ export default function EventDetailPage() {
         if (response.success && response.data) {
           setEvent(response.data);
           
+          // Fetch event statistics
+          try {
+            const statsResponse = await eventService.getEventStats(response.data._id);
+            if (statsResponse.success && statsResponse.data) {
+              setEventStats(statsResponse.data);
+            }
+          } catch (statsErr) {
+            console.error('Error fetching event stats:', statsErr);
+          }
+          
           // Fetch user's tickets for this event if authenticated
           if (isAuthenticated) {
             try {
-                          const ticketsResponse = await ticketService.getUserTickets();
-            if (ticketsResponse.success && ticketsResponse.data) {
-              const eventTickets = ticketsResponse.data.tickets.filter(
-                (ticket) => {
-                  const ticketEventId = typeof ticket.eventId === 'string' 
-                    ? ticket.eventId 
-                    : ticket.eventId._id;
-                  return ticketEventId === response.data!._id;
-                }
-              );
-              setUserTickets(eventTickets);
-            }
+              const ticketsResponse = await ticketService.getUserTickets();
+              if (ticketsResponse.success && ticketsResponse.data) {
+                const eventTickets = ticketsResponse.data.tickets.filter(
+                  (ticket) => {
+                    const ticketEventId = typeof ticket.eventId === 'string' 
+                      ? ticket.eventId 
+                      : ticket.eventId._id;
+                    return ticketEventId === response.data!._id;
+                  }
+                );
+                setUserTickets(eventTickets);
+              }
             } catch (ticketErr) {
               console.error('Error fetching user tickets:', ticketErr);
             }
@@ -106,14 +114,18 @@ export default function EventDetailPage() {
   // Handle ticket purchase success
   const handlePurchaseSuccess = () => {
     setPurchaseSuccess(true);
-    setShowTicketPurchase(false);
-    // Refresh user tickets
+    // Refresh user tickets and event stats
     window.location.reload();
   };
 
-  // Handle ticket purchase cancel
-  const handlePurchaseCancel = () => {
-    setShowTicketPurchase(false);
+  // Navigate to ticket purchase page
+  const handlePurchaseTickets = () => {
+    router.push(`/payment/event/${event._id}`);
+  };
+
+  // Navigate to add more tickets page
+  const handleAddMoreTickets = () => {
+    router.push(`/payment/event/${event._id}?adding=true`);
   };
 
   return (
@@ -313,15 +325,20 @@ export default function EventDetailPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>{t('events.detail.sold')}:</span>
-                    <span className="font-medium">{attendeeCount}</span>
+                    <span className="font-medium">{eventStats?.soldTickets || 0}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>{t('events.detail.total')}:</span>
                     <span className="font-medium">{event.capacity}</span>
                   </div>
                   <div className="flex justify-between text-[var(--sage-green)]">
-                    <span>{event.capacity - attendeeCount} {t('events.detail.remaining')}</span>
+                    <span>{eventStats?.remainingCapacity || event.capacity} {t('events.detail.remaining')}</span>
                   </div>
+                  {eventStats?.isSoldOut && (
+                    <div className="text-center mt-2">
+                      <Badge variant="danger">{t('events.detail.soldOut')}</Badge>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -360,21 +377,31 @@ export default function EventDetailPage() {
                     </div>
                   </div>
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => router.push('/dashboard/tickets')}
-                >
-                  {t('events.detail.viewMyTickets')}
-                </Button>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => router.push('/dashboard/tickets')}
+                  >
+                    {t('events.detail.viewMyTickets')}
+                  </Button>
+                  <Button 
+                    className="w-full"
+                    onClick={handleAddMoreTickets}
+                    disabled={eventStats?.isSoldOut}
+                  >
+                    {t('events.detail.buyMore')}
+                  </Button>
+                </div>
               </div>
             ) : (
               <Button 
                 className="w-full" 
                 size="lg"
-                onClick={() => setShowTicketPurchase(true)}
+                onClick={handlePurchaseTickets}
+                disabled={eventStats?.isSoldOut}
               >
-                {t('events.detail.register')}
+                {eventStats?.isSoldOut ? t('events.detail.soldOut') : t('events.detail.register')}
               </Button>
             )}
           </div>
@@ -425,31 +452,7 @@ export default function EventDetailPage() {
         </div>
       </div>
 
-      {/* Ticket Purchase Modal */}
-      {showTicketPurchase && event && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">{t('payment.purchaseTicket')}</h2>
-                <button
-                  onClick={handlePurchaseCancel}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <TicketPurchaseCard
-                event={event}
-                onSuccess={handlePurchaseSuccess}
-                onCancel={handlePurchaseCancel}
-              />
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Success Message */}
       {purchaseSuccess && (
