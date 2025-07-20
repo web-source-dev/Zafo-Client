@@ -1,12 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useAuth } from "@/auth/auth-context";
 import ticketService from "@/services/ticket-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
-import { useLanguage } from "@/i18n/language-context";
 
 interface RefundRequest {
   _id: string;
@@ -61,7 +59,6 @@ interface RefundRequest {
 }
 
 export default function OrganizerRefundRequestsPage() {
-  const { t } = useLanguage();
   const [refundRequests, setRefundRequests] = useState<RefundRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { TrendingUp, DollarSign, AlertCircle, CheckCircle } from 'lucide-react';
+import { TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
 import { useLanguage } from '@/i18n/language-context';
 
 interface PaymentSummaryProps {

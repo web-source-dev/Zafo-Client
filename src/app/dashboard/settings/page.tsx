@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useLanguage } from '../../../i18n/language-context';
 import { useAuth } from '../../../auth/auth-context';
 import authService from '../../../services/auth-service';
 import { Card, CardHeader, CardContent, CardTitle } from '../../../components/ui/Card';
@@ -11,7 +10,6 @@ import {
   User, 
   Lock, 
   Mail, 
-  Phone, 
   Shield, 
   Trash2, 
   Save, 
@@ -23,7 +21,6 @@ import {
 } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { t } = useLanguage();
   const { user, updateProfile } = useAuth();
 
   // Profile form state
@@ -43,7 +40,6 @@ export default function SettingsPage() {
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
@@ -98,12 +94,11 @@ export default function SettingsPage() {
 
       if (response.success) {
         setSuccess('Profile updated successfully!');
-        setShowSuccessMessage(true);
-        setTimeout(() => setShowSuccessMessage(false), 3000);
       } else {
         setError(response.message || 'Failed to update profile');
       }
     } catch (err) {
+      console.error(err);
       setError('Network error. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -147,6 +142,7 @@ export default function SettingsPage() {
         setError(response.message || 'Failed to change password');
       }
     } catch (err) {
+      console.error(err);
       setError('Network error. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -174,6 +170,7 @@ export default function SettingsPage() {
         setShowDeleteConfirm(false);
       }
     } catch (err) {
+      console.error(err);
       setError('Network error. Please try again.');
       setShowDeleteConfirm(false);
     } finally {

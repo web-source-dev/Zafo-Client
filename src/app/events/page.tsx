@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
 import eventService, { Event, EventFilters, EventStats } from '@/services/event-service';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';

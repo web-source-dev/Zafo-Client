@@ -5,7 +5,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../i18n/language-context';
 import Button from '../ui/Button';
-import { Save, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Save, ArrowLeft } from 'lucide-react';
 import eventService, { Event } from '../../services/event-service';
 import { EventFormData } from './EventFormTypes';
 import BasicInfoSection from './sections/BasicInfoSection';
@@ -22,24 +22,6 @@ interface EventFormContainerProps {
   event?: Event;
   isEdit?: boolean;
 }
-
-const calculateEventPrice = (startDate: string, startTime: string, endDate: string, endTime: string): number => {
-  if (!startDate || !startTime || !endDate || !endTime) return 0;
-  
-  const start = new Date(`${startDate}T${startTime}`);
-  const end = new Date(`${endDate}T${endTime}`);
-  
-  const durationInHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-  
-  // If duration is 24 hours or less
-  if (durationInHours <= 24) {
-    return 350; // 350 CHF for events up to 1 day
-  }
-  
-  // For events longer than 24 hours
-  return 675; // 675 CHF for events of 1 day or more
-};
-
 // Helper function to convert File to base64 string
 const fileToBase64 = async (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -61,26 +43,17 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
   const [isDirty, setIsDirty] = useState(false);
   
   // Event creation limits
-  const [monthlyCount, setMonthlyCount] = useState(0);
-  const [yearlyCount, setYearlyCount] = useState(0);
-  const [isLoadingCounts, setIsLoadingCounts] = useState(true);
   const [limitCheck, setLimitCheck] = useState<{ allowed: boolean; message?: string; requiredPlan?: string }>({ 
     allowed: true 
   });
-  
-  // Fetch event counts on component mount
+
   useEffect(() => {
-    const fetchEventCounts = async () => {
-      setIsLoadingCounts(true); 
-    };
-    
-    // Only fetch counts for new events, not when editing
-    if (!isEdit) {
-      fetchEventCounts();
-    } else {
-      setIsLoadingCounts(false);
-    }
-    }, [isEdit]);
+    setLimitCheck({
+      allowed: true,
+    });
+  }, []);
+  
+
   
   // Form setup with react-hook-form
   const methods = useForm<EventFormData>({
@@ -302,7 +275,7 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
       
       if (response.success && !saveAsDraft && !data.isFree && response.data) {
         // Check if the event is already paid
-        if (isEdit && (response.data as any).isPaid) {
+        if (isEdit && (response.data as unknown as { isPaid: boolean }).isPaid) {
           // If already paid, just show success
           setSuccessMessage(t('events.paymentSuccess'));
           setIsSubmitting(false);

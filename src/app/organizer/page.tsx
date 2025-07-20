@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/auth/auth-context';
-import { useLanguage } from '@/i18n/language-context';
 import organizerService, { DashboardOverview } from '@/services/organizer-service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -12,7 +11,6 @@ import StatCard from '@/components/ui/StatCard';
 import { formatDate, formatCurrency } from '@/utils/dateUtils';
 
 export default function OrganizerDashboard() {
-  const { t } = useLanguage();
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   
@@ -378,7 +376,7 @@ export default function OrganizerDashboard() {
                   <div key={ticket._id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900 truncate">
-                        {typeof ticket.eventId === 'string' ? 'Event' : ticket.eventId.title}
+                        {typeof ticket.eventId === 'string' ? 'Event' : (ticket.eventId as { title: string }).title}
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant={
@@ -393,7 +391,7 @@ export default function OrganizerDashboard() {
           </div>
                       <div className="text-sm text-gray-500 mt-1">
                         {typeof ticket.attendee === 'string' ? 'Attendee' : 
-                         `${ticket.attendee.firstName} ${ticket.attendee.lastName}`}
+                         `${(ticket.attendee as { firstName: string; lastName: string }).firstName} ${(ticket.attendee as { firstName: string; lastName: string }).lastName}`}
         </div>
       </div>
                     <div className="text-right">

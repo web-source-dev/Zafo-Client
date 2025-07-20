@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useLanguage } from '../../../i18n/language-context';
 import { useAuth } from '../../../auth/auth-context';
 import Button from '../../../components/ui/Button';
 import api from '../../../api/api';
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const { t } = useLanguage();
   const { user } = useAuth();
   const router = useRouter();
@@ -15,7 +15,6 @@ export default function PaymentSuccessPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const [paymentVerified, setPaymentVerified] = useState(false);
   const [paidAt, setPaidAt] = useState<string | null>(null);
   
   const sessionId = searchParams.get('session_id');
@@ -48,7 +47,6 @@ export default function PaymentSuccessPage() {
         const response = await api.get(endpoint);
         
         if (response.success && response.data?.isPaid) {
-          setPaymentVerified(true);
           if (response.data.paidAt && typeof response.data.paidAt === 'string') {
             setPaidAt(new Date(response.data.paidAt).toLocaleString());
           }
@@ -61,7 +59,6 @@ export default function PaymentSuccessPage() {
             if (eventResponse.success && eventResponse.data?.isPaid) {
               // Event is marked as paid, so we can consider the payment successful
               console.log('Event is marked as paid:', eventResponse.data);
-              setPaymentVerified(true);
               if (eventResponse.data.paidAt && typeof eventResponse.data.paidAt === 'string') {
                 setPaidAt(new Date(eventResponse.data.paidAt).toLocaleString());
               }
@@ -83,7 +80,6 @@ export default function PaymentSuccessPage() {
           if (eventResponse.success && eventResponse.data?.isPaid) {
             // Event is marked as paid, so we can consider the payment successful
             console.log('Event is marked as paid:', eventResponse.data);
-            setPaymentVerified(true);
             if (eventResponse.data.paidAt && typeof eventResponse.data.paidAt === 'string') {
               setPaidAt(new Date(eventResponse.data.paidAt).toLocaleString());
             }
@@ -173,3 +169,11 @@ export default function PaymentSuccessPage() {
     </div>
   );
 } 
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PaymentSuccessContent />
+    </Suspense>
+  );
+}

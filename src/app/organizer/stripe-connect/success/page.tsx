@@ -7,10 +7,19 @@ import Button from '../../../../components/ui/Button';
 import { CheckCircle, ArrowRight, CreditCard } from 'lucide-react';
 import organizerService from '../../../../services/organizer-service';
 
+interface StripeAccountStatus {
+  hasAccount: boolean;
+  status: 'not_setup' | 'pending' | 'active';
+  accountId?: string;
+  detailsSubmitted?: boolean;
+  chargesEnabled?: boolean;
+  payoutsEnabled?: boolean;
+}
+
 export default function StripeConnectSuccessPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [accountStatus, setAccountStatus] = useState<any>(null);
+  const [accountStatus, setAccountStatus] = useState<StripeAccountStatus | null>(null);
 
   useEffect(() => {
     // Check account status after successful onboarding
@@ -79,7 +88,7 @@ export default function StripeConnectSuccessPage() {
                   <div className="flex items-center">
                     <CreditCard className="h-5 w-5 text-yellow-600 mr-2" />
                     <span className="text-yellow-800">
-                      Your account is being verified. You'll receive payments once verification is complete.
+                      Your account is being verified. You&apos;ll receive payments once verification is complete.
                     </span>
                   </div>
                 </div>

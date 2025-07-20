@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../../components/ui/Card';
 import Button from '../../../../components/ui/Button';
@@ -50,7 +50,7 @@ export default function StripeConnectRefreshPage() {
                 <div className="flex items-center">
                   <AlertCircle className="h-5 w-5 text-blue-600 mr-2" />
                   <span className="text-blue-800 text-sm">
-                    You'll be redirected to Stripe to complete your account verification.
+                    You&apos;ll be redirected to Stripe to complete your account verification.
                   </span>
                 </div>
               </div>

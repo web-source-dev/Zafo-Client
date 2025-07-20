@@ -11,14 +11,11 @@ import ticketService, {
   TicketDetail,
   Ticket,
   AddTicketsToExistingRequest,
-  AddTicketsToExistingResponse,
   ConfirmAdditionalTicketRequest
 } from '@/services/ticket-service';
 import { useAuth } from '@/auth/auth-context';
 import { useLanguage } from '@/i18n/language-context';
 import Button from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
 import Input from '@/components/ui/Input';
 import { formatDate } from '@/utils/dateUtils';
 
@@ -54,7 +51,6 @@ const TicketPurchaseForm: React.FC<{
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [purchaseData, setPurchaseData] = useState<TicketPurchaseResponse | AddTicketsToExistingResponse | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [ticketDetails, setTicketDetails] = useState<TicketDetail[]>([
     { attendeeName: '', attendeeEmail: '', ticketNumber: '' }
@@ -151,7 +147,6 @@ const TicketPurchaseForm: React.FC<{
 
         response = addResponse;
         clientSecret = addResponse.data!.clientSecret;
-        setPurchaseData(addResponse.data!);
       } else {
         // Create new ticket purchase
         const purchaseRequest: TicketPurchaseRequest = {
@@ -171,7 +166,6 @@ const TicketPurchaseForm: React.FC<{
 
         response = purchaseResponse;
         clientSecret = purchaseResponse.data!.clientSecret;
-        setPurchaseData(purchaseResponse.data!);
       }
 
       // Confirm the payment with Stripe

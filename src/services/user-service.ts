@@ -83,9 +83,9 @@ export interface DashboardOverview {
 export interface TicketHistoryResponse {
   tickets: Array<{
     _id: string;
-    eventId: any;
-    attendee: any;
-    organizer: any;
+    eventId: unknown;
+    attendee: unknown;
+    organizer: unknown;
     quantity: number;
     ticketDetails: Array<{
       attendeeName: string;

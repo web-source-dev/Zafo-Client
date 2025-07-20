@@ -4,21 +4,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../auth/auth-context';
 import { useLanguage } from '../../../i18n/language-context';
 import StripeConnectSetup from '../../../components/organizer/StripeConnectSetup';
-import PaymentSummary from '../../../components/organizer/PaymentSummary';
 import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/Card';
 import Button from '../../../components/ui/Button';
 import { ArrowLeft, CreditCard, TrendingUp, DollarSign } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import organizerService from '../../../services/organizer-service';
 
-interface StripeAccountStatus {
-  hasAccount: boolean;
-  status: 'not_setup' | 'pending' | 'active';
-  accountId?: string;
-  detailsSubmitted?: boolean;
-  chargesEnabled?: boolean;
-  payoutsEnabled?: boolean;
-}
 
 interface PaymentSummaryData {
   totalTickets: number;
@@ -38,7 +29,6 @@ export default function StripeConnectPage() {
   const { user } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
-  const [accountStatus, setAccountStatus] = useState<StripeAccountStatus | null>(null);
   const [paymentSummary, setPaymentSummary] = useState<PaymentSummaryData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -54,7 +44,7 @@ export default function StripeConnectPage() {
   const fetchAccountStatus = async () => {
     try {
       const data = await organizerService.getStripeAccountStatus();
-      setAccountStatus(data);
+      console.log(data);
     } catch (error) {
       console.error('Error fetching account status:', error);
     }

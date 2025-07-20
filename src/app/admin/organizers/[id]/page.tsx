@@ -13,18 +13,25 @@ import {
   Unlock,
   Send,
 } from 'lucide-react';
-import { useLanguage } from '../../../../i18n/language-context';
 import adminService, { Organizer, OrganizerPaymentStats } from '../../../../services/admin-service';
 
+interface Ticket {
+  id: string;
+  eventTitle: string;
+  ticketPrice: number;
+  organizerPayment: number;
+  transferStatus: 'pending' | 'completed' | 'failed';
+  purchasedAt: string;
+}
+
 export default function OrganizerDetailPage() {
-  const { t } = useLanguage();
   const router = useRouter();
   const params = useParams();
   
   const organizerId = params.id as string;
   
   const [organizer, setOrganizer] = useState<Organizer | null>(null);
-  const [stats, setStats] = useState<OrganizerPaymentStats & { recentTickets: any[] } | null>(null);
+  const [stats, setStats] = useState<OrganizerPaymentStats & { recentTickets: Ticket[] } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showBlockModal, setShowBlockModal] = useState(false);
@@ -42,7 +49,7 @@ export default function OrganizerDetailPage() {
       
       if (response.success && response.data) {
         setOrganizer(response.data.organizer);
-        setStats(response.data.stats);
+        setStats(response.data.stats as OrganizerPaymentStats & { recentTickets: Ticket[] });
       } else {
         throw new Error(response.message || 'Failed to fetch organizer details');
       }
@@ -317,7 +324,7 @@ export default function OrganizerDetailPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {stats.recentTickets.map((ticket: any) => (
+                    {stats.recentTickets.map((ticket: Ticket) => (
                       <tr key={ticket.id} className="border-b hover:bg-gray-50">
                         <td className="py-3 px-4">
                           <p className="font-medium">{ticket.eventTitle}</p>

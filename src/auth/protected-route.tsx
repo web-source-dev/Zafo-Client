@@ -9,10 +9,7 @@ interface ProtectedRouteProps {
   adminOnly?: boolean;
   organizerOnly?: boolean;
   userOnly?: boolean;
-  requireSubscription?: boolean;
-  requiredPlanId?: string;
   fallbackUrl?: string;
-  subscriptionFallbackUrl?: string;
 }
 
 /**
@@ -49,10 +46,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   adminOnly = false, 
   organizerOnly = false,
   userOnly = false,
-  requireSubscription = false,
-  requiredPlanId,
   fallbackUrl = '/login',
-  subscriptionFallbackUrl = '/plans'
 }) => {
   const { 
     isAuthenticated, 
@@ -60,7 +54,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     isOrganizer, 
     isUser, 
     isLoading, 
-    hasRequiredSubscription
   } = useAuth();
   const router = useRouter();
 
@@ -105,16 +98,6 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     if (typeof window !== 'undefined') {
       console.log('Organizer access required, redirecting to unauthorized page');
       router.push('/unauthorized');
-    }
-    return null;
-  }
-
-  // Check subscription if required
-  if (requireSubscription && !hasRequiredSubscription(requiredPlanId)) {
-    // Use redirects on client-side only
-    if (typeof window !== 'undefined') {
-      console.log('Subscription required, redirecting to plans page');
-      router.push(subscriptionFallbackUrl);
     }
     return null;
   }

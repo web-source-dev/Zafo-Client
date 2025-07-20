@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/Tabs';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../../components/ui/Card';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';

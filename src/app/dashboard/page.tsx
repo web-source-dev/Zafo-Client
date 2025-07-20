@@ -1,21 +1,17 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useLanguage } from '../../i18n/language-context';
-import { useAuth } from '../../auth/auth-context';
 import { Card, CardHeader, CardContent, CardTitle } from '../../components/ui/Card';
 import StatCard from '../../components/ui/StatCard';
-import { DashboardIcon, EventsIcon, ParticipantsIcon, Calendar, Clock } from '../../components/layout/DashboardIcons';
+import { DashboardIcon,Calendar, Clock } from '../../components/layout/DashboardIcons';
 import userService, { DashboardOverview, SpendingAnalytics } from '../../services/user-service';
 import { formatDate, formatCurrency } from '../../utils/dateUtils';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell} from 'recharts';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Calendar as CalendarIcon, MapPin as MapPinIcon, Clock as ClockIcon, Ticket, TrendingDown, Star, AlertCircle, CheckCircle, XCircle, TrendingUp, Users, DollarSign } from 'lucide-react';
+import { Calendar as CalendarIcon, MapPin as MapPinIcon, Ticket, TrendingDown, Star, AlertCircle, CheckCircle, XCircle, TrendingUp, Users, DollarSign } from 'lucide-react';
 
 export default function Dashboard() {
-  const { t } = useLanguage();
-  const { user } = useAuth();
   
   const [dashboardData, setDashboardData] = useState<DashboardOverview | null>(null);
   const [analyticsData, setAnalyticsData] = useState<SpendingAnalytics | null>(null);
@@ -144,7 +140,7 @@ export default function Dashboard() {
                 Welcome back, {dashboardData.userProfile.firstName}!
               </h1>
               <p className="text-gray-600">
-                Here's your event activity overview
+                Here&apos;s your event activity overview
               </p>
             </div>
           </div>
@@ -196,7 +192,7 @@ export default function Dashboard() {
                     <XAxis dataKey="month" />
                     <YAxis />
                     <Tooltip 
-                      formatter={(value: any) => [`${formatCurrency(value, 'CHF')}`, 'Spending']}
+                      formatter={(value: number) => [`${formatCurrency(value, 'CHF')}`, 'Spending']}
                       labelFormatter={(label) => `Month: ${label}`}
                     />
                     <Bar dataKey="spending" fill="var(--sage-green)" />
@@ -239,7 +235,7 @@ export default function Dashboard() {
                         <Cell key={`cell-${index}`} fill={getCategoryColor(entry.category)} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: any) => formatCurrency(value, 'CHF')} />
+                    <Tooltip formatter={(value: number) => formatCurrency(value, 'CHF')} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (

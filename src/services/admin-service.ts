@@ -234,8 +234,8 @@ class AdminService {
    * @param organizerId Organizer ID
    * @returns Promise with organizer stats
    */
-  async getOrganizerStats(organizerId: string): Promise<ApiResponse<{ organizer: Organizer, stats: OrganizerPaymentStats & { recentTickets: any[] } }>> {
-    return api.get<{ organizer: Organizer, stats: OrganizerPaymentStats & { recentTickets: any[] } }>(`/admin/organizers/${organizerId}/stats`);
+  async getOrganizerStats(organizerId: string): Promise<ApiResponse<{ organizer: Organizer, stats: OrganizerPaymentStats & { recentTickets: unknown[] } }>> {
+    return api.get<{ organizer: Organizer, stats: OrganizerPaymentStats & { recentTickets: unknown[] } }>(`/admin/organizers/${organizerId}/stats`);
   }
 
   /**

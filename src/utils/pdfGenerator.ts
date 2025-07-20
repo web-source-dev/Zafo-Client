@@ -236,7 +236,6 @@ export const generateAllTicketsPDF = async (tickets: TicketData[]): Promise<void
       
       const imgData = canvas.toDataURL('image/png', 1.0);
       const imgWidth = 190;
-      const pageHeight = 295;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
       // Add new page if needed

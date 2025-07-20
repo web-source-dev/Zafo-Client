@@ -71,12 +71,12 @@ export interface DashboardOverview {
   }>;
   recentTickets: Array<{
     _id: string;
-    eventId: any;
+    eventId: unknown;
     quantity: number;
     totalAmount: number;
     paymentStatus: string;
     purchasedAt: Date;
-    attendee: any;
+    attendee: unknown;
   }>;
   refundRequests: number;
   stripeAccountStatus: StripeAccountStatus;

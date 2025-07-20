@@ -16,7 +16,7 @@ interface ImagesSectionProps {
 const ImagesSection: React.FC<ImagesSectionProps> = ({ defaultOpen = false }) => {
   const { t } = useLanguage();
   const [isEditing, setIsEditing] = useState(defaultOpen);
-  const { watch, setValue, formState: { errors } } = useFormContext<EventFormData>();
+  const { watch, setValue } = useFormContext<EventFormData>();
   
   const coverImage = watch('coverImage');
   const galleryImages = watch('galleryImages') || [];

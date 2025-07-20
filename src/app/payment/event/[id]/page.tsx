@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { useAuth } from '@/auth/auth-context';
@@ -13,7 +13,6 @@ import ticketService, {
   TicketDetail,
   Ticket,
   AddTicketsToExistingRequest,
-  AddTicketsToExistingResponse,
   ConfirmAdditionalTicketRequest
 } from '@/services/ticket-service';
 import Button from '@/components/ui/Button';
@@ -29,7 +28,6 @@ export default function TicketPurchasePage() {
   const { t } = useLanguage();
   const { id } = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user, isAuthenticated } = useAuth();
   
   const [event, setEvent] = useState<Event | null>(null);
@@ -38,10 +36,6 @@ export default function TicketPurchasePage() {
   const [existingTicket, setExistingTicket] = useState<Ticket | null>(null);
   const [isAddingToExisting, setIsAddingToExisting] = useState(false);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
-
-  // Get query parameters
-  const existingTicketId = searchParams.get('existingTicketId');
-  const isAdding = searchParams.get('adding') === 'true';
 
   // Fetch event details and check for existing tickets
   useEffect(() => {
@@ -308,7 +302,6 @@ const TicketPurchaseForm: React.FC<{
 }> = ({ event, existingTicket, isAddingToExisting, onSuccess }) => {
   const { t } = useLanguage();
   const { user } = useAuth();
-  const router = useRouter();
   const stripe = useStripe();
   const elements = useElements();
   
@@ -322,8 +315,6 @@ const TicketPurchaseForm: React.FC<{
   // Calculate ticket price
   const ticketPrice = event.price.isFree ? 0 : event.price.amount;
   const totalTicketPrice = ticketPrice * quantity;
-  const platformFee = Math.round(totalTicketPrice * 0.10 * 100) / 100;
-  const organizerPayment = totalTicketPrice - platformFee;
   const totalAmount = totalTicketPrice;
 
   // Handle quantity change

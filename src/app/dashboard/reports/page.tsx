@@ -3,35 +3,24 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/auth/auth-context';
-import { useLanguage } from '@/i18n/language-context';
 import ticketService, { UserReportsData } from '@/services/ticket-service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import Badge from '@/components/ui/Badge';
 import { 
   BarChart3, 
-  Calendar, 
-  CreditCard, 
   TrendingUp, 
   Users, 
   DollarSign, 
   Ticket, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
   AlertCircle,
-  MapPin,
   Star,
   Activity,
-  PieChart,
   LineChart,
-  Download,
   RefreshCw
 } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/utils/dateUtils';
 
 export default function UserReportsPage() {
-  const { t } = useLanguage();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const router = useRouter();
   
   const [reportsData, setReportsData] = useState<UserReportsData | null>(null);
@@ -222,7 +211,7 @@ export default function UserReportsPage() {
               </CardHeader>
               <CardContent>
                 <div className="h-64 flex items-end justify-between gap-2">
-                  {reportsData.monthlySpending.map((month, index) => (
+                  {reportsData.monthlySpending.map((month) => (
                     <div key={month.month} className="flex-1 flex flex-col items-center">
                       <div className="text-xs text-gray-500 mb-1">
                         {new Date(month.month + '-01').toLocaleDateString('en-US', { month: 'short' })}

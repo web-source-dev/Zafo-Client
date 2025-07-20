@@ -1,11 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useLanguage } from '../../../i18n/language-context';
 import Button from '../../../components/ui/Button';
 
-export default function PaymentCancelPage() {
+function PaymentCancelContent() {
   const { t } = useLanguage();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -50,5 +50,19 @@ export default function PaymentCancelPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PaymentCancelPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-3xl mx-auto px-4 py-8">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
+        </div>
+      </div>
+    }>
+      <PaymentCancelContent />
+    </Suspense>
   );
 } 

@@ -93,8 +93,8 @@ const BlogPostPage: React.FC = () => {
     );
   }
 
-  const postTitle = blogPost.title[currentLanguage] || blogPost.title.en;
-  const postContent = blogPost.content[currentLanguage] || blogPost.content.en;
+  const postTitle = blogPost.title[currentLanguage as keyof typeof blogPost.title] || blogPost.title.en;
+  const postContent = blogPost.content[currentLanguage as keyof typeof blogPost.content] || blogPost.content.en;
   
   return (
     <div className="min-h-screen bg-[var(--taupe)]">
@@ -194,7 +194,7 @@ const BlogPostPage: React.FC = () => {
             <h2 className="text-2xl font-bold text-[var(--sage-green)] mb-8">{t('blog.relatedPosts') || 'Related Posts'}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {relatedPosts.map(post => {
-                const relatedTitle = post.title[currentLanguage] || post.title.en;
+                const relatedTitle = post.title[currentLanguage as keyof typeof post.title] || post.title.en;
                 return (
                   <article key={post.id} className="bg-[var(--taupe)] border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
                     <Link href={`/blog/${post.slug}`} className="block group">

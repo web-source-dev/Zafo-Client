@@ -10,7 +10,6 @@ import Select from '../../../components/ui/Select';
 import { 
   Users, 
   DollarSign, 
-  TrendingUp, 
   AlertCircle, 
   CheckCircle, 
   XCircle,
@@ -21,11 +20,9 @@ import {
   RefreshCw,
   Clock
 } from 'lucide-react';
-import { useLanguage } from '../../../i18n/language-context';
 import adminService, { Organizer, OrganizerQueryParams } from '../../../services/admin-service';
 
 export default function OrganizersPage() {
-  const { t } = useLanguage();
   const router = useRouter();
   
   const [organizers, setOrganizers] = useState<Organizer[]>([]);

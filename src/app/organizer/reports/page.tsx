@@ -2,25 +2,19 @@
 
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '@/i18n/language-context';
-import { useAuth } from '@/auth/auth-context';
 import Button from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import organizerService from '@/services/organizer-service';
 import { 
-  BarChart, 
-  Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
-  AreaChart,
   Area,
   ComposedChart
 } from 'recharts';
@@ -35,7 +29,6 @@ import {
   BarChart3,
   PieChart as PieChartIcon,
   Activity,
-  Target,
   Clock,
   Star,
   TrendingDown
@@ -103,7 +96,6 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'
 
 export default function OrganizerReportsPage() {
   const { t } = useLanguage();
-  const { user } = useAuth();
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -149,7 +141,7 @@ export default function OrganizerReportsPage() {
           month: item.month,
           revenue: item.revenue,
           tickets: item.tickets,
-          events: (item as any).events || 0
+          events: (item as unknown as { events: number }).events || 0
         })) : [],
         eventPerformance: dashboardData.recentEvents.map(event => ({
           eventId: event._id,
@@ -572,7 +564,7 @@ export default function OrganizerReportsPage() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ category, revenue }: any) => `${category}: CHF ${revenue.toFixed(0)}`}
+                      label={({ category, revenue }) => `${category}: CHF ${revenue.toFixed(0)}`}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="revenue"

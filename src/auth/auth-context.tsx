@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import authService, { User, LoginRequest, RegisterRequest, UpdateProfileRequest, AuthResponse } from '../services/auth-service';
 
 // Auth context interface
@@ -40,8 +40,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  // Add a ref to track if we've already fetched the subscription
-  const initialFetchDone = useRef(false);
+
 
 
  

@@ -8,10 +8,10 @@ import { useAuth } from '@/auth/auth-context';
 import { useLanguage } from '@/i18n/language-context';
 import eventService, { Event, EventStats } from '@/services/event-service';
 import ticketService, { Ticket } from '@/services/ticket-service';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
-import { formatDate, formatTime, formatDateRange } from '@/utils/dateUtils';
+import { formatTime, formatDateRange } from '@/utils/dateUtils';
 
 export default function EventDetailPage() {
   const { t } = useLanguage();
@@ -110,13 +110,6 @@ export default function EventDetailPage() {
   // Check if user has already purchased a ticket
   const hasPurchasedTicket = userTickets.length > 0;
   const purchasedTicket = userTickets[0]; // Get the first ticket if user has multiple
-
-  // Handle ticket purchase success
-  const handlePurchaseSuccess = () => {
-    setPurchaseSuccess(true);
-    // Refresh user tickets and event stats
-    window.location.reload();
-  };
 
   // Navigate to ticket purchase page
   const handlePurchaseTickets = () => {

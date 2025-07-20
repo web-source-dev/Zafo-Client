@@ -3,21 +3,20 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useAuth } from '@/auth/auth-context';
 import { useLanguage } from '@/i18n/language-context';
 import ticketService, { Ticket } from '@/services/ticket-service';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import QRCodeComponent from '@/components/ui/QRCode';
-import { formatDate, formatTime } from '@/utils/dateUtils';
+import { formatDate } from '@/utils/dateUtils';
 import { generateTicketPDF, generateAllTicketsPDF, TicketData } from '@/utils/pdfGenerator';
 import { Calendar, MapPin, Users, CreditCard, Clock, AlertCircle, CheckCircle, XCircle, ChevronDown, ChevronUp, Eye, EyeOff, Download, FileText } from 'lucide-react';
 
 export default function UserTicketsPage() {
   const { t } = useLanguage();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const router = useRouter();
   
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -180,7 +179,7 @@ export default function UserTicketsPage() {
     try {
       const allTicketData: TicketData[] = [];
       
-      ticket.ticketDetails.forEach((detail, detailIndex) => {
+      ticket.ticketDetails.forEach((detail) => {
         // Skip tickets that are refunded (completed)
         if (detail.refundStatus === 'completed') {
           return;
@@ -225,10 +224,6 @@ export default function UserTicketsPage() {
     const currentDate = new Date();
 
     return currentDate < eventEndDate;
-  };
-
-  const getRefundableTickets = (ticket: Ticket) => {
-    return ticket.ticketDetails.filter(detail => detail.refundStatus === 'none');
   };
 
   const calculateRefundAmount = (ticket: Ticket, selectedTicketNumbers: string[]) => {

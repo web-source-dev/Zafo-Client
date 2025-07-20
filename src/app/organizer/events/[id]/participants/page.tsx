@@ -7,10 +7,10 @@ import { useAuth } from '@/auth/auth-context';
 import Button from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
-import ticketService, { Ticket } from '@/services/ticket-service';
+import ticketService from '@/services/ticket-service';
 import eventService, { Event } from '@/services/event-service';
 import { ArrowLeft, Users, Calendar, MapPin, CreditCard, Download, FileText } from 'lucide-react';
-import { formatDate, formatTime } from '@/utils/dateUtils';
+import { formatDate } from '@/utils/dateUtils';
 import Image from 'next/image';
 
 interface Participant {

@@ -9,6 +9,7 @@ import Input from '../../ui/Input';
 import Textarea from '../../ui/textarea';
 import Button from '../../ui/Button';
 import { EventFormData } from '../EventFormTypes';
+import Image from 'next/image';
 
 interface SpeakersSectionProps {
   defaultOpen?: boolean;
@@ -88,10 +89,12 @@ const SpeakersSection: React.FC<SpeakersSectionProps> = ({ defaultOpen = false }
             <div key={index} className="border border-[var(--cognac)] rounded-lg p-4">
               <div className="flex items-start">
                 {speaker.image ? (
-                  <img
+                  <Image
                     src={typeof speaker.image === 'string' ? speaker.image : URL.createObjectURL(speaker.image)}
                     alt={speaker.name}
                     className="w-16 h-16 rounded-full object-cover"
+                    width={64}
+                    height={64}
                   />
                 ) : (
                   <div className="w-16 h-16 rounded-full bg-[var(--sage)] flex items-center justify-center">
@@ -160,13 +163,15 @@ const SpeakersSection: React.FC<SpeakersSectionProps> = ({ defaultOpen = false }
                 </label>
                 {speakers[index]?.image ? (
                   <div className="flex items-center space-x-4">
-                    <img
+                    <Image
                       src={typeof speakers[index].image === 'string' 
                         ? speakers[index].image 
                         : URL.createObjectURL(speakers[index].image as File)
                       }
                       alt={speakers[index].name}
                       className="w-16 h-16 rounded-full object-cover"
+                      width={64}
+                      height={64}
                     />
                     <Button
                       type="button"

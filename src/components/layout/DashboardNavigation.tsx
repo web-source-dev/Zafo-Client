@@ -5,7 +5,6 @@ import { useLanguage } from '../../i18n/language-context';
 import { 
   DashboardIcon, 
   UsersIcon, 
-  RolesIcon, 
   SettingsIcon, 
   ReportsIcon,
   EventsIcon,
