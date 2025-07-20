@@ -18,7 +18,10 @@ import {
   Unlock,
   Send,
   RefreshCw,
-  Clock
+  Clock,
+  Search,
+  Filter,
+  X
 } from 'lucide-react';
 import adminService, { Organizer, OrganizerQueryParams } from '../../../services/admin-service';
 
@@ -57,11 +60,10 @@ export default function OrganizersPage() {
     
     try {
       const response = await adminService.getOrganizers({
-        page: currentPage,
-        limit: 10,
-        search: searchTerm || undefined,
-        status: statusFilter || undefined,
-        ...params
+        page: params.page || currentPage,
+        limit: params.limit || 10,
+        search: params.search !== undefined ? params.search : (searchTerm || undefined),
+        status: params.status !== undefined ? params.status : (statusFilter || undefined)
       });
       
       if (response.success && response.data) {
@@ -80,7 +82,11 @@ export default function OrganizersPage() {
   };
 
   useEffect(() => {
-    fetchOrganizers();
+    fetchOrganizers({
+      page: currentPage,
+      search: searchTerm,
+      status: statusFilter
+    });
   }, [currentPage, searchTerm, statusFilter]);
 
   // Handle search
@@ -150,7 +156,11 @@ export default function OrganizersPage() {
         showNotification('success', message);
         
         // Refresh the organizers list to get updated stats
-        fetchOrganizers();
+        fetchOrganizers({
+          page: currentPage,
+          search: searchTerm,
+          status: statusFilter
+        });
       } else {
         // Show specific error message
         const errorMessage = response.message || 'Failed to process transfer';
@@ -318,7 +328,11 @@ export default function OrganizersPage() {
           </div>
           <Button
             variant="outline"
-            onClick={() => fetchOrganizers()}
+            onClick={() => fetchOrganizers({
+              page: currentPage,
+              search: searchTerm,
+              status: statusFilter
+            })}
             disabled={isLoading}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
@@ -452,28 +466,84 @@ export default function OrganizersPage() {
         </Card>
 
         {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
+        <Card className="border-0 shadow-sm bg-gradient-to-r from-gray-50 to-white">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-lg font-semibold text-gray-800 flex items-center">
+              <Filter className="h-5 w-5 mr-2 text-[var(--sage-green)]" />
+              Filters & Search
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-2">
                 <Input
-                  placeholder="Search organizers..."
+                  placeholder="Search by name, email, or role..."
                   value={searchTerm}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+                  icon={<Search className="h-4 w-4" />}
+                  clearable={true}
+                  onClear={() => handleSearch('')}
+                  fullWidth={true}
+                  helperText="Search through organizer names, emails, and roles"
                 />
               </div>
-              <div className="w-full md:w-48">
+              <div>
                 <Select
                   value={statusFilter}
                   onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleStatusFilter(e.target.value)}
+                  icon={<Filter className="h-4 w-4" />}
+                  fullWidth={true}
+                  helperText="Filter by account status"
                   options={[
                     { value: '', label: 'All Status' },
-                    { value: 'active', label: 'Active' },
-                    { value: 'inactive', label: 'Inactive' }
+                    { value: 'active', label: 'Active Accounts' },
+                    { value: 'inactive', label: 'Inactive Accounts' }
                   ]}
                 />
               </div>
             </div>
+            
+            {/* Active Filters Display */}
+            {(searchTerm || statusFilter) && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm font-medium text-gray-700">Active Filters:</span>
+                    {searchTerm && (
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                        Search: {searchTerm}
+                        <button
+                          onClick={() => handleSearch('')}
+                          className="ml-1 hover:text-blue-900"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    )}
+                    {statusFilter && (
+                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        Status: {statusFilter === 'active' ? 'Active' : 'Inactive'}
+                        <button
+                          onClick={() => handleStatusFilter('')}
+                          className="ml-1 hover:text-green-900"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleSearch('');
+                      handleStatusFilter('');
+                    }}
+                    className="text-sm text-gray-500 hover:text-gray-700 underline"
+                  >
+                    Clear all filters
+                  </button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

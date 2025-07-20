@@ -76,7 +76,10 @@ export default function SchedulerManagement() {
       setIsRunningTransfer(true);
       const response = await api.post('/admin/scheduler/run-transfer');
       if (response.success) {
-        setMessage({ type: 'success', text: t('admin.transferCompleted') });
+        setMessage({ 
+          type: 'success', 
+          text: response.message || 'Manual transfer completed successfully for published and completed events' 
+        });
         fetchStatus();
       }
     } catch (error) {
@@ -194,6 +197,7 @@ export default function SchedulerManagement() {
                   disabled={isRunningTransfer}
                   variant="outline"
                   className="flex items-center"
+                  title="Transfer money for published and completed events (manual override)"
                 >
                   {isRunningTransfer ? (
                     <>
