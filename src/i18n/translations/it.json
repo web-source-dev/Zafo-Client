@@ -1491,6 +1491,108 @@
   "faq.categories.events": "Eventi",
   "faq.categories.technical": "Supporto tecnico",
 
+  "faq.pageTitle": "Domande Frequenti",
+  "faq.metaDescription": "Trova risposte alle domande più comuni sulla piattaforma Zafo, eventi, gestione account, privacy e altro.",
+  "faq.title": "Domande Frequenti",
+  "faq.description": "Sfoglia la nostra sezione FAQ completa per trovare risposte alle domande più frequentemente poste su Zafo, la nostra piattaforma e i nostri servizi.",
+  
+  "faq.search.placeholder": "Cerca domande...",
+  "faq.search.results": "Risultati di ricerca",
+  "faq.search.noResults": "Nessuna domanda trovata che corrisponda alla tua ricerca. Prova parole chiave diverse o sfoglia le nostre categorie.",
+  "faq.search.button": "Cerca",
+  "faq.search.clear": "Cancella ricerca",
+  
+  "faq.popularQuestions": "Domande più popolari",
+  
+  "faq.general.whatIs.question": "Cos'è Zafo?",
+  "faq.general.whatIs.answer": "Zafo è una piattaforma completa di scoperta e gestione eventi che connette le persone con esperienze che corrispondono ai loro interessi. La nostra piattaforma permette agli utenti di sfogliare e registrarsi per eventi, mentre gli organizzatori possono creare e gestire i loro eventi.",
+  
+  "faq.general.howItWorks.question": "Come funziona Zafo?",
+  "faq.general.howItWorks.answer": "Zafo funziona collegando organizzatori di eventi con potenziali partecipanti. Gli organizzatori possono creare e elencare eventi sulla nostra piattaforma, mentre i partecipanti possono scoprire eventi basati sui loro interessi, posizione e disponibilità.",
+  
+  "faq.general.getStarted.question": "Come inizio con Zafo?",
+  "faq.general.getStarted.answer": "Iniziare con Zafo è facile! Prima crea un account gratuito cliccando sul pulsante 'Registrati' nell'angolo in alto a destra del nostro sito web. Compila i tuoi dettagli e preferenze, e puoi iniziare subito a scoprire o creare eventi.",
+  
+  "faq.general.differenceCompetitors.question": "Come si distingue Zafo dalle altre piattaforme di eventi?",
+  "faq.general.differenceCompetitors.answer": "Zafo si distingue attraverso il nostro approccio centrato sulla comunità, un motore di raccomandazione sofisticato e strumenti completi per sia partecipanti che organizzatori. Ci concentriamo sulla creazione di connessioni significative e offriamo un'esperienza user-friendly.",
+  
+  "faq.general.mobileFriendly.question": "Zafo è mobile-friendly?",
+  "faq.general.mobileFriendly.answer": "Assolutamente! Zafo è completamente ottimizzato per dispositivi mobili. Puoi accedere a tutte le funzionalità della nostra piattaforma attraverso qualsiasi browser mobile moderno, con l'interfaccia che si adatta automaticamente a diverse dimensioni dello schermo.",
+  
+  "faq.account.createAccount.question": "Come creo un account Zafo?",
+  "faq.account.createAccount.answer": "Creare un account Zafo è semplice. Clicca sul pulsante 'Registrati' o 'Accedi' in alto nella nostra homepage. Puoi registrarti usando il tuo indirizzo email, o utilizzare il comodo accesso tramite social media.",
+  
+  "faq.account.changePassword.question": "Come cambio la mia password?",
+  "faq.account.changePassword.answer": "Per cambiare la tua password, accedi al tuo account Zafo e naviga alle impostazioni del profilo cliccando sulla tua foto profilo nell'angolo in alto a destra e selezionando 'Impostazioni'. Cerca l'opzione 'Cambia password'.",
+  
+  "faq.account.deleteAccount.question": "Come posso eliminare il mio account?",
+  "faq.account.deleteAccount.answer": "Per eliminare il tuo account Zafo, vai alle impostazioni del profilo cliccando sulla tua foto profilo nell'angolo in alto a destra e selezionando 'Impostazioni'. Scorri fino alla fine della pagina e cerca l'opzione 'Elimina account'.",
+  
+  "faq.account.editProfile.question": "Come modifico le informazioni del mio profilo?",
+  "faq.account.editProfile.answer": "Per modificare il tuo profilo, clicca sulla tua foto profilo nell'angolo in alto a destra e seleziona 'Profilo' dal menu a tendina. Clicca sul pulsante 'Modifica profilo' per cambiare le tue informazioni.",
+  
+  "faq.account.notifications.question": "Come gestisco le impostazioni delle notifiche?",
+  "faq.account.notifications.answer": "Per gestire le notifiche, vai alle impostazioni del profilo cliccando sulla tua foto profilo e selezionando 'Impostazioni'. Naviga alla scheda 'Notifiche' dove puoi attivare o disattivare diversi tipi di notifiche.",
+  
+  "faq.billing.pricing.question": "Quanto costa Zafo?",
+  "faq.billing.pricing.answer": "Zafo offre diversi livelli di prezzo per diverse esigenze. L'account Basic è gratuito e ti permette di sfogliare eventi, creare un profilo e registrarti per eventi. Il nostro account Pro offre funzionalità avanzate per gli organizzatori.",
+  
+  "faq.billing.paymentMethods.question": "Quali metodi di pagamento accettate?",
+  "faq.billing.paymentMethods.answer": "Zafo accetta una varietà di metodi di pagamento per sia pagamenti di abbonamento che acquisti di biglietti per eventi. Accettiamo tutte le principali carte di credito e debito (Visa, Mastercard, American Express, Discover) così come PayPal.",
+  
+  "faq.billing.refunds.question": "Qual è la vostra politica di rimborso?",
+  "faq.billing.refunds.answer": "La nostra politica di rimborso varia a seconda che tu stia richiedendo un rimborso per un abbonamento o un biglietto per evento. Per gli abbonamenti Zafo, offriamo una garanzia di rimborso di 30 giorni per abbonamenti annuali.",
+  
+  "faq.billing.cancelSubscription.question": "Come annullo il mio abbonamento?",
+  "faq.billing.cancelSubscription.answer": "Per annullare il tuo abbonamento, vai alle impostazioni del tuo account cliccando sulla tua foto profilo e selezionando 'Impostazioni'. Naviga alla scheda 'Abbonamento' e clicca su 'Annulla abbonamento'.",
+  
+  "faq.billing.upgradeAccount.question": "Come aggiorno il mio account?",
+  "faq.billing.upgradeAccount.answer": "Aggiornare il tuo account Zafo è semplice. Dal tuo dashboard, clicca sulla tua foto profilo e seleziona 'Impostazioni'. Naviga alla scheda 'Abbonamento' dove vedrai i piani disponibili.",
+  
+  "faq.privacy.dataUse.question": "Come usa Zafo i miei dati?",
+  "faq.privacy.dataUse.answer": "Zafo usa i tuoi dati principalmente per fornire e migliorare i nostri servizi. Questo include personalizzare le tue raccomandazioni di eventi, elaborare registrazioni e pagamenti, e inviare aggiornamenti importanti.",
+  
+  "faq.privacy.dataShare.question": "Zafo condivide le mie informazioni con terze parti?",
+  "faq.privacy.dataShare.answer": "Zafo condivide le tue informazioni con terze parti solo in circostanze specifiche. Condividiamo le informazioni necessarie dei partecipanti con gli organizzatori per eventi a cui ti registri, e utilizziamo fornitori di pagamento sicuri per le transazioni.",
+  
+  "faq.privacy.yourRights.question": "Quali sono i miei diritti riguardo ai miei dati personali?",
+  "faq.privacy.yourRights.answer": "Come utente Zafo, hai diversi diritti importanti riguardo ai tuoi dati personali. Questi includono il diritto di accedere a tutti i dati che abbiamo su di te, correggere dati inaccurati, e eliminare i tuoi dati.",
+  
+  "faq.privacy.accountSecurity.question": "Come protegge Zafo il mio account?",
+  "faq.privacy.accountSecurity.answer": "Zafo impiega più livelli di sicurezza per proteggere il tuo account. Utilizziamo crittografia standard del settore per tutte le trasmissioni di dati (SSL/TLS) e procedure sicure di hashing delle password.",
+  
+  "faq.events.createEvent.question": "Come creo un evento su Zafo?",
+  "faq.events.createEvent.answer": "Per creare un evento su Zafo, avrai bisogno di un account Organizzatore. Dal tuo dashboard, clicca sul pulsante 'Crea evento'. Il nostro creatore di eventi intuitivo ti guiderà attraverso l'intero processo.",
+  
+  "faq.events.editEvent.question": "Posso modificare il mio evento dopo averlo pubblicato?",
+  "faq.events.editEvent.answer": "Sì, puoi modificare la maggior parte dei dettagli dell'evento dopo la pubblicazione. Dal tuo dashboard organizzatore, seleziona l'evento e clicca su 'Modifica evento'. Puoi aggiornare descrizione, immagini, data e altri dettagli.",
+  
+  "faq.events.cancelEvent.question": "Come annullo un evento?",
+  "faq.events.cancelEvent.answer": "Per annullare un evento, vai al tuo dashboard organizzatore, seleziona l'evento e clicca su 'Annulla evento' dal menu azioni dell'evento. Ti verrà chiesto di fornire un motivo per l'annullamento.",
+  
+  "faq.technical.browserSupport.question": "Quali browser supporta Zafo?",
+  "faq.technical.browserSupport.answer": "Zafo supporta tutti i browser web moderni inclusi Google Chrome (versione 83+), Mozilla Firefox (versione 76+), Apple Safari (versione 13+), Microsoft Edge (basato su Chromium) e altri browser moderni.",
+  
+  "faq.technical.appRequirements.question": "Quali sono i requisiti per utilizzare l'app mobile Zafo?",
+  "faq.technical.appRequirements.answer": "L'app mobile Zafo richiede iOS 13 o successivo per dispositivi Apple e Android 8.0 (Oreo) o successivo per dispositivi Android. L'app necessita di circa 100MB di spazio libero e una connessione internet stabile.",
+  
+  "faq.technical.troubleshooting.question": "Sto riscontrando problemi tecnici. Cosa devo fare?",
+  "faq.technical.troubleshooting.answer": "Se stai riscontrando problemi tecnici con Zafo, prova questi passaggi di risoluzione: 1) Aggiorna la pagina o riavvia l'app, 2) Cancella la cache del browser e i cookie, 3) Prova un browser diverso.",
+  
+  "faq.stillHaveQuestions.title": "Hai ancora domande?",
+  "faq.stillHaveQuestions.description": "Non riesci a trovare quello che stai cercando? Il nostro team di supporto è qui per aiutarti con qualsiasi domanda tu possa avere su Zafo.",
+
+  "faq.helpfulResources.title": "Risorse Utili",
+  "faq.helpfulResources.helpCenter.title": "Centro Assistenza",
+  "faq.helpfulResources.helpCenter.description": "Guide dettagliate e tutorial per aiutarti a ottenere il massimo da Zafo.",
+  "faq.helpfulResources.helpCenter.link": "Visita il Centro Assistenza",
+  "faq.helpfulResources.videoTutorials.title": "Tutorial Video",
+  "faq.helpfulResources.videoTutorials.description": "Guarda guide video passo-passo per attività e funzionalità comuni.",
+  "faq.helpfulResources.videoTutorials.link": "Guarda i Tutorial",
+  "faq.helpfulResources.community.title": "Forum della Community",
+  "faq.helpfulResources.community.description": "Connettiti con altri utenti, condividi consigli e ottieni aiuto dalla community Zafo.",
+  "faq.helpfulResources.community.link": "Unisciti alla Discussione",
+
   "events.listing.title": "Eventi",
   "events.listing.description": "Scopri eventi entusiasmanti vicino a te",
   "events.listing.noEventsFound": "Nessun evento trovato",
@@ -1997,8 +2099,6 @@
   "destinations.exploreAllDestinations": "Esplora tutte le destinazioni",
   "destinations.noDestinations": "Nessuna destinazione disponibile",
   
-  "accessibility.scrollLeft": "Scorri a sinistra",
-  "accessibility.scrollRight": "Scorri a destra",
   
   "cities.discoverEventsPopularCities": "Scopri gli eventi nelle città popolari in tutto il paese",
   "cities.clickToExploreEvents": "Clicca per esplorare gli eventi",
@@ -2010,9 +2110,109 @@
   "events.buyMore": "Acquista di più",
   "events.detail.buyMore": "Acquista più biglietti",
   "events.detail.soldOut": "Esaurito",
-  "events.detail.ticketPurchased": "Biglietto acquistato",
-  "events.detail.ticketConfirmed": "Il tuo biglietto è confermato",
-  "events.detail.ticketPending": "Il tuo biglietto è in attesa di conferma",
-  "events.detail.purchaseSuccess": "Biglietto acquistato con successo!",
-  "events.detail.purchaseSuccessDesc": "Il tuo biglietto è stato acquistato e riceverai un'e-mail di conferma a breve"
+  
+  "about.hero.badge": "Chi siamo",
+  "about.hero.visionTitle": "La nostra visione",
+  "about.hero.visionDescription": "Creare un mondo dove connessioni significative avvengono attraverso esperienze condivise, rendendo ogni evento un'opportunità di scoperta e crescita.",
+  "about.hero.liveIndicator": "Piattaforma live",
+  "about.hero.stats.users": "Utenti attivi",
+  "about.hero.stats.events": "Eventi creati",
+  "about.hero.stats.cities": "Città coperte",
+  "about.hero.stats.rating": "Valutazione utenti",
+  
+  "about.mission.badge": "La nostra missione",
+  "about.mission.achievementsTitle": "Risultati Chiave",
+  "about.mission.achievement1": "Connesso oltre 50.000 persone attraverso eventi significativi",
+  "about.mission.achievement2": "Supportato 10.000+ organizzatori nella creazione di eventi di successo",
+  "about.mission.achievement3": "Espanso in 500+ città in diversi paesi",
+  "about.mission.achievement4": "Mantenuto 99,9% di uptime e affidabilità della piattaforma",
+  "about.mission.imageAlt": "Collaborazione del team e focus sulla missione",
+  "about.mission.quoteTitle": "La nostra promessa",
+  "about.mission.quote": "Crediamo che ogni evento abbia il potere di cambiare vite. La nostra piattaforma è progettata per rendere possibili quelle connessioni, un evento alla volta.",
+  "about.mission.founded": "Fondato",
+  "about.mission.ctaTitle": "Unisciti alla nostra missione",
+  "about.mission.ctaDescription": "Che tu stia cercando di scoprire eventi incredibili o di crearli, siamo qui per supportare il tuo percorso. Costruiamo insieme connessioni significative.",
+  "about.mission.ctaButton": "Inizia oggi",
+  
+  "about.values.badge": "I nostri valori",
+  "about.values.principlesTitle": "Principi Fondamentali",
+  "about.values.principlesDescription": "Questi principi fondamentali guidano ogni decisione che prendiamo e ogni funzionalità che sviluppiamo, assicurandoci di rimanere fedeli alla nostra missione.",
+  "about.values.principle1.title": "Fiducia & Sicurezza",
+  "about.values.principle1.description": "Prioritizziamo la sicurezza e la privacy dei nostri utenti, implementando misure robuste per proteggere i dati personali e garantire transazioni sicure.",
+  "about.values.principle2.title": "Design Centrato sull'Utente",
+  "about.values.principle2.description": "Ogni funzionalità e decisione viene presa tenendo a mente i nostri utenti, garantendo esperienze intuitive che soddisfano bisogni reali e risolvono problemi effettivi.",
+  "about.values.principle3.title": "Assicurazione Qualità",
+  "about.values.principle3.description": "Manteniamo standard elevati in tutto ciò che facciamo, dall'affidabilità della piattaforma al supporto clienti, garantendo l'eccellenza in ogni interazione.",
+  "about.values.commitment.badge": "Piattaforma Affidabile",
+  
+  "contact.hero.badge": "Contattaci",
+  "contact.hero.email": "Scrivici",
+  "contact.hero.phone": "Chiamaci",
+  "contact.hero.location": "Vienici a trovare",
+  "contact.hero.subtitle": "Siamo qui per aiutarti",
+  "contact.hero.paragraph1": "Il nostro team di supporto dedicato è disponibile 24/7 per aiutarti con qualsiasi domanda sulla nostra piattaforma, la creazione di eventi o richieste generali. Crediamo nel fornire un servizio clienti eccezionale per assicurarci che la tua esperienza con Zafo non sia altro che straordinaria.",
+  "contact.hero.paragraph2": "Che tu sia un organizzatore di eventi che cerca di creare il tuo prossimo evento di successo, un partecipante che cerca informazioni sugli eventi imminenti, o qualcuno con domande generali sulla nostra piattaforma, siamo qui per supportarti ad ogni passo.",
+  "contact.hero.supportHours": "Orari di Supporto",
+  "contact.hero.responseTime": "Tempo di Risposta",
+  "contact.hero.imageAlt": "Team di supporto clienti",
+  "contact.hero.ctaTitle": "Pronto a Iniziare?",
+  "contact.hero.ctaDescription": "Unisciti a migliaia di utenti che si fidano di Zafo per le loro esigenze di eventi. Creiamo qualcosa di straordinario insieme!",
+  "contact.hero.ctaButton": "Contattaci Ora",
+  "contact.hero.liveIndicator": "Supporto Live",
+  
+  "contact.info.badge": "Informazioni di Contatto",
+  "contact.info.title": "Contattaci",
+  "contact.info.description": "Siamo qui per aiutarti con qualsiasi domanda o supporto di cui hai bisogno. Scegli il modo migliore per raggiungerci qui sotto.",
+ 
+  "contact.info.additionalTitle": "Perché Scegliere il Nostro Supporto?",
+  "contact.info.additionalDescription1": "Il nostro team di supporto è dedicato a fornirti la migliore esperienza possibile. Capiamo che ogni domanda è importante e ogni utente conta.",
+  "contact.info.additionalDescription2": "Con anni di esperienza nella gestione di eventi e servizio clienti, il nostro team è equipaggiato per gestire qualsiasi richiesta, da semplici domande a problemi tecnici complessi.",
+  "contact.info.responseTime": "Tempo di Risposta Rapido",
+  "contact.info.responseTimeValue": "Rispondiamo generalmente entro 2 ore durante gli orari di lavoro",
+  "contact.info.supportTeam": "Team di Supporto Esperto",
+  "contact.info.supportTeamValue": "Il nostro team ha un'esperienza estesa nella gestione di eventi e supporto piattaforma",
+  
+  "contact.form.badge": "Invia Messaggio",
+  "contact.form.description": "Compila il modulo qui sotto e ti risponderemo il prima possibile. Siamo qui per aiutarti con qualsiasi domanda o preoccupazione tu possa avere.",
+ 
+  "contact.map.badge": "Trovarci",
+  "contact.map.description": "Vieni a trovarci nella nostra sede centrale a San Francisco. Ci piacerebbe incontrarti di persona e discutere di come possiamo aiutarti con le tue esigenze di eventi.",
+  "contact.map.locationInfo": "Informazioni sulla Località",
+  "contact.map.hours": "Orari di Lavoro",
+  "contact.map.hoursValue": "Lunedì - Venerdì: 9:00 - 18:00 (CET)",
+  "contact.map.phone": "Numero di Telefono",
+  "contact.map.email": "Indirizzo Email",
+  "contact.map.quickContact": "Contatto Rapido",
+  "contact.map.quickContactDescription": "Hai bisogno di assistenza immediata? Usa il nostro modulo di contatto per il tempo di risposta più veloce.",
+  "contact.map.contactUs": "Contattaci",
+  
+  "accessibility.hero.badge": "Accessibilità",
+  "accessibility.hero.title": "Rendere gli Eventi Accessibili a Tutti",
+  "accessibility.hero.description": "In Zafo, crediamo che gli eventi dovrebbero essere accessibili a tutti, indipendentemente dalle capacità. La nostra piattaforma è progettata con l'inclusività al centro, assicurando che ogni utente possa scoprire, creare e partecipare a esperienze significative.",
+  "accessibility.hero.subtitle": "Il Nostro Impegno per l'Inclusività",
+  "accessibility.hero.paragraph1": "Capiamo che l'accessibilità non è solo una funzionalità—è un diritto fondamentale. Ecco perché abbiamo costruito la nostra piattaforma fin dall'inizio con l'accessibilità in mente, seguendo le linee guida WCAG 2.1 e le migliori pratiche per assicurarci che tutti possano utilizzare la nostra piattaforma in modo efficace.",
+  "accessibility.hero.paragraph2": "Dai lettori di schermo e la navigazione da tastiera ai modalità ad alto contrasto e testo alternativo, abbiamo implementato funzionalità di accessibilità complete che rendono la nostra piattaforma utilizzabile da persone con diverse capacità e bisogni.",
+  "accessibility.hero.stats.inclusive": "Design Inclusivo",
+  "accessibility.hero.stats.compliant": "Conforme WCAG 2.1",
+  "accessibility.hero.stats.support": "Supporto 24/7",
+  "accessibility.hero.commitment.title": "Inclusivo per Design",
+  "accessibility.hero.commitment.description": "Ogni funzionalità che sviluppiamo viene testata per l'accessibilità fin dal primo giorno. Lavoriamo con esperti di accessibilità e utenti con disabilità per assicurarci che la nostra piattaforma soddisfi i più alti standard di inclusività.",
+  "accessibility.hero.standards.title": "Standard WCAG 2.1",
+  "accessibility.hero.standards.description": "La nostra piattaforma aderisce agli standard WCAG 2.1 AA, garantendo la compatibilità con le tecnologie assistive e fornendo un'esperienza inclusiva per tutti gli utenti.",
+  "accessibility.hero.ctaTitle": "Vivi Eventi Inclusivi",
+  "accessibility.hero.ctaDescription": "Unisciti alla nostra community di organizzatori e partecipanti di eventi inclusivi. Insieme, stiamo rendendo il mondo più accessibile, un evento alla volta.",
+  "accessibility.hero.ctaButton": "Esplora Eventi Accessibili",
+  "accessibility.hero.complianceBadge": "WCAG 2.1 AA",
+  "accessibility.hero.imageAlt": "Gruppo diversificato di persone a un evento accessibile",
+
+  "notFound.title": "Ops! Pagina non trovata",
+  "notFound.description": "La pagina che stai cercando sembra essersi smarrita. Non preoccuparti, ti rimettiamo sulla strada giusta!",
+  "notFound.goHome": "Torna alla Home",
+  "notFound.browseEvents": "Sfoglia gli eventi",
+  "notFound.needHelp": "Hai bisogno di aiuto? Prova queste pagine:",
+  "notFound.contactUs": "Contattaci",
+  "notFound.helpCenter": "Centro assistenza",
+  "notFound.faq": "FAQ",
+  "notFound.aboutUs": "Chi siamo"
+
 } 

@@ -92,46 +92,54 @@ const BlogPostPage: React.FC = () => {
   const postContent = blogPost.content[currentLanguage as keyof typeof blogPost.content] || blogPost.content.en;
   
   return (
-    <div className="min-h-screen bg-[var(--taupe)]">
+    <div className="min-h-screen bg-gradient-to-br from-[var(--sage)] via-[var(--taupe)] to-[var(--sage)]">
       {/* Hero Section */}
-      <div className="relative h-[60vh] w-full">
+      <div className="relative h-[70vh] w-full overflow-hidden">
         <Image
           src={blogPost.image}
           alt={postTitle}
           fill
-          className="object-cover brightness-[0.7]"
+          className="object-cover brightness-[0.6] scale-105"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-black/40 flex items-end">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20 flex items-end">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
             <Link 
               href="/blog" 
-              className="inline-flex items-center text-white mb-4 hover:text-[var(--sage)]"
+              className="inline-flex items-center text-white/90 hover:text-white mb-6 transition-colors duration-200 group"
             >
-              <FiArrowLeft className="mr-2" /> {t('blog.backToBlog') || 'Back to Blog'}
+              <FiArrowLeft className="mr-2 group-hover:-translate-x-1 transition-transform duration-200" /> 
+              {t('blog.backToBlog') || 'Back to Blog'}
             </Link>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
-              {postTitle}
-            </h1>
-            <div className="flex flex-wrap items-center text-white gap-4">
-              <div className="flex items-center">
-                <div className="relative h-10 w-10 rounded-full overflow-hidden mr-2">
-                  <Image
-                    src={blogPost.authorImage}
-                    alt={blogPost.author}
-                    fill
-                    className="object-cover"
-                  />
+            <div className="max-w-4xl">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+                {postTitle}
+              </h1>
+              <div className="flex flex-wrap items-center text-white/90 gap-6 mb-8">
+                <div className="flex items-center">
+                  <div className="relative h-12 w-12 rounded-full overflow-hidden mr-3 ring-2 ring-white/20">
+                    <Image
+                      src={blogPost.authorImage}
+                      alt={blogPost.author}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div>
+                    <span className="font-medium">{blogPost.author}</span>
+                    <div className="text-sm text-white/70">Author</div>
+                  </div>
                 </div>
-                <span>{blogPost.author}</span>
-              </div>
-              <div className="flex items-center">
-                <FiCalendar className="mr-2" />
-                <span>{formatDate(blogPost.date)}</span>
-              </div>
-              <div className="flex items-center">
-                <FiTag className="mr-2" />
-                <span>{t(`blog.categories.${blogPost.category}`) || blogPost.category}</span>
+                <div className="flex items-center">
+                  <FiCalendar className="mr-2 text-[var(--sage)]" />
+                  <span>{formatDate(blogPost.date)}</span>
+                </div>
+                <div className="flex items-center">
+                  <FiTag className="mr-2 text-[var(--sage)]" />
+                  <span className="bg-white/10 px-3 py-1 rounded-full text-sm">
+                    {t(`blog.categories.${blogPost.category}`) || blogPost.category}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -139,84 +147,83 @@ const BlogPostPage: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-4xl">
-        {/* Article Content */}
-        <article className="prose prose-lg max-w-none bg-white p-8 rounded-lg shadow-sm">
-          <div dangerouslySetInnerHTML={{ __html: postContent }} />
-        </article>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className="max-w-4xl mx-auto">
+          {/* Article Content */}
+            <div 
+              className="prose-headings:text-[var(--sage-green)] prose-headings:font-bold prose-h1:text-3xl prose-h2:text-2xl prose-h3:text-xl prose-p:text-gray-700 prose-p:leading-relaxed prose-a:text-[var(--sage-green)] prose-a:no-underline hover:prose-a:underline prose-strong:text-gray-900 prose-blockquote:border-l-4 prose-blockquote:border-[var(--sage-green)] prose-blockquote:bg-gray-50 prose-blockquote:pl-6 prose-blockquote:py-2 prose-blockquote:rounded-r-lg"
+              dangerouslySetInnerHTML={{ __html: postContent }} 
+            />
 
-        {/* Tags */}
-        {blogPost.tags && blogPost.tags.length > 0 && (
-          <div className="mt-12 pt-8 border-t border-gray-200 bg-white p-8 rounded-lg shadow-sm">
-            <h3 className="text-lg font-medium text-[var(--sage-green)] mb-4">{t('blog.tags') || 'Tags'}</h3>
-            <div className="flex flex-wrap gap-2">
-              {blogPost.tags.map((tag: string) => (
-                <span 
-                  key={tag} 
-                  className="inline-block bg-[var(--taupe)] px-3 py-1 rounded-full text-sm text-gray-700"
-                >
-                  {tag}
-                </span>
-              ))}
+          {/* Share */}
+          <div className="mt-8 bg-white p-8 md:p-12 rounded-2xl shadow-xl border border-gray-100">
+            <h3 className="text-xl font-bold text-[var(--sage-green)] mb-6 flex items-center">
+              <FiShare2 className="mr-2" />
+              {t('blog.sharePost') || 'Share this post'}
+            </h3>
+            <div className="flex gap-4">
+              <button className="flex items-center justify-center w-12 h-12 rounded-full bg-[#1DA1F2] text-white hover:scale-110 transition-transform duration-200 shadow-lg hover:shadow-xl">
+                <FiTwitter className="w-5 h-5" />
+              </button>
+              <button className="flex items-center justify-center w-12 h-12 rounded-full bg-[#4267B2] text-white hover:scale-110 transition-transform duration-200 shadow-lg hover:shadow-xl">
+                <FiFacebook className="w-5 h-5" />
+              </button>
+              <button className="flex items-center justify-center w-12 h-12 rounded-full bg-[#0077B5] text-white hover:scale-110 transition-transform duration-200 shadow-lg hover:shadow-xl">
+                <FiLinkedin className="w-5 h-5" />
+              </button>
+              <button className="flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-[var(--sage-green)] to-[var(--cognac)] text-white hover:scale-110 transition-transform duration-200 shadow-lg hover:shadow-xl">
+                <FiShare2 className="w-5 h-5" />
+              </button>
             </div>
-          </div>
-        )}
-
-        {/* Share */}
-        <div className="mt-8 pt-8 border-t border-gray-200 bg-white p-8 rounded-lg shadow-sm">
-          <h3 className="text-lg font-medium text-[var(--sage-green)] mb-4">{t('blog.sharePost') || 'Share this post'}</h3>
-          <div className="flex gap-4">
-            <button className="flex items-center justify-center w-10 h-10 rounded-full bg-[#1DA1F2] text-white hover:opacity-90">
-              <FiTwitter />
-            </button>
-            <button className="flex items-center justify-center w-10 h-10 rounded-full bg-[#4267B2] text-white hover:opacity-90">
-              <FiFacebook />
-            </button>
-            <button className="flex items-center justify-center w-10 h-10 rounded-full bg-[#0077B5] text-white hover:opacity-90">
-              <FiLinkedin />
-            </button>
-            <button className="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--cognac)] text-white hover:opacity-90">
-              <FiShare2 />
-            </button>
           </div>
         </div>
       </div>
 
       {/* Related Posts */}
       {relatedPosts.length > 0 && (
-        <div className="bg-white py-16">
+        <div className="bg-gradient-to-br from-[var(--sage)] via-[var(--taupe)] to-[var(--sage)] py-20">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-2xl font-bold text-[var(--sage-green)] mb-8">{t('blog.relatedPosts') || 'Related Posts'}</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {relatedPosts.map(post => {
-                const relatedTitle = post.title[currentLanguage as keyof typeof post.title] || post.title.en;
-                return (
-                  <article key={post.id} className="bg-[var(--taupe)] border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-                    <Link href={`/blog/${post.slug}`} className="block group">
-                      <div className="relative h-48 w-full">
-                        <Image
-                          src={post.image}
-                          alt={relatedTitle}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                      <div className="p-6">
-                        <div className="flex items-center text-sm text-gray-500 mb-2">
-                          <FiCalendar className="mr-1" />
-                          <span>{formatDate(post.date)}</span>
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold text-[var(--sage-green)] mb-4">
+                  {t('blog.relatedPosts') || 'Related Posts'}
+                </h2>
+                <p className="text-gray-600 max-w-2xl mx-auto">
+                  Discover more insights and tips to enhance your event planning journey
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {relatedPosts.map(post => {
+                  const relatedTitle = post.title[currentLanguage as keyof typeof post.title] || post.title.en;
+                  return (
+                    <article key={post.id} className="bg-white rounded-2xl overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
+                      <Link href={`/blog/${post.slug}`} className="block group">
+                        <div className="relative h-56 w-full overflow-hidden">
+                          <Image
+                            src={post.image}
+                            alt={relatedTitle}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </div>
-                        <h3 className="text-xl font-semibold mb-2 text-gray-900 group-hover:text-[var(--sage-green)]">
-                          {relatedTitle}
-                        </h3>
-                        <span className="text-sm text-[var(--sage-green)] flex items-center mt-4">
-                          {t('blog.readMore') || 'Read more'} <FiArrowRight className="ml-1" />
-                        </span>
-                      </div>
-                    </Link>
-                  </article>
-                );
-              })}
+                        <div className="p-8">
+                          <div className="flex items-center text-sm text-gray-500 mb-3">
+                            <FiCalendar className="mr-2 text-[var(--sage-green)]" />
+                            <span>{formatDate(post.date)}</span>
+                          </div>
+                          <h3 className="text-xl font-bold mb-3 text-gray-900 group-hover:text-[var(--sage-green)] transition-colors duration-200 line-clamp-2">
+                            {relatedTitle}
+                          </h3>
+                          <span className="inline-flex items-center text-[var(--sage-green)] font-medium group-hover:translate-x-1 transition-transform duration-200">
+                            {t('blog.readMore') || 'Read more'} <FiArrowRight className="ml-2" />
+                          </span>
+                        </div>
+                      </Link>
+                    </article>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

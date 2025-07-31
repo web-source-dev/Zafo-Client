@@ -17,26 +17,18 @@ const Footer: React.FC = () => {
       links: [
         { name: t('footer.about'), href: '/about' },
         { name: t('footer.contact'), href: '/contact' },
-        { name: t('footer.accessibility'), href: '/accessibility' },
-        { name: t('footer.impact'), href: '/impact' },
-        { name: t('footer.investors'), href: '/investors' },
-        { name: t('footer.plans'), href: '/plans' },
-      ],
-    },
-    {
-      title: t('footer.support'),
-      links: [
-        { name: t('footer.help'), href: '/help' },
+        { name: t('footer.blog'), href: '/blog' },
         { name: t('footer.faq'), href: '/faq' },
-        { name: t('footer.legal'), href: '/legal' },
+        { name: t('footer.accessibility'), href: '/accessibility' },
       ],
     },
     {
       title: t('footer.resources'),
       links: [
-        { name: t('footer.blog'), href: '/blog' },
         { name: t('footer.privacy'), href: '/privacy' },
-        { name: t('footer.terms'), href: '/terms' },
+        { name: t('footer.terms'), href: '/terms' }, 
+        { name: t('footer.help'), href: '/help' },
+        { name: t('footer.legal'), href: '/legal' },
       ],
     },
   ];
@@ -51,9 +43,8 @@ const Footer: React.FC = () => {
 
   return (
     <footer className="relative bg-[var(--taupe)] border-t border-[var(--sage)]/20">
-      
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
           {/* Logo and Description */}
           <div className="lg:col-span-2">
             <Link href="/" className="inline-flex items-center space-x-2 group mb-6">
@@ -116,7 +107,7 @@ const Footer: React.FC = () => {
                       href={link.href} 
                       className="group flex items-center text-[var(--black)]/70 hover:text-[var(--sage-green)] text-sm transition-all duration-200"
                     >
-                      <ArrowRight size={12} className="mr-2 opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all duration-200" />
+                      <ArrowRight size={12} className="mr-2 hidden group-hover:block transform group-hover:translate-x-1 transition-all duration-200" />
                       <span className="group-hover:translate-x-1 transition-transform duration-200">
                         {link.name}
                       </span>

@@ -7,6 +7,7 @@ import { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Contact Zafo | Get in Touch With Our Team',
   description: 'Have questions or feedback? Contact our team via email, phone, or visit our headquarters. We\'re here to help with all your event-related inquiries.',
+  keywords: 'contact zafo, customer support, event platform help, get in touch, contact us, customer service',
   openGraph: {
     title: 'Contact Zafo | Get in Touch With Our Team',
     description: 'Have questions or feedback? Contact our team via email, phone, or visit our headquarters.',
@@ -27,7 +28,9 @@ export default function ContactPage() {
     <main className="animate-fadeIn min-h-screen">
       <ContactHero />
       <ContactInfo />
-      <ContactForm />
+      <div id="contact-form">
+        <ContactForm />
+      </div>
       <ContactMap />
     </main>
   );

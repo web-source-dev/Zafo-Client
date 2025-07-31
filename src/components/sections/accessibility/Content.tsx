@@ -4,36 +4,37 @@ import { useLanguage } from '@/i18n/language-context';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Keyboard, Volume2, Image as ImageIcon, Palette, Type, Navigation, FileText, AlertTriangle, UserCheck, Bath, HandHeart, Headphones, Brain, Dog, Building, BarChart3, TestTube, GraduationCap, BookOpen, Mail, Phone, FileEdit, ExternalLink } from 'lucide-react';
 
 export default function AccessibilityContent() {
   const { t } = useLanguage();
 
   const features = [
-    { id: 'keyboard', icon: '⌨️' },
-    { id: 'screenReaders', icon: '🔊' },
-    { id: 'altText', icon: '🖼️' },
-    { id: 'contrast', icon: '🎨' },
-    { id: 'text', icon: '📝' },
-    { id: 'navigation', icon: '🧭' },
-    { id: 'forms', icon: '📋' },
-    { id: 'patterns', icon: '🛑' }
+    { id: 'keyboard', icon: Keyboard, color: 'from-[var(--sage-green)] to-emerald-500' },
+    { id: 'screenReaders', icon: Volume2, color: 'from-[var(--cognac)] to-orange-500' },
+    { id: 'altText', icon: ImageIcon, color: 'from-blue-500 to-cyan-500' },
+    { id: 'contrast', icon: Palette, color: 'from-purple-500 to-pink-500' },
+    { id: 'text', icon: Type, color: 'from-indigo-500 to-purple-500' },
+    { id: 'navigation', icon: Navigation, color: 'from-teal-500 to-cyan-500' },
+    { id: 'forms', icon: FileText, color: 'from-orange-500 to-red-500' },
+    { id: 'patterns', icon: AlertTriangle, color: 'from-red-500 to-pink-500' }
   ];
 
   const eventInfo = [
-    { id: 'wheelchair', icon: '♿' },
-    { id: 'restrooms', icon: '🚻' },
-    { id: 'interpretation', icon: '👐' },
-    { id: 'listening', icon: '🎧' },
-    { id: 'sensory', icon: '🧠' },
-    { id: 'service', icon: '🐕' },
-    { id: 'venue', icon: '🏢' }
+    { id: 'wheelchair', icon: UserCheck, color: 'from-[var(--sage-green)] to-emerald-500' },
+    { id: 'restrooms', icon: Bath, color: 'from-[var(--cognac)] to-orange-500' },
+    { id: 'interpretation', icon: HandHeart, color: 'from-blue-500 to-cyan-500' },
+    { id: 'listening', icon: Headphones, color: 'from-purple-500 to-pink-500' },
+    { id: 'sensory', icon: Brain, color: 'from-indigo-500 to-purple-500' },
+    { id: 'service', icon: Dog, color: 'from-teal-500 to-cyan-500' },
+    { id: 'venue', icon: Building, color: 'from-orange-500 to-red-500' }
   ];
 
   const improvements = [
-    { id: 'audits', icon: '📊' },
-    { id: 'testing', icon: '🧪' },
-    { id: 'training', icon: '👨‍🏫' },
-    { id: 'standards', icon: '📚' }
+    { id: 'audits', icon: BarChart3, color: 'from-[var(--sage-green)] to-emerald-500' },
+    { id: 'testing', icon: TestTube, color: 'from-[var(--cognac)] to-orange-500' },
+    { id: 'training', icon: GraduationCap, color: 'from-blue-500 to-cyan-500' },
+    { id: 'standards', icon: BookOpen, color: 'from-purple-500 to-pink-500' }
   ];
 
   const containerVariants = {
@@ -47,62 +48,89 @@ export default function AccessibilityContent() {
   };
 
   const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+    hidden: { y: 30, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
       transition: {
-        duration: 0.5
+        duration: 0.6
       }
     }
   };
 
   return (
     <>
-    <section className="py-16 bg-white">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
+      {/* Features Section */}
+      <section className="py-20 bg-gradient-to-br from-white via-[var(--taupe)] to-white relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 right-20 w-64 h-64 bg-[var(--sage-green)]/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 left-20 w-64 h-64 bg-[var(--cognac)]/5 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <motion.div 
+              initial={{ opacity: 0, y: -30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="text-lg text-gray-700 mb-12"
+              className="text-center mb-16"
             >
-              {t('accessibility.intro.paragraph')}
-            </motion.p>
-            
-            <motion.h2 
-              initial={{ opacity: 0, y: -10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="text-2xl font-bold text-[var(--sage-green)] mt-8 mb-6"
-            >
-              {t('accessibility.features.title')}
-            </motion.h2>
+              <motion.h2 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-4xl md:text-5xl font-bold text-[var(--black)] mb-6"
+              >
+                {t('accessibility.features.title')}
+              </motion.h2>
+              
+              <motion.div 
+                initial={{ opacity: 0, scaleX: 0 }}
+                whileInView={{ opacity: 1, scaleX: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="w-24 h-1 bg-gradient-to-r from-[var(--sage-green)] to-[var(--cognac)] mx-auto mb-8"
+              ></motion.div>
+              
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="text-xl max-w-4xl mx-auto text-[var(--black)]/80 leading-relaxed"
+              >
+                {t('accessibility.intro.paragraph')}
+              </motion.p>
+            </motion.div>
             
             <motion.div 
               variants={containerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
             >
               {features.map((feature) => (
                 <motion.div 
                   key={feature.id}
                   variants={itemVariants}
-                  className="bg-[var(--taupe)] p-4 rounded-lg flex items-start hover:shadow-md transition-shadow"
+                  className="group bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-[var(--sage)]/20"
                 >
-                  <div className="text-2xl mr-3 mt-1">{feature.icon}</div>
-                  <div>
-                    <h3 className="font-medium text-[var(--sage-green)]">
-                      {t(`accessibility.features.${feature.id}.title`)}
-                    </h3>
-                    <p className="text-sm text-gray-700">
-                      {t(`accessibility.features.${feature.id}.description`)}
-                    </p>
+                  <div className="flex items-start gap-4">
+                    <div className={`p-3 rounded-xl bg-gradient-to-br ${feature.color} group-hover:scale-110 transition-transform duration-300`}>
+                      <feature.icon size={24} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-[var(--black)] mb-2">
+                        {t(`accessibility.features.${feature.id}.title`)}
+                      </h3>
+                      <p className="text-sm text-[var(--black)]/70 leading-relaxed">
+                        {t(`accessibility.features.${feature.id}.description`)}
+                      </p>
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -111,106 +139,97 @@ export default function AccessibilityContent() {
         </div>
       </section>
       
-      <section className="py-16 bg-[var(--taupe)]">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="flex flex-col md:flex-row items-center gap-8 mb-12"
-            >
-              <div className="md:w-1/2">
-                <h2 className="text-2xl font-bold text-[var(--sage-green)] mb-4">
+      {/* Event Information Section */}
+      <section className="py-20 bg-gradient-to-br from-[var(--sage)] via-white to-[var(--taupe)] relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-20 w-64 h-64 bg-[var(--sage-green)]/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-20 w-64 h-64 bg-[var(--cognac)]/5 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-16 items-center mb-16">
+              <motion.div 
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+              >
+                <h2 className="text-4xl font-bold text-[var(--black)] mb-6">
                   {t('accessibility.eventInfo.title')}
                 </h2>
-                <p className="text-gray-700">
+                <p className="text-xl text-[var(--black)]/80 leading-relaxed mb-8">
                   {t('accessibility.eventInfo.description')}
                 </p>
-              </div>
+                
+                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-[var(--sage)]/20">
+                  <h3 className="text-xl font-semibold text-[var(--black)] mb-4">
+                    {t('accessibility.eventInfo.commitment.title')}
+                  </h3>
+                  <p className="text-[var(--black)]/80 leading-relaxed">
+                    {t('accessibility.eventInfo.commitment.description')}
+                  </p>
+                </div>
+              </motion.div>
               
-              <div className="md:w-1/2 relative h-64 w-full rounded-lg overflow-hidden shadow-md">
-                <Image
-                  src="https://images.unsplash.com/photo-1536560035542-1326fab3a507?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3"
-                  alt={t('accessibility.eventInfo.imageAlt')}
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 600px"
-                  placeholder="blur"
-                  blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
-                />
-              </div>
-            </motion.div>
+              <motion.div 
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="relative"
+              >
+                <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-2xl">
+                  <Image
+                    src="https://images.unsplash.com/photo-1536560035542-1326fab3a507?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3"
+                    alt={t('accessibility.eventInfo.imageAlt')}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 600px"
+                    placeholder="blur"
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+                  />
+                  
+                  {/* Overlay with accessibility info */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--black)]/60 via-transparent to-transparent"></div>
+                  
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-4 shadow-xl">
+                      <h4 className="text-lg font-bold text-[var(--black)] mb-2">
+                        {t('accessibility.eventInfo.overlay.title')}
+                      </h4>
+                      <p className="text-[var(--black)]/80 text-sm">
+                        {t('accessibility.eventInfo.overlay.description')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
             
             <motion.div 
               variants={containerVariants}
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-4"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
             >
               {eventInfo.map((info) => (
                 <motion.div 
                   key={info.id}
                   variants={itemVariants}
-                  className="bg-white p-4 rounded-lg flex items-start hover:shadow-md transition-shadow"
+                  className="group bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-[var(--sage)]/20"
                 >
-                  <div className="text-2xl mr-3 mt-1">{info.icon}</div>
-                  <p className="text-gray-700">
-                    {t(`accessibility.eventInfo.${info.id}`)}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-        </div>
-      </section>
-      
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <motion.h2 
-              initial={{ opacity: 0, y: -10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="text-2xl font-bold text-[var(--sage-green)] mb-6"
-            >
-              {t('accessibility.improvements.title')}
-            </motion.h2>
-            
-            <motion.p 
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="text-gray-700 mb-8"
-            >
-              {t('accessibility.improvements.description')}
-            </motion.p>
-            
-            <motion.div 
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-6"
-            >
-              {improvements.map((item) => (
-                <motion.div 
-                  key={item.id}
-                  variants={itemVariants}
-                  className="bg-[var(--taupe)] p-6 rounded-lg flex items-start hover:shadow-md transition-shadow"
-                >
-                  <div className="text-3xl mr-4 mt-1">{item.icon}</div>
-                  <div>
-                    <h3 className="font-medium text-[var(--sage-green)] text-lg mb-2">
-                      {t(`accessibility.improvements.${item.id}.title`)}
-                    </h3>
-                    <p className="text-gray-700">
-                      {t(`accessibility.improvements.${item.id}.description`)}
-                    </p>
+                  <div className="flex items-start gap-4">
+                    <div className={`p-3 rounded-xl bg-gradient-to-br ${info.color} group-hover:scale-110 transition-transform duration-300`}>
+                      <info.icon size={24} className="text-white" />
+                    </div>
+                    <div>
+                      <p className="text-[var(--black)] font-medium leading-relaxed">
+                        {t(`accessibility.eventInfo.${info.id}`)}
+                      </p>
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -219,85 +238,199 @@ export default function AccessibilityContent() {
         </div>
       </section>
       
-      <section className="py-16 bg-[var(--taupe)]">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
+      {/* Improvements Section */}
+      <section className="py-20 bg-gradient-to-br from-white via-[var(--taupe)] to-white relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 right-20 w-64 h-64 bg-[var(--sage-green)]/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 left-20 w-64 h-64 bg-[var(--cognac)]/5 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-6xl mx-auto">
             <motion.div 
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: -30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="bg-white rounded-xl p-8 shadow-lg"
+              className="text-center mb-16"
             >
-              <h2 className="text-2xl font-bold text-[var(--sage-green)] mb-6 text-center">
+              <motion.h2 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-4xl md:text-5xl font-bold text-[var(--black)] mb-6"
+              >
+                {t('accessibility.improvements.title')}
+              </motion.h2>
+              
+              <motion.div 
+                initial={{ opacity: 0, scaleX: 0 }}
+                whileInView={{ opacity: 1, scaleX: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="w-24 h-1 bg-gradient-to-r from-[var(--sage-green)] to-[var(--cognac)] mx-auto mb-8"
+              ></motion.div>
+              
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="text-xl max-w-4xl mx-auto text-[var(--black)]/80 leading-relaxed"
+              >
+                {t('accessibility.improvements.description')}
+              </motion.p>
+            </motion.div>
+            
+            <motion.div 
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-8"
+            >
+              {improvements.map((item) => (
+                <motion.div 
+                  key={item.id}
+                  variants={itemVariants}
+                  className="group bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-[var(--sage)]/20"
+                >
+                  <div className="flex items-start gap-6">
+                    <div className={`p-4 rounded-2xl bg-gradient-to-br ${item.color} group-hover:scale-110 transition-transform duration-300`}>
+                      <item.icon size={32} className="text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-[var(--black)] text-xl mb-3">
+                        {t(`accessibility.improvements.${item.id}.title`)}
+                      </h3>
+                      <p className="text-[var(--black)]/80 leading-relaxed">
+                        {t(`accessibility.improvements.${item.id}.description`)}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+      </section>
+      
+      {/* Feedback Section */}
+      <section className="py-20 bg-gradient-to-br from-[var(--sage)] via-white to-[var(--taupe)] relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-20 left-20 w-64 h-64 bg-[var(--sage-green)]/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-20 w-64 h-64 bg-[var(--cognac)]/5 rounded-full blur-3xl"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto">
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="bg-white/90 backdrop-blur-sm rounded-3xl p-8 md:p-12 shadow-2xl border border-[var(--sage)]/20"
+            >
+              <motion.h2 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-3xl md:text-4xl font-bold text-[var(--black)] mb-8 text-center"
+              >
                 {t('accessibility.feedback.title')}
-              </h2>
+              </motion.h2>
               
-              <p className="text-gray-700 mb-6">
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="text-lg text-[var(--black)]/80 mb-8 text-center leading-relaxed"
+              >
                 {t('accessibility.feedback.description')}
-              </p>
+              </motion.p>
               
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <div className="text-[var(--sage-green)] mr-3">📧</div>
-                  <p className="text-gray-700">
-                    <strong>{t('accessibility.feedback.email')}:</strong>{' '}
-                    <a href="mailto:accessibility@zafo.com" className="text-[var(--sage-green)] hover:underline">
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center gap-4 p-4 bg-[var(--taupe)]/50 rounded-2xl">
+                  <div className="p-3 bg-gradient-to-br from-[var(--sage-green)] to-emerald-500 rounded-xl">
+                    <Mail size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="text-[var(--black)] font-semibold">
+                      {t('accessibility.feedback.email')}:
+                    </p>
+                    <a href="mailto:accessibility@zafo.com" className="text-[var(--sage-green)] hover:underline font-medium">
                       accessibility@zafo.com
                     </a>
-                  </p>
+                  </div>
                 </div>
                 
-                <div className="flex items-start">
-                  <div className="text-[var(--sage-green)] mr-3">📞</div>
-                  <p className="text-gray-700">
-                    <strong>{t('accessibility.feedback.phone')}:</strong>{' '}
-                    <a href="tel:+18005550123" className="text-[var(--sage-green)] hover:underline">
+                <div className="flex items-center gap-4 p-4 bg-[var(--taupe)]/50 rounded-2xl">
+                  <div className="p-3 bg-gradient-to-br from-[var(--cognac)] to-orange-500 rounded-xl">
+                    <Phone size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="text-[var(--black)] font-semibold">
+                      {t('accessibility.feedback.phone')}:
+                    </p>
+                    <a href="tel:+18005550123" className="text-[var(--sage-green)] hover:underline font-medium">
                       +1 (800) 555-0123
                     </a>
-                  </p>
+                  </div>
                 </div>
                 
-                <div className="flex items-start">
-                  <div className="text-[var(--sage-green)] mr-3">📝</div>
-                  <p className="text-gray-700">
-                    <strong>{t('accessibility.feedback.form')}:</strong>{' '}
-                    <Link href="/contact" className="text-[var(--sage-green)] hover:underline">
+                <div className="flex items-center gap-4 p-4 bg-[var(--taupe)]/50 rounded-2xl">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl">
+                    <FileEdit size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="text-[var(--black)] font-semibold">
+                      {t('accessibility.feedback.form')}:
+                    </p>
+                    <Link href="/contact" className="text-[var(--sage-green)] hover:underline font-medium">
                       {t('accessibility.feedback.contactLink')}
                     </Link>
-                  </p>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
             
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
               className="mt-12 text-center"
             >
-              <p className="text-gray-700 italic">
+              <p className="text-[var(--black)]/70 italic mb-8">
                 {t('accessibility.statement.updated')}: {t('accessibility.statement.date')}
               </p>
               
-              <div className="mt-8 flex justify-center">
+              <div className="flex justify-center">
                 <a 
                   href="https://www.w3.org/WAI/WCAG21/quickref/" 
                   target="_blank" 
                   rel="noreferrer" 
-                  className="inline-flex items-center text-[var(--sage-green)] font-medium hover:underline"
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--sage-green)] to-emerald-500 text-white px-6 py-3 rounded-2xl font-semibold hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1"
                 >
                   {t('accessibility.statement.learnMore')}
-                  <svg className="ml-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
+                  <ExternalLink size={20} />
                 </a>
-          </div>
+              </div>
             </motion.div>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
     </>
   );
 } 

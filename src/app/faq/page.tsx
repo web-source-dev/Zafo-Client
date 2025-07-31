@@ -50,7 +50,7 @@ const FAQPage: React.FC = () => {
         <div className="bg-gray-50 py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-center mb-12">
-              {currentLanguage === 'en' ? 'Helpful Resources' : 'Hilfreiche Ressourcen'}
+              {t('faq.helpfulResources.title')}
             </h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -62,16 +62,14 @@ const FAQPage: React.FC = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold text-center mb-2">
-                  {currentLanguage === 'en' ? 'Help Center' : 'Hilfezentrum'}
+                  {t('faq.helpfulResources.helpCenter.title')}
                 </h3>
                 <p className="text-gray-600 text-center mb-4">
-                  {currentLanguage === 'en' 
-                    ? 'Detailed guides and tutorials to help you get the most out of Zafo.' 
-                    : 'Ausführliche Anleitungen und Tutorials, die Ihnen helfen, das Beste aus Zafo herauszuholen.'}
+                  {t('faq.helpfulResources.helpCenter.description')}
                 </p>
                 <div className="text-center">
                   <a href="/help" className="text-[var(--sage-green)] font-medium hover:underline">
-                    {currentLanguage === 'en' ? 'Visit Help Center' : 'Zum Hilfezentrum'}
+                    {t('faq.helpfulResources.helpCenter.link')}
                   </a>
                 </div>
               </div>
@@ -85,16 +83,14 @@ const FAQPage: React.FC = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold text-center mb-2">
-                  {currentLanguage === 'en' ? 'Video Tutorials' : 'Video-Tutorials'}
+                  {t('faq.helpfulResources.videoTutorials.title')}
                 </h3>
                 <p className="text-gray-600 text-center mb-4">
-                  {currentLanguage === 'en' 
-                    ? 'Watch step-by-step video guides for common tasks and features.' 
-                    : 'Schauen Sie sich Schritt-für-Schritt-Videoanleitungen für häufige Aufgaben und Funktionen an.'}
+                  {t('faq.helpfulResources.videoTutorials.description')}
                 </p>
                 <div className="text-center">
                   <a href="/tutorials" className="text-[var(--sage-green)] font-medium hover:underline">
-                    {currentLanguage === 'en' ? 'Watch Tutorials' : 'Tutorials ansehen'}
+                    {t('faq.helpfulResources.videoTutorials.link')}
                   </a>
                 </div>
               </div>
@@ -107,16 +103,14 @@ const FAQPage: React.FC = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold text-center mb-2">
-                  {currentLanguage === 'en' ? 'Community Forum' : 'Community-Forum'}
+                  {t('faq.helpfulResources.community.title')}
                 </h3>
                 <p className="text-gray-600 text-center mb-4">
-                  {currentLanguage === 'en' 
-                    ? 'Connect with other users, share tips, and get help from the Zafo community.' 
-                    : 'Verbinden Sie sich mit anderen Benutzern, teilen Sie Tipps und erhalten Sie Hilfe von der Zafo-Community.'}
+                  {t('faq.helpfulResources.community.description')}
                 </p>
                 <div className="text-center">
                   <a href="/community" className="text-[var(--sage-green)] font-medium hover:underline">
-                    {currentLanguage === 'en' ? 'Join the Discussion' : 'An der Diskussion teilnehmen'}
+                    {t('faq.helpfulResources.community.link')}
                   </a>
                 </div>
               </div>
