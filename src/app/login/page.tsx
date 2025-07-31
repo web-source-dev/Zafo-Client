@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import LoginForm from '../../components/auth/LoginForm';
 import { useAuth } from '../../auth/auth-context';
 import { useLanguage } from '../../i18n/language-context';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 // Create a client component that uses useSearchParams
 function LoginContent() {
@@ -54,11 +55,7 @@ function LoginContent() {
 // Export the main page component with Suspense
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-[var(--taupe)] flex justify-center items-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-      </div>
-    }>
+    <Suspense fallback={<LoadingScreen />}>
       <LoginContent />
     </Suspense>
   );

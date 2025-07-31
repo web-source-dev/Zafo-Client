@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Calendar } from 'lucide-react';
 import { useLanguage } from '../../i18n/language-context';
 import Link from 'next/link';
 import Image from 'next/image';
+
 interface Destination {
   id: string;
   name: string;
   image: string;
+  eventCount?: string;
 }
 
 interface DestinationCarouselProps {
@@ -46,7 +48,7 @@ const DestinationCarousel: React.FC<DestinationCarouselProps> = ({ title, destin
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
       const { scrollLeft, clientWidth } = scrollRef.current;
-      const scrollAmount = Math.min(clientWidth * 0.8, 300); // Limit max scroll amount
+      const scrollAmount = Math.min(clientWidth * 0.8, 400); // Increased scroll amount
       
       const scrollTo = direction === 'left' 
         ? Math.max(0, scrollLeft - scrollAmount)
@@ -81,19 +83,25 @@ const DestinationCarousel: React.FC<DestinationCarouselProps> = ({ title, destin
     : '0%';
   
   return (
-    <div className="py-12">
+    <div className="py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <h2 className="text-3xl font-semibold mb-8 text-[#36243A]">
-          {title}
-        </h2>
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-[var(--black)] mb-4">
+            {title}
+          </h2>
+          <p className="text-lg text-[var(--black)]/80 max-w-2xl mx-auto">
+            {t('destinations.exploreEventsPopularDestinations')}
+          </p>
+        </div>
         
         <div className="relative">
           {/* Left arrow */}
           {destinations.length > 0 && (
             <button 
-              className={`absolute -left-2 sm:-left-4 top-1/2 transform -translate-y-1/2 z-10 rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-white shadow-md ${
-                canScrollLeft ? 'text-gray-800 hover:bg-gray-100' : 'text-gray-300 cursor-not-allowed'
-              }`}
+              className={`absolute -left-4 sm:-left-6 top-1/2 transform -translate-y-1/2 z-10 rounded-full w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center bg-white shadow-lg border border-[var(--sage)] ${
+                canScrollLeft ? 'text-[var(--black)] hover:bg-[var(--sage)] hover:shadow-xl' : 'text-[var(--black)]/30 cursor-not-allowed'
+              } transition-all duration-200`}
               onClick={() => scroll('left')}
               disabled={!canScrollLeft}
               aria-label={t('accessibility.scrollLeft')}
@@ -105,9 +113,9 @@ const DestinationCarousel: React.FC<DestinationCarouselProps> = ({ title, destin
           {/* Right arrow */}
           {destinations.length > 0 && (
             <button 
-              className={`absolute -right-2 sm:-right-4 top-1/2 transform -translate-y-1/2 z-10 rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center bg-white shadow-md ${
-                canScrollRight ? 'text-gray-800 hover:bg-gray-100' : 'text-gray-300 cursor-not-allowed'
-              }`}
+              className={`absolute -right-4 sm:-right-6 top-1/2 transform -translate-y-1/2 z-10 rounded-full w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center bg-white shadow-lg border border-[var(--sage)] ${
+                canScrollRight ? 'text-[var(--black)] hover:bg-[var(--sage)] hover:shadow-xl' : 'text-[var(--black)]/30 cursor-not-allowed'
+              } transition-all duration-200`}
               onClick={() => scroll('right')}
               disabled={!canScrollRight}
               aria-label={t('accessibility.scrollRight')}
@@ -119,7 +127,7 @@ const DestinationCarousel: React.FC<DestinationCarouselProps> = ({ title, destin
           {/* Scrollable container */}
           <div 
             ref={scrollRef}
-            className="flex overflow-x-auto scrollbar-hide gap-4 sm:gap-6 py-4 px-1"
+            className="flex overflow-x-auto scrollbar-hide gap-6 sm:gap-8 py-4 px-2"
             onScroll={handleScroll}
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
@@ -127,32 +135,51 @@ const DestinationCarousel: React.FC<DestinationCarouselProps> = ({ title, destin
               <Link
                 key={destination.id}
                 href={`/events?location=${encodeURIComponent(destination.name)}`}
-                className="flex-shrink-0 w-60 sm:w-72 md:w-80 group"
+                className="flex-shrink-0 w-72 sm:w-80 md:w-96 group"
               >
-                <div className="relative h-40 sm:h-48 md:h-60 overflow-hidden rounded-lg shadow-md">
+                <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden rounded-2xl shadow-lg transform group-hover:scale-105 transition-all duration-300">
                   <Image
                     src={destination.image}
                     alt={destination.name}
-                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
-                    width={320}
-                    height={240}
+                    className="w-full h-full object-cover"
+                    width={384}
+                    height={256}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/60"></div>
-                  <div className="absolute bottom-0 left-0 w-full p-4 sm:p-6">
-                    <div className="relative rounded-b-lg px-3 py-2 bg-red-500">
-                      <h3 className="text-lg sm:text-xl font-bold text-white">
-                        {destination.name}
-                      </h3>
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black/70"></div>
+                  
+                  {/* Content overlay */}
+                  <div className="absolute bottom-0 left-0 w-full p-6">
+                    <div className="bg-white/95 backdrop-blur-sm rounded-xl p-4 shadow-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MapPin size={16} className="text-[var(--sage-green)]" />
+                        <h3 className="text-lg sm:text-xl font-bold text-[var(--black)]">
+                          {destination.name}
+                        </h3>
+                      </div>
+                      {destination.eventCount && (
+                        <div className="flex items-center gap-2">
+                          <Calendar size={14} className="text-[var(--black)]/50" />
+                          <span className="text-sm text-[var(--black)]/70 font-medium">
+                            {destination.eventCount}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
+                  
+                  {/* Hover effect */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[var(--sage-green)]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
               </Link>
             ))}
             
             {/* Show empty state if no destinations */}
             {destinations.length === 0 && (
-              <div className="flex-shrink-0 w-full text-center py-12">
-                <p className="text-gray-500">{t('home.noDestinations')}</p>
+              <div className="flex-shrink-0 w-full text-center py-16">
+                <div className="bg-[var(--taupe)] rounded-2xl border-2 border-dashed border-[var(--sage)] py-12">
+                  <MapPin size={48} className="text-[var(--black)]/40 mx-auto mb-4" />
+                  <p className="text-[var(--black)]/60 text-lg">{t('destinations.noDestinations')}</p>
+                </div>
               </div>
             )}
           </div>
@@ -160,10 +187,10 @@ const DestinationCarousel: React.FC<DestinationCarouselProps> = ({ title, destin
         
         {/* Progress indicator */}
         {destinations.length > 0 && (
-          <div className="flex justify-center mt-4">
-            <div className="h-1.5 w-48 bg-gray-200 rounded-full overflow-hidden">
+          <div className="flex justify-center mt-8">
+            <div className="h-2 w-64 bg-[var(--sage)] rounded-full overflow-hidden shadow-inner">
               <div 
-                className="h-full bg-gray-800 rounded-full"
+                className="h-full bg-[var(--sage-green)] rounded-full transition-all duration-300 ease-out"
                 style={{ 
                   width: progressWidth,
                   marginLeft: progressOffset
@@ -172,6 +199,17 @@ const DestinationCarousel: React.FC<DestinationCarouselProps> = ({ title, destin
             </div>
           </div>
         )}
+        
+        {/* Call to action */}
+        <div className="text-center mt-12">
+          <Link 
+            href="/events" 
+            className="inline-flex items-center bg-[var(--sage-green)] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[var(--cognac)] transition-all duration-200 transform hover:scale-105 shadow-lg"
+          >
+            {t('destinations.exploreAllDestinations')}
+            <ChevronRight size={16} className="ml-2" />
+          </Link>
+        </div>
       </div>
     </div>
   );

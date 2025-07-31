@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useLanguage } from '../../i18n/language-context';
 import LanguageSwitcher from './LanguageSwitcher';
+import { Facebook, Twitter, Instagram, Linkedin, Youtube, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const { t } = useLanguage();
@@ -28,7 +29,6 @@ const Footer: React.FC = () => {
         { name: t('footer.help'), href: '/help' },
         { name: t('footer.faq'), href: '/faq' },
         { name: t('footer.legal'), href: '/legal' },
-
       ],
     },
     {
@@ -42,67 +42,84 @@ const Footer: React.FC = () => {
   ];
 
   const socialLinks = [
-    { name: 'Facebook', icon: '/icons/facebook.svg', href: 'https://facebook.com' },
-    { name: 'Twitter', icon: '/icons/twitter.svg', href: 'https://twitter.com' },
-    { name: 'Instagram', icon: '/icons/instagram.svg', href: 'https://instagram.com' },
-    { name: 'LinkedIn', icon: '/icons/linkedin.svg', href: 'https://linkedin.com' },
-    { name: 'YouTube', icon: '/icons/youtube.svg', href: 'https://youtube.com' },
+    { name: 'Facebook', icon: Facebook, href: 'https://facebook.com', color: 'hover:text-blue-600' },
+    { name: 'Twitter', icon: Twitter, href: 'https://twitter.com', color: 'hover:text-blue-400' },
+    { name: 'Instagram', icon: Instagram, href: 'https://instagram.com', color: 'hover:text-pink-500' },
+    { name: 'LinkedIn', icon: Linkedin, href: 'https://linkedin.com', color: 'hover:text-blue-700' },
+    { name: 'YouTube', icon: Youtube, href: 'https://youtube.com', color: 'hover:text-red-600' },
   ];
 
   return (
-    <footer className="bg-gray-50 border-t border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+    <footer className="relative bg-[var(--taupe)] border-t border-[var(--sage)]/20">
+      
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-12">
           {/* Logo and Description */}
-          <div className="md:col-span-2">
-            <Link href="/" className="flex items-center">
-              <Image 
-                src="/logo.svg" 
-                alt={t('common.appName')} 
-                width={150} 
-                height={45} 
-                className="h-10 w-auto" 
-              />
+          <div className="lg:col-span-2">
+            <Link href="/" className="inline-flex items-center space-x-2 group mb-6">
+              <div className="w-10 h-10 bg-gradient-to-br from-[var(--sage-green)] to-[var(--cognac)] rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
+                <span className="text-white font-bold text-xl">Z</span>
+              </div>
+              <span className="text-2xl font-bold text-[var(--black)] group-hover:text-[var(--sage-green)] transition-colors">
+                {t('common.appName')}
+              </span>
             </Link>
-            <p className="mt-4 text-gray-600 text-sm">
+            
+            <p className="text-[var(--black)]/70 text-base leading-relaxed mb-8">
               {t('footer.description')}
             </p>
-            <div className="mt-6 flex space-x-4">
+            
+            {/* Contact Info */}
+            <div className="space-y-3 mb-8">
+              <div className="flex items-center space-x-3 text-[var(--black)]/70">
+                <Mail size={16} className="text-[var(--sage-green)]" />
+                <span className="text-sm">hello@zafo.com</span>
+              </div>
+              <div className="flex items-center space-x-3 text-[var(--black)]/70">
+                <Phone size={16} className="text-[var(--sage-green)]" />
+                <span className="text-sm">+1 (555) 123-4567</span>
+              </div>
+              <div className="flex items-center space-x-3 text-[var(--black)]/70">
+                <MapPin size={16} className="text-[var(--sage-green)]" />
+                <span className="text-sm">123 Event Street, City, Country</span>
+              </div>
+            </div>
+            
+            {/* Social Links */}
+            <div className="flex space-x-4">
               {socialLinks.map((social) => (
                 <a
                   key={social.name}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-gray-400 hover:text-[var(--sage-green)] transition-colors"
+                  className={`w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-110 ${social.color}`}
                 >
+                  <social.icon size={18} className="text-[var(--black)]/60" />
                   <span className="sr-only">{social.name}</span>
-                  <Image 
-                    src={social.icon} 
-                    alt={social.name} 
-                    width={24} 
-                    height={24} 
-                    className="h-6 w-6" 
-                  />
                 </a>
               ))}
             </div>
           </div>
 
           {/* Links */}
-          {footerLinks.map((column) => (
-            <div key={column.title}>
-              <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase">
+          {footerLinks.map((column, index) => (
+            <div key={column.title} className="lg:col-span-1">
+              <h3 className="text-lg font-semibold text-[var(--black)] mb-6 relative">
                 {column.title}
+                <div className="absolute -bottom-2 left-0 w-8 h-0.5 bg-gradient-to-r from-[var(--sage-green)] to-[var(--cognac)]"></div>
               </h3>
-              <ul className="mt-4 space-y-3">
+              <ul className="space-y-4">
                 {column.links.map((link) => (
                   <li key={link.name}>
                     <Link 
                       href={link.href} 
-                      className="text-gray-600 hover:text-[var(--sage-green)] text-sm"
+                      className="group flex items-center text-[var(--black)]/70 hover:text-[var(--sage-green)] text-sm transition-all duration-200"
                     >
-                      {link.name}
+                      <ArrowRight size={12} className="mr-2 opacity-0 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all duration-200" />
+                      <span className="group-hover:translate-x-1 transition-transform duration-200">
+                        {link.name}
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -112,13 +129,21 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Section */}
-        <div className="mt-12 pt-8 border-t border-gray-200 flex flex-col md:flex-row justify-between items-start md:items-center">
-          <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6">
-            <p className="text-gray-500 text-sm">
+        <div className="mt-12 pt-8 border-t border-[var(--sage)]/20 flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
+          <div className="flex flex-col lg:flex-row space-y-2 lg:space-y-0 lg:space-x-6">
+            <p className="text-[var(--black)]/60 text-sm">
               &copy; {currentYear} {t('common.appName')}. {t('footer.copyright')}
             </p>
+            <div className="flex space-x-4 text-sm">
+              <Link href="/privacy" className="text-[var(--black)]/60 hover:text-[var(--sage-green)] transition-colors">
+                {t('footer.privacy')}
+              </Link>
+              <Link href="/terms" className="text-[var(--black)]/60 hover:text-[var(--sage-green)] transition-colors">
+                {t('footer.terms')}
+              </Link>
+            </div>
           </div>
-          <div className="mt-4 md:mt-0">
+          <div className="flex items-center space-x-4">
             <LanguageSwitcher variant="minimal" />
           </div>
         </div>

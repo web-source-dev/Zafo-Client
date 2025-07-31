@@ -9,7 +9,7 @@ interface CardProps {
 
 const Card = ({ children, className = '' }: CardProps) => {
   return (
-    <div className={`bg-white overflow-hidden shadow rounded-lg ${className}`}>
+    <div className={`bg-[#f5f5f5] overflow-hidden shadow rounded-lg ${className}`}>
       {children}
     </div>
   );

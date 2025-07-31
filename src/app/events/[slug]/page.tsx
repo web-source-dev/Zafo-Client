@@ -11,6 +11,7 @@ import ticketService, { Ticket } from '@/services/ticket-service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 import { formatTime, formatDateRange } from '@/utils/dateUtils';
 
 export default function EventDetailPage() {
@@ -81,11 +82,7 @@ export default function EventDetailPage() {
   }, [slug, t, isAuthenticated]);
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-12 flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (error || !event) {
@@ -163,7 +160,7 @@ export default function EventDetailPage() {
             src={event.coverImage}
             alt={event.title}
             fill
-            className="object-cover"
+            className="object-fill"
             priority
           />
         ) : (

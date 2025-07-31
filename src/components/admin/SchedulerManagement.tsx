@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button';
 import { Clock, Play, Square, RefreshCw, AlertCircle, CheckCircle } from 'lucide-react';
 import api from '@/api/api';
 import { useLanguage } from '@/i18n/language-context';
+import LoadingScreen from '../ui/LoadingScreen';
 
 interface SchedulerStatus {
   isRunning: boolean;
@@ -128,10 +129,7 @@ export default function SchedulerManagement() {
           )}
 
           {isLoading ? (
-            <div className="text-center py-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">{t('admin.loading')}</p>
-            </div>
+            <LoadingScreen />
           ) : status ? (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

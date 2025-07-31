@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../../components
 import Button from '../../../../components/ui/Button';
 import { RefreshCw, ArrowRight, AlertCircle } from 'lucide-react';
 import organizerService from '../../../../services/organizer-service';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 export default function StripeConnectRefreshPage() {
   const router = useRouter();
@@ -63,10 +64,7 @@ export default function StripeConnectRefreshPage() {
                 className="w-full flex items-center justify-center"
               >
                 {isLoading ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Loading...
-                  </>
+                  <LoadingScreen />
                 ) : (
                   <>
                     Continue Setup

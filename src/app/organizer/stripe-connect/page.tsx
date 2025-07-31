@@ -9,6 +9,7 @@ import Button from '../../../components/ui/Button';
 import { ArrowLeft, CreditCard, TrendingUp, DollarSign } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import organizerService from '../../../services/organizer-service';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 
 interface PaymentSummaryData {
@@ -66,16 +67,7 @@ export default function StripeConnectPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading payment information...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

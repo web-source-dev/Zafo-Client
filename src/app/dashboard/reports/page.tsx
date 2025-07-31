@@ -18,6 +18,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/utils/dateUtils';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 export default function UserReportsPage() {
   const { isAuthenticated } = useAuth();
@@ -83,15 +84,7 @@ export default function UserReportsPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!reportsData) {

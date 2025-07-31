@@ -14,6 +14,7 @@ import {
   Send,
 } from 'lucide-react';
 import adminService, { Organizer, OrganizerPaymentStats } from '../../../../services/admin-service';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 interface Ticket {
   id: string;
@@ -119,11 +120,7 @@ export default function OrganizerDetailPage() {
   };
 
   if (isLoading) {
-    return (
-        <div className="flex justify-center py-8">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-        </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!organizer || !stats) {

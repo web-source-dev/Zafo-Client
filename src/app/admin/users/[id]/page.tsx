@@ -6,6 +6,7 @@ import { useLanguage } from '../../../../i18n/language-context';
 import Button from '../../../../components/ui/Button';
 import Input from '../../../../components/ui/Input';
 import Select from '../../../../components/ui/Select';
+import LoadingScreen from '../../../../components/ui/LoadingScreen';
 import { Card, CardHeader, CardContent, CardTitle, CardFooter } from '../../../../components/ui/Card';
 import Badge from '../../../../components/ui/Badge';
 import { User, KeyRound, Mail, UserCog, Save, ArrowLeft, Trash, Ban, CheckCircle, AlertCircle } from 'lucide-react';
@@ -267,9 +268,7 @@ export default function UserDetailPage() {
       )}
       
       {isLoading ? (
-        <div className="mt-6 flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-        </div>
+        <LoadingScreen />
       ) : (
         <>
           <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">

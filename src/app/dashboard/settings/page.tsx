@@ -19,6 +19,7 @@ import {
   EyeOff,
   Settings as SettingsIcon
 } from 'lucide-react';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 export default function SettingsPage() {
   const { user, updateProfile } = useAuth();
@@ -179,11 +180,7 @@ export default function SettingsPage() {
   };
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

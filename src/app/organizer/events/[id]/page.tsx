@@ -8,6 +8,7 @@ import Button from '@/components/ui/Button';
 import eventService, { Event } from '@/services/event-service';
 import Image from 'next/image';
 import { ArrowLeft, Edit, CreditCard, Users } from 'lucide-react';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 // Extended Event interface to include pending_payment status
 interface EventWithExtendedStatus extends Omit<Event, 'status'> {
@@ -113,15 +114,7 @@ export default function OrganizerEventDetailsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (error || !event) {

@@ -4,6 +4,7 @@ import React, { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useLanguage } from '../../../i18n/language-context';
 import Button from '../../../components/ui/Button';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 function PaymentCancelContent() {
   const { t } = useLanguage();
@@ -55,13 +56,7 @@ function PaymentCancelContent() {
 
 export default function PaymentCancelPage() {
   return (
-    <Suspense fallback={
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-        </div>
-      </div>
-    }>
+    <Suspense fallback={<LoadingScreen />}>
       <PaymentCancelContent />
     </Suspense>
   );

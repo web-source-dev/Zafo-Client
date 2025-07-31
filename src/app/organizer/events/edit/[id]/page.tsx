@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useLanguage } from '../../../../../i18n/language-context';
 import EventForm from '../../../../../components/events/EventForm';
 import eventService, { Event } from '../../../../../services/event-service';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 export default function EditEventPage() {
   const { t } = useLanguage();
@@ -41,9 +42,7 @@ export default function EditEventPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-        </div>
+        <LoadingScreen />
       ) : error ? (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
           {error}

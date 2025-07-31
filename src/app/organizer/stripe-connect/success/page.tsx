@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../../../components
 import Button from '../../../../components/ui/Button';
 import { CheckCircle, ArrowRight, CreditCard } from 'lucide-react';
 import organizerService from '../../../../services/organizer-service';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 interface StripeAccountStatus {
   hasAccount: boolean;
@@ -46,14 +47,7 @@ export default function StripeConnectSuccessPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Verifying your account...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

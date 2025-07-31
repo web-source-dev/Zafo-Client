@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/i18n/language-context';
 import { FiSearch, FiCalendar, FiUser, FiTag, FiArrowRight } from 'react-icons/fi';
 import { getBlogPosts } from '@/lib/blogData';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 // Define interface for blog post data
 interface BlogPost {
@@ -94,13 +95,7 @@ const BlogSection: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

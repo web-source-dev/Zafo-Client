@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/i18n/language-context';
 import { FiCalendar, FiTag, FiShare2, FiTwitter, FiFacebook, FiLinkedin, FiArrowLeft, FiArrowRight } from 'react-icons/fi';
 import { getBlogPostBySlug, getRelatedPosts } from '@/lib/blogData';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 interface BlogPost {
   id: string;
@@ -67,13 +68,7 @@ const BlogPostPage: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-[var(--taupe)]">
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!blogPost) {

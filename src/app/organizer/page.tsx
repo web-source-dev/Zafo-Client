@@ -9,11 +9,12 @@ import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
 import StatCard from '@/components/ui/StatCard';
 import { formatDate, formatCurrency } from '@/utils/dateUtils';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 export default function OrganizerDashboard() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dashboardData, setDashboardData] = useState<DashboardOverview | null>(null);
@@ -28,11 +29,11 @@ export default function OrganizerDashboard() {
 
       try {
         console.log('Fetching dashboard overview for organizer:', user._id);
-        
+
         // Fetch comprehensive dashboard data
         const data = await organizerService.getDashboardOverview();
         console.log('Dashboard data:', data);
-        
+
         setDashboardData(data);
 
       } catch (err) {
@@ -42,7 +43,7 @@ export default function OrganizerDashboard() {
         setIsLoading(false);
       }
     };
-    
+
     fetchDashboardData();
   }, [isAuthenticated, user]);
 
@@ -80,13 +81,7 @@ export default function OrganizerDashboard() {
   }
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (error) {
@@ -129,17 +124,17 @@ export default function OrganizerDashboard() {
           Manage your events, track sales, and monitor your earnings
         </p>
       </div>
-      
+
       {/* Quick Actions */}
       <div className="mb-8">
         <div className="flex flex-wrap gap-4">
-          <Button 
+          <Button
             onClick={() => router.push('/organizer/events/create')}
             className="bg-[var(--sage-green)] hover:bg-emerald-600"
           >
             Create New Event
           </Button>
-          <Button 
+          <Button
             variant="outline"
             onClick={() => router.push('/organizer/events')}
           >
@@ -152,7 +147,7 @@ export default function OrganizerDashboard() {
             Refund Requests ({refundRequests})
           </Button>
           {stripeAccountStatus && !stripeAccountStatus.hasAccount && (
-            <Button 
+            <Button
               variant="outline"
               onClick={() => router.push('/organizer/stripe-connect')}
               className="border-orange-300 text-orange-700 hover:bg-orange-50"
@@ -214,7 +209,7 @@ export default function OrganizerDashboard() {
                   <span className="font-semibold text-lg text-[var(--sage-green)]">
                     {formatCurrency(ticketStats.organizerPayments, 'CHF')}
                   </span>
-        </div>
+                </div>
               </div>
               <div className="border-t pt-4">
                 <div className="flex justify-between items-center">
@@ -235,7 +230,7 @@ export default function OrganizerDashboard() {
                     <span className="font-semibold text-red-600">
                       {transferStats.failedTransfers} transfers
                     </span>
-                    </div>
+                  </div>
                 )}
               </div>
             </div>
@@ -251,16 +246,16 @@ export default function OrganizerDashboard() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-gray-600">Account Status</span>
-                <Badge 
+                <Badge
                   variant={
-                    stripeAccountStatus.status === 'active' ? 'success' : 
-                    stripeAccountStatus.status === 'pending' ? 'warning' : 'danger'
+                    stripeAccountStatus.status === 'active' ? 'success' :
+                      stripeAccountStatus.status === 'pending' ? 'warning' : 'danger'
                   }
                 >
                   {stripeAccountStatus.status}
                 </Badge>
               </div>
-              
+
               {stripeAccountStatus.hasAccount && (
                 <>
                   <div className="flex items-center justify-between">
@@ -280,29 +275,29 @@ export default function OrganizerDashboard() {
                     <span className="text-sm font-mono text-gray-500">
                       {stripeAccountStatus.accountId?.slice(-8)}
                     </span>
-                    </div>
+                  </div>
                 </>
               )}
-              
+
               {!stripeAccountStatus.hasAccount && (
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                   <p className="text-orange-800 text-sm">
                     Set up your Stripe Connect account to receive payments from ticket sales.
                   </p>
-                  <Button 
+                  <Button
                     onClick={() => router.push('/organizer/stripe-connect')}
                     className="mt-3 bg-orange-600 hover:bg-orange-700"
                     size="sm"
                   >
                     Set Up Now
                   </Button>
-              </div>
+                </div>
               )}
             </div>
           </CardContent>
         </Card>
-        </div>
-        
+      </div>
+
       {/* Recent Events and Ticket Sales */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         {/* Recent Events */}
@@ -321,9 +316,9 @@ export default function OrganizerDashboard() {
                       <h4 className="font-medium text-gray-900 truncate">{event.title}</h4>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant={
-                          event.status === 'published' ? 'success' : 
-                          event.status === 'draft' ? 'outline' : 
-                          event.status === 'completed' ? 'info' : 'warning'
+                          event.status === 'published' ? 'success' :
+                            event.status === 'draft' ? 'outline' :
+                              event.status === 'completed' ? 'info' : 'warning'
                         }>
                           {event.status}
                         </Badge>
@@ -335,21 +330,21 @@ export default function OrganizerDashboard() {
                       </div>
                       <div className="text-sm text-gray-500 mt-1">
                         {event.location.online ? 'Online Event' : event.location.name}
-              </div>
+                      </div>
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-medium">{event.soldTickets}/{event.capacity} tickets</div>
                       <div className="text-sm text-gray-500">
                         {formatCurrency(event.totalRevenue, 'CHF')}
-              </div>
-            </div>
-          </div>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <p>No events created yet</p>
-                <Button 
+                <Button
                   onClick={() => router.push('/organizer/events/create')}
                   className="mt-2"
                   size="sm"
@@ -366,7 +361,7 @@ export default function OrganizerDashboard() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Recent Ticket Sales</CardTitle>
-             
+
             </div>
           </CardHeader>
           <CardContent>
@@ -380,27 +375,27 @@ export default function OrganizerDashboard() {
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant={
-                          ticket.paymentStatus === 'paid' ? 'success' : 
-                          ticket.paymentStatus === 'pending' ? 'warning' : 'danger'
+                          ticket.paymentStatus === 'paid' ? 'success' :
+                            ticket.paymentStatus === 'pending' ? 'warning' : 'danger'
                         }>
                           {ticket.paymentStatus}
                         </Badge>
                         <span className="text-sm text-gray-500">
                           {formatDate(new Date(ticket.purchasedAt))}
                         </span>
-          </div>
+                      </div>
                       <div className="text-sm text-gray-500 mt-1">
-                        {typeof ticket.attendee === 'string' ? 'Attendee' : 
-                         `${(ticket.attendee as { firstName: string; lastName: string }).firstName} ${(ticket.attendee as { firstName: string; lastName: string }).lastName}`}
-        </div>
-      </div>
+                        {typeof ticket.attendee === 'string' ? 'Attendee' :
+                          `${(ticket.attendee as { firstName: string; lastName: string }).firstName} ${(ticket.attendee as { firstName: string; lastName: string }).lastName}`}
+                      </div>
+                    </div>
                     <div className="text-right">
                       <div className="text-sm font-medium">{ticket.quantity} tickets</div>
                       <div className="text-sm text-gray-500">
                         {formatCurrency(ticket.totalAmount, 'CHF')}
-          </div>
-        </div>
-      </div>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -411,7 +406,7 @@ export default function OrganizerDashboard() {
             )}
           </CardContent>
         </Card>
-          </div>
+      </div>
 
       {/* Event Status Breakdown and Monthly Revenue */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -460,9 +455,9 @@ export default function OrganizerDashboard() {
                   <div key={month.month} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
                     <div>
                       <div className="font-medium text-gray-900">
-                        {new Date(month.month + '-01').toLocaleDateString('en-US', { 
-                          month: 'long', 
-                          year: 'numeric' 
+                        {new Date(month.month + '-01').toLocaleDateString('en-US', {
+                          month: 'long',
+                          year: 'numeric'
                         })}
                       </div>
                       <div className="text-sm text-gray-500">{month.tickets} tickets sold</div>
@@ -472,7 +467,7 @@ export default function OrganizerDashboard() {
                         {formatCurrency(month.revenue, 'CHF')}
                       </div>
                     </div>
-              </div>
+                  </div>
                 ))}
               </div>
             ) : (
@@ -483,7 +478,7 @@ export default function OrganizerDashboard() {
             )}
           </CardContent>
         </Card>
-          </div>
+      </div>
 
       {/* Refund Requests Summary */}
       {refundRequests > 0 && (
@@ -492,7 +487,7 @@ export default function OrganizerDashboard() {
             <div className="flex justify-between items-center">
               <CardTitle>Pending Refund Requests</CardTitle>
               <Button
-                variant="outline" 
+                variant="outline"
                 size="sm"
                 onClick={() => router.push('/organizer/refund-requests')}
               >
@@ -516,11 +511,11 @@ export default function OrganizerDashboard() {
                     Review and process refund requests from your event attendees.
                   </p>
                 </div>
+              </div>
             </div>
-          </div>
           </CardContent>
         </Card>
-        )}
-      </div>
+      )}
+    </div>
   );
 }

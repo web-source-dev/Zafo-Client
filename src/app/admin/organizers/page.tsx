@@ -7,6 +7,7 @@ import Button from '../../../components/ui/Button';
 import Badge from '../../../components/ui/Badge';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
+import LoadingScreen from '../../../components/ui/LoadingScreen';
 import { 
   Users, 
   DollarSign, 
@@ -562,9 +563,7 @@ export default function OrganizersPage() {
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-              </div>
+              <LoadingScreen />
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">

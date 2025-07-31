@@ -2,10 +2,10 @@
 
 :root {
   /* Theme colors */
-  --sage-green: #4B6478;  /* Muted navy */
-  --sage: #D3D9DD;        /* Sea foam gray */
-  --cognac: #9F8370;      /* Coral stone */
-  --taupe: #F0EEEB;       /* Cream sand */
+  --sage-green: #4a95eb;  /* Muted navy */
+  --sage: #d7efff;        /* Sea foam gray */
+  --cognac: #1390b6;      /* Coral stone */
+  --taupe: #ffffff;       /* Cream sand */
   --black: #2B2B2B;       /* Classic black */
  
   /* Base variables */
@@ -23,14 +23,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* You may want to adjust these for dark mode later */
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {

@@ -12,6 +12,7 @@ import eventService, { Event } from '@/services/event-service';
 import { ArrowLeft, Users, Calendar, MapPin, CreditCard, Download, FileText } from 'lucide-react';
 import { formatDate } from '@/utils/dateUtils';
 import Image from 'next/image';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 interface Participant {
   _id: string;
@@ -187,15 +188,7 @@ export default function EventParticipantsPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (error || !event) {

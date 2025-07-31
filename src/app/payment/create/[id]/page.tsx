@@ -7,6 +7,7 @@ import { useAuth } from '../../../../auth/auth-context';
 import Button from '../../../../components/ui/Button';
 import eventService, { Event } from '../../../../services/event-service';
 import api from '../../../../api/api';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 // Extended interfaces to include payment status and platform fee
 interface ExtendedEventPrice {
@@ -171,16 +172,12 @@ export default function EventPaymentPage() {
   };
   
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
   
   if (error) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto px-4 py-8 bg-[var(--taupe)]">
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
           {error}
         </div>
@@ -193,7 +190,7 @@ export default function EventPaymentPage() {
   
   if (success) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto px-4 py-8 bg-[var(--taupe)]">
         <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
           {t('payment.alreadyPaid')}
         </div>
@@ -211,7 +208,7 @@ export default function EventPaymentPage() {
   
   if (!event) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-8">
+      <div className="max-w-3xl mx-auto px-4 py-8 bg-[var(--taupe)]">
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
           {t('events.notFound')}
         </div>
@@ -223,7 +220,7 @@ export default function EventPaymentPage() {
   }
   
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-3xl mx-auto px-4 py-8 bg-[var(--taupe)]">
       <h1 className="text-2xl font-bold text-[var(--sage-green)] mb-6">
         {t('payment.title')}
       </h1>

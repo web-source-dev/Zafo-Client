@@ -6,6 +6,7 @@ import { useLanguage } from '../../../i18n/language-context';
 import { useAuth } from '../../../auth/auth-context';
 import Button from '../../../components/ui/Button';
 import api from '../../../api/api';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 function PaymentSuccessContent() {
   const { t } = useLanguage();
@@ -118,12 +119,7 @@ function PaymentSuccessContent() {
   };
   
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-        <p className="ml-3">{t('payment.verifying')}</p>
-      </div>
-    );
+    return <LoadingScreen />;
   }
   
   return (
@@ -142,7 +138,6 @@ function PaymentSuccessContent() {
           </svg>
           <h2 className="text-2xl font-bold mb-2">{t('payment.success.title')}</h2>
           <p className="mb-4">{t('payment.success.message')}</p>
-          <p className="text-sm">{t('payment.success.reference')}: {sessionId}</p>
           {paidAt && (
             <p className="text-sm mt-2">{t('payment.processedAt')}: {paidAt}</p>
           )}

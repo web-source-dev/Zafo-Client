@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useLanguage } from '../../../../../i18n/language-context';
 import Button from '../../../../../components/ui/Button';
 import Input from '../../../../../components/ui/Input';
+import LoadingScreen from '../../../../../components/ui/LoadingScreen';
 import { Card, CardHeader, CardContent, CardTitle } from '../../../../../components/ui/Card';
 import { KeyRound, Copy, Check, ArrowLeft, AlertCircle, CheckCircle, Shield } from 'lucide-react';
 import adminService from '../../../../../services/admin-service';
@@ -238,9 +239,7 @@ export default function ResetPasswordPage() {
       )}
       
       {isLoading ? (
-        <div className="mt-6 flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-        </div>
+        <LoadingScreen />
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
           {/* User Info */}

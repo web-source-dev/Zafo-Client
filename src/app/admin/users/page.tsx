@@ -7,6 +7,7 @@ import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Badge from '../../../components/ui/Badge';
+import LoadingScreen from '../../../components/ui/LoadingScreen';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '../../../components/ui/Card';
 import { Search, UserPlus, Filter, ChevronLeft, ChevronRight, Mail, Calendar, UserCog, Edit, Users } from 'lucide-react';
 import adminService, { AdminUser } from '../../../services/admin-service';
@@ -367,9 +368,7 @@ export default function UsersPage() {
           
             {/* Users display - loading, empty, or content */}
             {isLoading ? (
-              <div className="py-12 flex justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-              </div>
+              <LoadingScreen />
             ) : users.length > 0 ? (
               <>
                 {/* Mobile cards view */}

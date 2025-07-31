@@ -13,6 +13,7 @@ import QRCodeComponent from '@/components/ui/QRCode';
 import { formatDate } from '@/utils/dateUtils';
 import { generateTicketPDF, generateAllTicketsPDF, TicketData } from '@/utils/pdfGenerator';
 import { Calendar, MapPin, Users, CreditCard, Clock, AlertCircle, CheckCircle, XCircle, ChevronDown, ChevronUp, Eye, EyeOff, Download, FileText } from 'lucide-react';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 export default function UserTicketsPage() {
   const { t } = useLanguage();
@@ -323,15 +324,7 @@ export default function UserTicketsPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

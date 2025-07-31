@@ -10,6 +10,7 @@ import eventService, { Event } from '@/services/event-service';
 import Image from 'next/image';
 import DropdownMenu from '@/components/ui/DropdownMenu';
 import { Eye, Edit, CheckCircle, CreditCard, Trash, Users } from 'lucide-react';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 
 // Type for the translation function
 type TranslationFunction = (key: string, params?: Record<string, string>) => string;
@@ -632,9 +633,7 @@ export default function OrganizerPage() {
             </div>
             
             {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-              </div>
+              <LoadingScreen />
             ) : error ? (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                 {error}
@@ -674,9 +673,7 @@ export default function OrganizerPage() {
             </h3>
             
             {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-              </div>
+              <LoadingScreen />
             ) : error ? (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                 {error}
@@ -721,9 +718,7 @@ export default function OrganizerPage() {
             </div>
             
             {isLoading ? (
-              <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-              </div>
+              <LoadingScreen />
             ) : error ? (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
                 {error}

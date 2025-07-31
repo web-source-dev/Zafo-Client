@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '../../components/ui/Card';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
+import LoadingScreen from '../../components/ui/LoadingScreen';
 import { useLanguage } from '../../i18n/language-context';
 import Button from '../../components/ui/Button';
 import { Users, Activity, Calendar, TrendingUp, UserPlus, Server, Database, Clock, AlertCircle, Settings } from 'lucide-react';
@@ -126,9 +127,7 @@ export default function AdminPage() {
       )}
 
       {isLoading ? (
-        <div className="mt-6 flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-        </div>
+        <LoadingScreen />
       ) : (
         <div className="mt-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

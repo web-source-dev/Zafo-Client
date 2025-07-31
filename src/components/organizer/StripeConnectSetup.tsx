@@ -7,6 +7,7 @@ import Input from '@/components/ui/Input';
 import Select from '@/components/ui/Select';
 import organizerService from '@/services/organizer-service';
 import { useLanguage } from '@/i18n/language-context';
+import LoadingScreen from '../ui/LoadingScreen';
 
 interface StripeAccountStatus {
   hasAccount: boolean;
@@ -75,14 +76,7 @@ const StripeConnectSetup: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <Card className="p-6">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2">{t('payment.stripeConnect.loadingStatus')}</p>
-        </div>
-      </Card>
-    );
+    return <LoadingScreen />;
   }
 
   if (!accountStatus) {

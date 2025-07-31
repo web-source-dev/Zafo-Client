@@ -7,6 +7,7 @@ import eventService, { Event, EventFilters, EventStats } from '@/services/event-
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
+import LoadingScreen from '@/components/ui/LoadingScreen';
 import { formatDate } from '@/utils/dateUtils';
 import { useLanguage } from '@/i18n/language-context';
 
@@ -88,11 +89,7 @@ export default function EventsPage() {
         <p className="text-gray-600">{t('events.listing.description')}</p>
       </div>
 
-      {isLoading && (
-        <div className="flex justify-center items-center min-h-[300px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
-      )}
+      {isLoading && <LoadingScreen />}
 
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4" role="alert">

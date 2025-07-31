@@ -5,6 +5,7 @@ import ticketService from "@/services/ticket-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
 import Badge from "@/components/ui/Badge";
+import LoadingScreen from "@/components/ui/LoadingScreen";
 
 interface RefundRequest {
   _id: string;
@@ -137,13 +138,7 @@ export default function OrganizerRefundRequestsPage() {
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--sage-green)]"></div>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
