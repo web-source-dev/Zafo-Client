@@ -29,7 +29,7 @@ function LoginContent() {
 
   return (
       <div className="my-18 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white/80 backdrop-blur-sm py-8 px-6 shadow-xl rounded-2xl sm:border-none border border-[var(--sage-green)]">
+        <div className="bg-white/80 backdrop-blur-sm py-8 px-6 shadow-xl rounded-2xl border border-transparent md:border-[var(--sage-green)]">
           <LoginForm redirectUrl={redirectUrl} />
         </div>
     </div>
