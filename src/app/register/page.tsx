@@ -29,7 +29,7 @@ function RegisterContent() {
   }
 
   return (
-    <div className="m-18 sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="my-18 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white/80 backdrop-blur-sm py-8 px-6 shadow-xl rounded-2xl border border-[var(--sage-green)]">
           <RegisterForm redirectUrl={redirectUrl} />
         </div>
