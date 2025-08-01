@@ -15,7 +15,7 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ label, error, fullWidth = false, helperText, options, icon, className = '', ...props }, ref) => {
     // Base styles
-    const baseStyles = 'border rounded-lg py-3 px-4 pr-10 focus:outline-none focus:ring-2 transition-all duration-200 appearance-none text-sm';
+    const baseStyles = 'border-2 border-[var(--sage-green)] rounded-xl py-3 px-4 pr-10 focus:outline-none focus:ring-2 transition-all duration-200 appearance-none text-sm w-full';
     
     // Width styles
     const widthStyles = fullWidth ? 'w-full' : '';

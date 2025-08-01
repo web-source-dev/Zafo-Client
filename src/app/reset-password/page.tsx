@@ -1,26 +1,22 @@
 'use client';
 
-import React, { useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import LoginForm from '../../components/auth/LoginForm';
+import React, { Suspense } from 'react';
+import { useRouter } from 'next/navigation';
+import ResetPasswordForm from '../../components/auth/ResetPasswordForm';
 import { useAuth } from '../../auth/auth-context';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 
-// Create a client component that uses useSearchParams
-function LoginContent() {
+// Create a client component
+function ResetPasswordContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { isAuthenticated, isLoading } = useAuth();
-  
-  // Get redirect URL from query params or use default
-  const redirectUrl = searchParams.get('redirect') || '/';
 
   // Redirect if already authenticated
-  useEffect(() => {
+  React.useEffect(() => {
     if (isAuthenticated && !isLoading) {
-      router.push(redirectUrl);
+      router.push('/');
     }
-  }, [isAuthenticated, isLoading, router, redirectUrl]);
+  }, [isAuthenticated, isLoading, router]);
 
   // Don't render the form if we're already authenticated
   if (isAuthenticated) {
@@ -28,19 +24,19 @@ function LoginContent() {
   }
 
   return (
-      <div className="m-18 sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="m-18 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white/80 backdrop-blur-sm py-8 px-6 shadow-xl rounded-2xl border border-[var(--sage-green)]">
-          <LoginForm redirectUrl={redirectUrl} />
+          <ResetPasswordForm />
         </div>
     </div>
   );
 }
 
 // Export the main page component with Suspense
-export default function LoginPage() {
+export default function ResetPasswordPage() {
   return (
     <Suspense fallback={<LoadingScreen />}>
-      <LoginContent />
+      <ResetPasswordContent />
     </Suspense>
   );
 } 

@@ -5,7 +5,7 @@ import { useLanguage } from '@/i18n/language-context';
 import FAQSection from '@/components/sections/faq/FAQSection';
 import { FaQuestion } from 'react-icons/fa';
 const FAQPage: React.FC = () => {
-  const { t, currentLanguage } = useLanguage();
+  const { t } = useLanguage();
   
   return (
     <>      

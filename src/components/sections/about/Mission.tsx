@@ -176,7 +176,7 @@ export default function AboutMission() {
                       {t('about.mission.quoteTitle')}
                     </h4>
                     <p className="text-[var(--black)]/80 italic text-lg leading-relaxed">
-                      "{t('about.mission.quote')}"
+                      {t('about.mission.quote')}
                     </p>
                   </div>
                 </div>

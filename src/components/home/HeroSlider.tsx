@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Play, Calendar, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, MapPin } from 'lucide-react';
 import { useLanguage } from '../../i18n/language-context';
 import Link from 'next/link';
 
@@ -32,7 +32,7 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ images }) => {
     {
       title: t('home.hero.connectThroughEvents'),
       subtitle: t('home.hero.buildCommunities'),
-      cta: t('home.hero.joinCommunity'),
+      cta: t('home.hero.startCreating'),
       stats: t('home.hero.attendeesCount')
     },
     {
@@ -123,10 +123,7 @@ const HeroSlider: React.FC<HeroSliderProps> = ({ images }) => {
                   >
                     {heroContent[index]?.cta || t('home.hero.exploreEvents')}
                   </Link>
-                  <button className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-[var(--black)] transition-all duration-200 transform hover:scale-105">
-                    <Play size={20} className="inline mr-2" />
-                    {t('home.hero.watchDemo')}
-                  </button>
+               
                 </div>
                 
                 <div className="flex items-center justify-center gap-6 text-sm sm:text-base">

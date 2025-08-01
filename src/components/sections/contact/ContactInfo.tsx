@@ -13,7 +13,7 @@ type ContentItem = {
 
 type ContactCard = {
   id: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ size: number; className: string }>;
   title: string;
   content: ContentItem[];
   color: string;
@@ -21,7 +21,7 @@ type ContactCard = {
 };
 
 export default function ContactInfo() {
-  const { t, currentLanguage } = useLanguage();
+  const { t } = useLanguage();
 
   const contactCards: ContactCard[] = [
     {

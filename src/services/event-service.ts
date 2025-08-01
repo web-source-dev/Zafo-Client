@@ -40,6 +40,7 @@ export interface EventPrice {
   amount: number;
   currency: string;
   isFree: boolean;
+  platformFee?: number;
 }
 
 export interface AgeRange {
@@ -104,6 +105,9 @@ export interface EventFilters {
   sort?: string;
   limit?: number;
   page?: number;
+  search?: string;
+  priceRange?: string;
+  location?: string;
 }
 
 export interface SavedEventResponse {

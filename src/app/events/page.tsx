@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import eventService, { Event, EventFilters, EventStats } from '@/services/event-service';
@@ -10,6 +10,8 @@ import Badge from '@/components/ui/Badge';
 import LoadingScreen from '@/components/ui/LoadingScreen';
 import { formatDate } from '@/utils/dateUtils';
 import { useLanguage } from '@/i18n/language-context';
+import Input from '@/components/ui/Input';
+import Select from '@/components/ui/Select';
 
 export default function EventsPage() {
   const { t } = useLanguage();
@@ -23,8 +25,38 @@ export default function EventsPage() {
     status: 'published',
     isPublic: true
   });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchInputValue, setSearchInputValue] = useState('');
+  const [priceRange, setPriceRange] = useState('');
+  const [locationFilter, setLocationFilter] = useState('');
   const [totalPages, setTotalPages] = useState(1);
   const router = useRouter();
+
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    (() => {
+      let timeoutId: NodeJS.Timeout;
+      return (value: string) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          setSearchTerm(value);
+        }, 500);
+      };
+    })(),
+    []
+  );
+
+  // Update filters when search, price, or location changes
+  useEffect(() => {
+    const updatedFilters: EventFilters = {
+      ...filters,
+      page: 1, // Reset to first page when filters change
+      search: searchTerm || undefined,
+      priceRange: priceRange || undefined,
+      location: locationFilter || undefined
+    };
+    setFilters(updatedFilters);
+  }, [searchTerm, priceRange, locationFilter]);
 
   // Fetch events when component mounts or filters change
   useEffect(() => {
@@ -82,11 +114,91 @@ export default function EventsPage() {
     router.push(`/events/${slug}`);
   };
 
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm('');
+    setSearchInputValue('');
+    setPriceRange('');
+    setLocationFilter('');
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 bg-white w-full">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">{t('events.listing.title')}</h1>
         <p className="text-gray-600">{t('events.listing.description')}</p>
+      </div>
+
+      {/* Filters Section */}
+      <div className="mb-8 p-6 bg-gray-50 rounded-lg">
+        <h2 className="text-lg font-semibold mb-4">{t('events.filters.title') || 'Filters'}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('events.filters.search') || 'Search Events'}
+            </label>
+            <Input
+              type="text"
+              placeholder={t('events.filters.searchPlaceholder') || 'Search by title, description...'}
+              value={searchInputValue}
+              onChange={(e) => {
+                setSearchInputValue(e.target.value);
+                debouncedSearch(e.target.value);
+              }}
+              className="w-full"
+            />
+          </div>
+
+          {/* Price Range Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('events.filters.priceRange') || 'Price Range'}
+            </label>
+            <Select
+              value={priceRange}
+              onChange={(e) => setPriceRange(e.target.value)}
+              options={[
+                { value: '', label: t('events.filters.allPrices') || 'All Prices' },
+                { value: '0-20', label: t('events.filters.under20') || 'Under $20' },
+                { value: '20-50', label: t('events.filters.20to50') || '$20 - $50' },
+                { value: '50-100', label: t('events.filters.50to100') || '$50 - $100' },
+                { value: '100-150', label: t('events.filters.100to150') || '$100 - $150' },
+                { value: '150-200', label: t('events.filters.150to200') || '$150 - $200' },
+                { value: '200+', label: t('events.filters.over200') || 'Over $200' },
+                { value: 'free', label: t('events.filters.free') || 'Free' }
+              ]}
+              fullWidth
+            />
+          </div>
+
+          {/* Location Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t('events.filters.location') || 'Location'}
+            </label>
+            <Input
+              type="text"
+              placeholder={t('events.filters.locationPlaceholder') || 'Enter city or location...'}
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="w-full"
+            />
+          </div>
+        </div>
+
+        {/* Clear Filters Button */}
+        {(searchTerm || priceRange || locationFilter) && (
+          <div className="mt-4">
+            <Button
+              variant="outline"
+              onClick={clearFilters}
+              className="text-sm"
+            >
+              {t('events.filters.clear') || 'Clear All Filters'}
+            </Button>
+          </div>
+        )}
       </div>
 
       {isLoading && <LoadingScreen />}
@@ -136,7 +248,7 @@ export default function EventsPage() {
                 <div className="p-4">
                   <div className="flex justify-between items-start mb-2">
                     <Badge variant={event.price.isFree ? 'success' : 'default'}>
-                      {event.price.isFree ? t('events.free') : `${event.price.amount} ${event.price.currency}`}
+                        {event.price.isFree ? t('events.free') : `${event.price.amount} ${event.price.currency}`} {t('events.detail.perTicket')}
                     </Badge>
                     <Badge variant="outline">{event.category}</Badge>
                   </div>

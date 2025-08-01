@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Clock, MapPin, Star, Users, Calendar, Heart } from 'lucide-react';
+import { Clock, MapPin, Users, Heart } from 'lucide-react';
 import { useLanguage } from '../../i18n/language-context';
 import { Event } from '../../services/event-service';
 

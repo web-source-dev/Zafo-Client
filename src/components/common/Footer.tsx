@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useLanguage } from '../../i18n/language-context';
 import LanguageSwitcher from './LanguageSwitcher';
 import { Facebook, Twitter, Instagram, Linkedin, Youtube, Mail, Phone, MapPin, ArrowRight } from 'lucide-react';
@@ -19,16 +18,14 @@ const Footer: React.FC = () => {
         { name: t('footer.contact'), href: '/contact' },
         { name: t('footer.blog'), href: '/blog' },
         { name: t('footer.faq'), href: '/faq' },
-        { name: t('footer.accessibility'), href: '/accessibility' },
       ],
     },
     {
       title: t('footer.resources'),
       links: [
+        { name: t('footer.accessibility'), href: '/accessibility' },
         { name: t('footer.privacy'), href: '/privacy' },
         { name: t('footer.terms'), href: '/terms' }, 
-        { name: t('footer.help'), href: '/help' },
-        { name: t('footer.legal'), href: '/legal' },
       ],
     },
   ];
@@ -94,7 +91,7 @@ const Footer: React.FC = () => {
           </div>
 
           {/* Links */}
-          {footerLinks.map((column, index) => (
+          {footerLinks.map((column) => (
             <div key={column.title} className="lg:col-span-1">
               <h3 className="text-lg font-semibold text-[var(--black)] mb-6 relative">
                 {column.title}

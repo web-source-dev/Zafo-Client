@@ -65,57 +65,77 @@ const LoginForm: React.FC<LoginFormProps> = ({ redirectUrl = '/' }) => {
   };
 
   return (
-    <div className="w-full max-w-md">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {serverError && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md">
-            {serverError}
-          </div>
-        )}
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-gray-900">
+          {t('auth.signInAccount') || 'Sign In to Your Account'}
+        </h2>
+        <p className="mt-2 text-sm text-gray-600">
+          {t('auth.signInDescription') || 'Welcome back! Please sign in to your account.'}
+        </p>
+      </div>
 
-        <Input
-          label={t('auth.email')}
-          type="email"
-          fullWidth
-          error={errors.email?.message}
-          {...register('email')}
-        />
+      {serverError && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          <p className="text-sm">{serverError}</p>
+        </div>
+      )}
 
-        <Input
-          label={t('auth.password')}
-          type="password"
-          fullWidth
-          error={errors.password?.message}
-          {...register('password')}
-        />
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            {t('auth.email') || 'Email Address'}
+          </label>
+          <Input
+            id="email"
+            type="email"
+            placeholder={t('auth.emailPlaceholder') || 'Enter your email address'}
+            fullWidth
+            error={errors.email?.message}
+            {...register('email')}
+          />
+        </div>
 
-        <div className="flex items-center justify-between">
-          <div className="text-sm">
-            <a href="/forgot-password" className="text-[var(--sage-green)] hover:text-[#424b3c]">
-              {t('auth.forgotPassword')}
-            </a>
-          </div>
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            {t('auth.password') || 'Password'}
+          </label>
+          <Input
+            id="password"
+            type="password"
+            placeholder={t('auth.passwordPlaceholder') || 'Enter your password'}
+            fullWidth
+            error={errors.password?.message}
+            {...register('password')}
+          />
+        </div>
+
+        <div className="flex items-center justify-end">
+          <a href="/forgot-password" className="text-sm text-[var(--sage-green)] hover:text-[#424b3c] transition-colors">
+            {t('auth.forgotPassword') || 'Forgot Password?'}
+          </a>
         </div>
 
         <Button
           type="submit"
-          variant="primary"
           fullWidth
-          isLoading={isSubmitting}
           disabled={isSubmitting}
         >
-          {t('common.signIn')}
+          {isSubmitting 
+            ? (t('auth.signingIn') || 'Signing In...') 
+            : (t('common.signIn') || 'Sign In')
+          }
         </Button>
-
-        <div className="text-center mt-4">
-          <p className="text-sm text-black">
-            {t('auth.noAccount')}{' '}
-            <a href="/register" className="text-[var(--sage-green)] hover:text-[#424b3c] font-medium">
-              {t('common.signUp')}
-            </a>
-          </p>
-        </div>
       </form>
+
+      <div className="text-center">
+        <p className="text-sm text-gray-600">
+          {t('auth.noAccount') || "Don't have an account?"}{' '}
+          <a href="/register" className="font-medium text-[var(--sage-green)] hover:text-[#424b3c] transition-colors">
+            {t('common.signUp') || 'Sign Up'}
+          </a>
+        </p>
+      </div>
     </div>
   );
 };

@@ -16,7 +16,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, fullWidth = false, helperText, icon, clearable = false, onClear, className = '', disabled, ...props }, ref) => {
     // Base styles
-    const baseStyles = 'border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 transition-all duration-200 text-sm';
+    const baseStyles = 'border-2 border-[var(--sage-green)] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 transition-all duration-200 text-sm w-full';
     
     // Width styles
     const widthStyles = fullWidth ? 'w-full' : '';

@@ -84,79 +84,119 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ redirectUrl = '/login' }) =
   };
 
   return (
-    <div className="w-full max-w-md">
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-gray-900">
+          {t('auth.createAccount') || 'Create Your Account'}
+        </h2>
+        <p className="mt-2 text-sm text-gray-600">
+          {t('auth.createAccountDescription') || 'Join us and start exploring amazing events!'}
+        </p>
+      </div>
+
+      {serverError && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+          <p className="text-sm">{serverError}</p>
+        </div>
+      )}
+
+      {success && (
+        <div className="p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
+          <p className="text-sm">{success}</p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {serverError && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-md">
-            {serverError}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-2">
+              {t('auth.firstName') || 'First Name'}
+            </label>
+            <Input
+              id="firstName"
+              placeholder={t('auth.firstNamePlaceholder') || 'Enter your first name'}
+              fullWidth
+              error={errors.firstName?.message}
+              {...register('firstName')}
+            />
           </div>
-        )}
 
-        {success && (
-          <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded-md">
-            {success}
+          <div>
+            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-2">
+              {t('auth.lastName') || 'Last Name'}
+            </label>
+            <Input
+              id="lastName"
+              placeholder={t('auth.lastNamePlaceholder') || 'Enter your last name'}
+              fullWidth
+              error={errors.lastName?.message}
+              {...register('lastName')}
+            />
           </div>
-        )}
+        </div>
 
-        <div className="flex space-x-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+            {t('auth.email') || 'Email Address'}
+          </label>
           <Input
-            label={t('auth.firstName')}
+            id="email"
+            type="email"
+            placeholder={t('auth.emailPlaceholder') || 'Enter your email address'}
             fullWidth
-            error={errors.firstName?.message}
-            {...register('firstName')}
-          />
-
-          <Input
-            label={t('auth.lastName')}
-            fullWidth
-            error={errors.lastName?.message}
-            {...register('lastName')}
+            error={errors.email?.message}
+            {...register('email')}
           />
         </div>
 
-        <Input
-          label={t('auth.email')}
-          type="email"
-          fullWidth
-          error={errors.email?.message}
-          {...register('email')}
-        />
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+            {t('auth.password') || 'Password'}
+          </label>
+          <Input
+            id="password"
+            type="password"
+            placeholder={t('auth.passwordPlaceholder') || 'Create a password'}
+            fullWidth
+            error={errors.password?.message}
+            {...register('password')}
+          />
+        </div>
 
-        <Input
-          label={t('auth.password')}
-          type="password"
-          fullWidth
-          error={errors.password?.message}
-          {...register('password')}
-        />
-
-        <Input
-          label={t('auth.confirmPassword')}
-          type="password"
-          fullWidth
-          error={errors.confirmPassword?.message}
-          {...register('confirmPassword')}
-        />
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+            {t('auth.confirmPassword') || 'Confirm Password'}
+          </label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            placeholder={t('auth.confirmPasswordPlaceholder') || 'Confirm your password'}
+            fullWidth
+            error={errors.confirmPassword?.message}
+            {...register('confirmPassword')}
+          />
+        </div>
 
         <Button
           type="submit"
-          variant="primary"
           fullWidth
-          isLoading={isSubmitting}
           disabled={isSubmitting}
         >
-          {t('common.signUp')}
+          {isSubmitting 
+            ? (t('auth.creatingAccount') || 'Creating Account...') 
+            : (t('common.signUp') || 'Sign Up')
+          }
         </Button>
-
-        <div className="text-center mt-4">
-          <p className="text-sm text-black">
-            {t('auth.haveAccount')}{' '}
-            <a href="/login" className="text-[var(--sage-green)] hover:text-[#424b3c] font-medium">
-              {t('common.signIn')}
-            </a>
-          </p>
-        </div>
       </form>
+
+      <div className="text-center">
+        <p className="text-sm text-gray-600">
+          {t('auth.haveAccount') || 'Already have an account?'}{' '}
+          <a href="/login" className="font-medium text-[var(--sage-green)] hover:text-[#424b3c] transition-colors">
+            {t('common.signIn') || 'Sign In'}
+          </a>
+        </p>
+      </div>
     </div>
   );
 };

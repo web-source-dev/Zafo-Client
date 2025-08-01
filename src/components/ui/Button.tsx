@@ -20,7 +20,7 @@ const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   // Base button styles
-  const baseStyles = 'font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseStyles = 'font-medium rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
   
   // Width styles
   const widthStyles = fullWidth ? 'w-full' : '';

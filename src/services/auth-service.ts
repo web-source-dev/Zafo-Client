@@ -54,6 +54,17 @@ export interface UpdateProfileRequest {
   phone?: string;
 }
 
+// Forgot password request interface
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+// Reset password request interface
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
+
 // Auth service class
 class AuthService {
   private authHeader(token: string) {
@@ -325,6 +336,48 @@ class AuthService {
   isOrganizer(): boolean {
     const user = this.getCurrentUser();
     return !!user && (user.role === 'organizer' || user.role === 'admin');
+  }
+
+  /**
+   * Forgot password - send reset email
+   * @param email string
+   * @returns Promise<AuthResponse>
+   */
+  async forgotPassword(email: string): Promise<AuthResponse> {
+    try {
+      const response = await axios.post(`${API_URL}/auth/forgot-password`, { email });
+      return response.data;
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      return {
+        success: false,
+        message: axiosError.response?.data?.message || 'Failed to send reset email',
+        error: axiosError.response?.data?.error || axiosError.message
+      };
+    }
+  }
+
+  /**
+   * Reset password with token
+   * @param token string
+   * @param newPassword string
+   * @returns Promise<AuthResponse>
+   */
+  async resetPassword(token: string, newPassword: string): Promise<AuthResponse> {
+    try {
+      const response = await axios.post(`${API_URL}/auth/reset-password`, { 
+        token, 
+        newPassword 
+      });
+      return response.data;
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<ApiErrorResponse>;
+      return {
+        success: false,
+        message: axiosError.response?.data?.message || 'Failed to reset password',
+        error: axiosError.response?.data?.error || axiosError.message
+      };
+    }
   }
 }
 
