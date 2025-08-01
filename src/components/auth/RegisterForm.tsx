@@ -30,6 +30,8 @@ interface RegisterFormProps {
   redirectUrl?: string;
 }
 
+type AccountType = 'user' | 'organizer';
+
 const RegisterForm: React.FC<RegisterFormProps> = ({ redirectUrl = '/login' }) => {
   const { register: registerUser } = useAuth();
   const { t } = useLanguage();
@@ -37,6 +39,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ redirectUrl = '/login' }) =
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [accountType, setAccountType] = useState<AccountType>('user');
 
   const registerSchema = getRegisterSchema(t);
 
@@ -60,11 +63,15 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ redirectUrl = '/login' }) =
     setServerError(null);
     setSuccess(null);
 
-    // Remove confirmPassword from data sent to API
-    const { ...registerData } = data;
+    // Remove confirmPassword from data sent to API and add role
+    const { confirmPassword, ...registerData } = data;
+    const userData = {
+      ...registerData,
+      role: accountType
+    };
 
     try {
-      const response = await registerUser(registerData);
+      const response = await registerUser(userData);
 
       if (response.success) {
         setSuccess(t('auth.registrationSuccess'));
@@ -85,12 +92,44 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ redirectUrl = '/login' }) =
 
   return (
     <div className="space-y-6">
+      {/* Account Type Tabs */}
+      <div className="flex bg-gray-100 rounded-lg p-1">
+        <button
+          type="button"
+          onClick={() => setAccountType('user')}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+            accountType === 'user'
+              ? 'bg-white text-[var(--sage-green)] shadow-sm'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          {t('auth.userAccount') || 'User Account'}
+        </button>
+        <button
+          type="button"
+          onClick={() => setAccountType('organizer')}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-200 ${
+            accountType === 'organizer'
+              ? 'bg-white text-[var(--sage-green)] shadow-sm'
+              : 'text-gray-600 hover:text-gray-800'
+          }`}
+        >
+          {t('auth.organizerAccount') || 'Organizer Account'}
+        </button>
+      </div>
+
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900">
-          {t('auth.createAccount') || 'Create Your Account'}
+          {accountType === 'user' 
+            ? (t('auth.createUserAccount') || 'Create User Account')
+            : (t('auth.createOrganizerAccount') || 'Create Organizer Account')
+          }
         </h2>
         <p className="mt-2 text-sm text-gray-600">
-          {t('auth.createAccountDescription') || 'Join us and start exploring amazing events!'}
+          {accountType === 'user'
+            ? (t('auth.createUserAccountDescription') || 'Join us and start exploring amazing events!')
+            : (t('auth.createOrganizerAccountDescription') || 'Start creating and managing your own events!')
+          }
         </p>
       </div>
 

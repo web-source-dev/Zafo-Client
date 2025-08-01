@@ -1,19 +1,41 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../auth/auth-context';
 import { useLanguage } from '../../i18n/language-context';
 import Button from '../ui/Button';
 import LanguageSwitcher from './LanguageSwitcher';
-import { Menu, X, User, LogOut, Home, Calendar, Settings } from 'lucide-react';
+import { 
+  Menu, 
+  X, 
+  User, 
+  LogOut, 
+  Home, 
+  Calendar, 
+  Settings, 
+  ChevronDown,
+  BookOpen,
+  Info,
+  HelpCircle,
+  Contact,
+  FileText,
+  Shield,
+  Crown,
+  Users,
+  BarChart3,
+  CreditCard,
+  Bell
+} from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout, isAdmin, isOrganizer } = useAuth();
   const { t } = useLanguage();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const pathname = usePathname();
 
@@ -26,13 +48,36 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Handle dropdown click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
   };
 
   const handleLogout = () => {
     logout();
     router.push('/login');
+    setIsDropdownOpen(false);
+  };
+
+  const handleNavigation = (href: string) => {
+    router.push(href);
+    setIsDropdownOpen(false);
+    setIsMenuOpen(false);
   };
 
   // Helper function to check if a link is active
@@ -49,6 +94,20 @@ const Navbar: React.FC = () => {
     return isActive 
       ? 'text-[var(--sage-green)] border-b-2 border-[var(--sage-green)]' 
       : 'text-[var(--black)] hover:text-[var(--sage-green)] hover:bg-[var(--sage)]/10';
+  };
+
+  // Get role display name
+  const getRoleDisplayName = () => {
+    if (isAdmin) return t('role.admin') || 'Administrator';
+    if (isOrganizer) return t('role.organizer') || 'Organizer';
+    return t('role.user') || 'User';
+  };
+
+  // Get role icon
+  const getRoleIcon = () => {
+    if (isAdmin) return <Crown size={16} className="text-yellow-600" />;
+    if (isOrganizer) return <Users size={16} className="text-blue-600" />;
+    return <User size={16} className="text-gray-600" />;
   };
 
   return (
@@ -89,68 +148,136 @@ const Navbar: React.FC = () => {
               </div>
             </Link>
 
-            {isAuthenticated && !isOrganizer && !isAdmin && (
-              <Link 
-                href="/dashboard" 
-                className={`group relative px-4 py-2 text-sm font-medium transition-all duration-200 ${getActiveStyles('/dashboard')}`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Settings size={16} className={`group-hover:scale-110 transition-transform ${isActiveLink('/dashboard') ? 'text-[var(--sage-green)]' : ''}`} />
-                  <span>{t('common.dashboard')}</span>
-                </div>
-              </Link>
-            )}
-            
-            {isOrganizer && !isAdmin && (
-              <Link 
-                href="/organizer" 
-                className={`group relative px-4 py-2 text-sm font-medium transition-all duration-200 ${getActiveStyles('/organizer')}`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Settings size={16} className={`group-hover:scale-110 transition-transform ${isActiveLink('/organizer') ? 'text-[var(--sage-green)]' : ''}`} />
-                  <span>{t('organizer.dashboard')}</span>
-                </div>
-              </Link>
-            )}
+            <Link 
+              href="/about" 
+              className={`group relative px-4 py-2 text-sm font-medium transition-all duration-200 ${getActiveStyles('/about')}`}
+            >
+              <div className="flex items-center space-x-2">
+                <Info size={16} className={`group-hover:scale-110 transition-transform ${isActiveLink('/about') ? 'text-[var(--sage-green)]' : ''}`} />
+                <span>About</span>
+              </div>
+            </Link>
 
-            {isAdmin && (
-              <Link 
-                href="/admin" 
-                className={`group relative px-4 py-2 text-sm font-medium transition-all duration-200 ${getActiveStyles('/admin')}`}
-              >
-                <div className="flex items-center space-x-2">
-                  <Settings size={16} className={`group-hover:scale-110 transition-transform ${isActiveLink('/admin') ? 'text-[var(--sage-green)]' : ''}`} />
-                  <span>{t('admin.dashboard')}</span>
-                </div>
-              </Link>
-            )}
-          </div>
+            <Link 
+              href="/blog" 
+              className={`group relative px-4 py-2 text-sm font-medium transition-all duration-200 ${getActiveStyles('/blog')}`}
+            >
+              <div className="flex items-center space-x-2">
+                <BookOpen size={16} className={`group-hover:scale-110 transition-transform ${isActiveLink('/blog') ? 'text-[var(--sage-green)]' : ''}`} />
+                <span>Blog</span>
+              </div>
+            </Link>
 
+            <Link 
+              href="/contact" 
+              className={`group relative px-4 py-2 text-sm font-medium transition-all duration-200 ${getActiveStyles('/contact')}`}
+            >
+              <div className="flex items-center space-x-2">
+                <Contact size={16} className={`group-hover:scale-110 transition-transform ${isActiveLink('/contact') ? 'text-[var(--sage-green)]' : ''}`} />
+                <span>Contact</span>
+              </div>
+            </Link>
+
+            </div>
+              
           {/* Desktop Auth Buttons and Language Switcher */}
           <div className="hidden lg:flex lg:items-center lg:space-x-4">
             <LanguageSwitcher variant="minimal" />
             
             {isAuthenticated ? (
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2 bg-[var(--sage)]/10 px-3 py-2 rounded-lg">
-                  <div className="w-6 h-6 bg-gradient-to-br from-[var(--sage-green)] to-[var(--cognac)] rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={toggleDropdown}
+                  className="flex items-center space-x-3 bg-[var(--sage)]/10 px-4 py-2 rounded-lg hover:bg-[var(--sage)]/20 transition-all duration-200 cursor-pointer"
+                >
+                  <div className="w-8 h-8 bg-gradient-to-br from-[var(--sage-green)] to-[var(--cognac)] rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">
                       {user?.firstName?.charAt(0)?.toUpperCase()}
                     </span>
                   </div>
-                  <span className="text-sm font-medium text-[var(--black)]">
-                    Hi, {user?.firstName}
-                  </span>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleLogout}
-                  className="flex items-center space-x-2 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-all duration-200"
-                >
-                  <LogOut size={14} />
-                  <span>{t('common.logout')}</span>
-                </Button>
+                  <div className="text-left">
+                    <div className="text-sm font-medium text-[var(--black)]">
+                      {user?.firstName} {user?.lastName}
+                    </div>
+                    <div className="flex items-center space-x-1 text-xs text-gray-600">
+                      {getRoleIcon()}
+                      <span>{getRoleDisplayName()}</span>
+                    </div>
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} 
+                  />
+                </button>
+
+                {/* Dropdown Menu */}
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                    {/* User Info */}
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-[var(--sage-green)] to-[var(--cognac)] rounded-full flex items-center justify-center">
+                          <span className="text-white text-sm font-bold">
+                            {user?.firstName?.charAt(0)?.toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-medium text-[var(--black)]">
+                            {user?.firstName} {user?.lastName}
+                          </div>
+                          <div className="text-sm text-gray-600 truncate">{user?.email}</div>
+                          <div className="flex items-center space-x-1 text-xs text-gray-500 mt-1">
+                            {getRoleIcon()}
+                            <span>{getRoleDisplayName()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                                         {/* Menu Items */}
+                     <div className="py-1">
+                       {isAdmin && (
+                         <button
+                           onClick={() => handleNavigation('/admin')}
+                           className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                         >
+                           <Settings size={16} />
+                           <span>{t('admin.dashboard')}</span>
+                         </button>
+                       )}
+
+                       {isOrganizer && !isAdmin && (
+                         <button
+                           onClick={() => handleNavigation('/organizer')}
+                           className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                         >
+                           <Settings size={16} />
+                           <span>{t('organizer.dashboard')}</span>
+                         </button>
+                       )}
+
+                       {!isOrganizer && !isAdmin && (
+                         <button
+                           onClick={() => handleNavigation('/dashboard')}
+                           className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                         >
+                           <BarChart3 size={16} />
+                           <span>{t('common.dashboard')}</span>
+                         </button>
+                       )}
+
+                       <div className="border-t border-gray-100 my-1"></div>
+
+                       <button
+                         onClick={handleLogout}
+                         className="flex items-center space-x-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                       >
+                         <LogOut size={16} />
+                         <span>{t('common.logout')}</span>
+                       </button>
+                     </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex items-center space-x-3">
@@ -209,17 +336,54 @@ const Navbar: React.FC = () => {
             <span>Events</span>
           </Link>
 
+          <Link 
+            href="/about" 
+            className={`flex items-center space-x-3 px-4 py-3 text-base font-medium transition-all duration-200 ${isActiveLink('/about') ? 'text-[var(--sage-green)] border-b-2 border-[var(--sage-green)]' : 'text-[var(--black)] hover:text-[var(--sage-green)] hover:bg-[var(--sage)]/10'}`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <Info size={20} className={isActiveLink('/about') ? 'text-[var(--sage-green)]' : ''} />
+            <span>About</span>
+          </Link>
+
+          <Link 
+            href="/blog" 
+            className={`flex items-center space-x-3 px-4 py-3 text-base font-medium transition-all duration-200 ${isActiveLink('/blog') ? 'text-[var(--sage-green)] border-b-2 border-[var(--sage-green)]' : 'text-[var(--black)] hover:text-[var(--sage-green)] hover:bg-[var(--sage)]/10'}`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <BookOpen size={20} className={isActiveLink('/blog') ? 'text-[var(--sage-green)]' : ''} />
+            <span>Blog</span>
+          </Link>
+
+          <Link 
+            href="/contact" 
+            className={`flex items-center space-x-3 px-4 py-3 text-base font-medium transition-all duration-200 ${isActiveLink('/contact') ? 'text-[var(--sage-green)] border-b-2 border-[var(--sage-green)]' : 'text-[var(--black)] hover:text-[var(--sage-green)] hover:bg-[var(--sage)]/10'}`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <Contact size={20} className={isActiveLink('/contact') ? 'text-[var(--sage-green)]' : ''} />
+            <span>Contact</span>
+          </Link>
+
           {isAuthenticated && (
             <>
-              <Link 
-                href="/profile" 
-                className={`flex items-center space-x-3 px-4 py-3 text-base font-medium transition-all duration-200 ${isActiveLink('/profile') ? 'text-[var(--sage-green)] border-b-2 border-[var(--sage-green)]' : 'text-[var(--black)] hover:text-[var(--sage-green)] hover:bg-[var(--sage)]/10'}`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <User size={20} className={isActiveLink('/profile') ? 'text-[var(--sage-green)]' : ''} />
-                <span>{t('common.profile')}</span>
-              </Link>
 
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex items-center space-x-3 px-4 py-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[var(--sage-green)] to-[var(--cognac)] rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">
+                      {user?.firstName?.charAt(0)?.toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="font-medium text-[var(--black)]">
+                      {user?.firstName} {user?.lastName}
+                    </div>
+                    <div className="flex items-center space-x-1 text-xs text-gray-600">
+                      {getRoleIcon()}
+                      <span>{getRoleDisplayName()}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
               {isOrganizer && (
                 <Link 
                   href="/organizer" 
@@ -242,6 +406,16 @@ const Navbar: React.FC = () => {
                 </Link>
               )}
 
+              {!isOrganizer && !isAdmin && (
+                <Link 
+                  href="/dashboard" 
+                  className={`flex items-center space-x-3 px-4 py-3 text-base font-medium transition-all duration-200 ${isActiveLink('/dashboard') ? 'text-[var(--sage-green)] border-b-2 border-[var(--sage-green)]' : 'text-[var(--black)] hover:text-[var(--sage-green)] hover:bg-[var(--sage)]/10'}`}
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <BarChart3 size={20} className={isActiveLink('/dashboard') ? 'text-[var(--sage-green)]' : ''} />
+                  <span>{t('common.dashboard')}</span>
+                </Link>
+              )}
               <button
                 onClick={() => {
                   handleLogout();

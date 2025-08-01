@@ -29,7 +29,7 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
-  role?: 'user' | 'admin' | 'organizer';
+  role: 'user' | 'admin' | 'organizer';
 }
 
 // Login request interface
