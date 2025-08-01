@@ -64,7 +64,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ redirectUrl = '/login' }) =
     setSuccess(null);
 
     // Remove confirmPassword from data sent to API and add role
-    const { confirmPassword, ...registerData } = data;
+    const { ...registerData } = data;
     const userData = {
       ...registerData,
       role: accountType

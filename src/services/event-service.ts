@@ -30,11 +30,7 @@ export interface AdditionalField {
   content: string;
 }
 
-export interface EventSEO {
-  metaTitle: string;
-  metaDescription: string;
-  ogImage?: string;
-}
+
 
 export interface EventPrice {
   amount: number;
@@ -74,7 +70,7 @@ export interface Event {
   isPublic: boolean;
   organizer: string | { _id: string; firstName: string; lastName: string; email: string; };
   slug: string;
-  seo?: EventSEO;
+
   createdAt: Date;
   updatedAt: Date;
   savedAt?: Date; // For saved events

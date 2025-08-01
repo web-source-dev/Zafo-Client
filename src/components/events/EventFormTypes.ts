@@ -50,12 +50,7 @@ export interface EventFormData {
     title: string;
     content: string;
   }[];
-  seo?: {
-    metaTitle: string;
-    metaDescription: string;
-    ogImage?: string;
-    ogImageFile?: File;
-  };
+
 }
 
 export interface SectionState {

@@ -16,7 +16,7 @@ import ImagesSection from './sections/ImagesSection';
 import PricingSection from './sections/PricingSection';
 import DetailsSection from './sections/DetailsSection';
 import AdditionalInfoSection from './sections/AdditionalInfoSection';
-import SEOSection from './sections/SEOSection';
+
 import LoadingScreen from '../ui/LoadingScreen';
 
 interface EventFormContainerProps {
@@ -167,7 +167,7 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
         deliverBy: event.deliverBy || '',
         speakers: event.speakers || [],
         additionalFields: event.additionalFields || [],
-        seo: event.seo
+
       });
     }
   }, [event, isEdit, methods]);
@@ -209,15 +209,6 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
           })
         );
       }
-      
-      if (data.seo?.ogImageFile) {
-        processedData.seo = {
-          ...data.seo,
-          ogImage: await fileToBase64(data.seo.ogImageFile)
-        };
-        delete processedData.seo.ogImageFile;
-      }
-      
       // Combine date and time
       const startDateTime = new Date(`${data.startDate}T${data.startTime}`);
       const endDateTime = new Date(`${data.endDate}T${data.endTime}`);
@@ -358,7 +349,6 @@ const EventFormContainer: React.FC<EventFormContainerProps> = ({ event, isEdit =
             <ImagesSection />
             <PricingSection />
             <AdditionalInfoSection />
-            <SEOSection />
           </div>
           
           {/* Form actions */}

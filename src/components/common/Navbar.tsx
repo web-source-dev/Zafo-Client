@@ -18,15 +18,10 @@ import {
   ChevronDown,
   BookOpen,
   Info,
-  HelpCircle,
   Contact,
-  FileText,
-  Shield,
   Crown,
   Users,
   BarChart3,
-  CreditCard,
-  Bell
 } from 'lucide-react';
 
 const Navbar: React.FC = () => {
