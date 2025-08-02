@@ -11,8 +11,6 @@ import {
   CheckCircle,
   Search,
   Ticket,
-  MapPin,
-  Star,
   DollarSign
 } from 'lucide-react';
 

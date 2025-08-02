@@ -7,10 +7,6 @@ import {
   Calendar, 
   DollarSign, 
   CreditCard, 
-  CheckCircle,
-  Users,
-  BarChart3,
-  Shield
 } from 'lucide-react';
 
 export default function PricingPlans() {

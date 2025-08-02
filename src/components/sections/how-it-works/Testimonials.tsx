@@ -3,6 +3,7 @@
 import { useLanguage } from '@/i18n/language-context';
 import { motion } from 'framer-motion';
 import { Star, Quote } from 'lucide-react';
+import Image from 'next/image';
 
 export default function HowItWorksTestimonials() {
   const { t } = useLanguage();
@@ -86,13 +87,13 @@ export default function HowItWorksTestimonials() {
                 
                 {/* Content */}
                 <p className="text-[var(--black)]/80 text-center leading-relaxed mb-6 italic">
-                  "{t(testimonial.content)}"
+                  {t(testimonial.content)}
                 </p>
                 
                 {/* Author */}
                 <div className="flex items-center justify-center gap-4">
                   <div className="w-12 h-12 rounded-full overflow-hidden">
-                    <img 
+                    <Image 
                       src={testimonial.avatar} 
                       alt={testimonial.name}
                       className="w-full h-full object-cover"

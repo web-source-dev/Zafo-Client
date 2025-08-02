@@ -7,7 +7,6 @@ import {
   Calendar, 
   Settings, 
   CreditCard, 
-  CheckCircle,
   ArrowRight
 } from 'lucide-react';
 

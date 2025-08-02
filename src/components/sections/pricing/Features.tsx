@@ -9,8 +9,6 @@ import {
   BarChart3, 
   MessageSquare, 
   Globe,
-  CreditCard,
-  Headphones
 } from 'lucide-react';
 
 export default function PricingFeatures() {

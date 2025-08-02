@@ -9,8 +9,6 @@ import {
   Shield, 
   Globe, 
   CreditCard,
-  MessageSquare,
-  Settings
 } from 'lucide-react';
 
 export default function BecomeOrganizerBenefits() {

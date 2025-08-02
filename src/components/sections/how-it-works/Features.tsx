@@ -8,8 +8,6 @@ import {
   Smartphone, 
   BarChart3, 
   MessageSquare, 
-  Calendar,
-  MapPin,
   Users,
   Settings,
   Zap,
