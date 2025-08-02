@@ -15,6 +15,9 @@ const Footer: React.FC = () => {
       title: t('footer.company'),
       links: [
         { name: t('footer.about'), href: '/about' },
+        { name: t('footer.howItWorks'), href: '/how-it-works' },
+        { name: t('footer.pricing'), href: '/pricing' },
+        { name: t('footer.becomeOrganizer'), href: '/become-organizer' },
         { name: t('footer.contact'), href: '/contact' },
         { name: t('footer.blog'), href: '/blog' },
         { name: t('footer.faq'), href: '/faq' },
